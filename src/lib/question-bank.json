@@ -1,0 +1,427 @@
+{
+  "candidate:cultural": {
+    "workStyle": [
+      {
+        "id": "workPace",
+        "type": "scale",
+        "question": "Como você prefere trabalhar?",
+        "description": "Seu ritmo e estilo de trabalho ideal",
+        "required": true,
+        "options": [
+          { "text": "Ritmo acelerado, sempre com urgência", "value": 5, "weight": 1 },
+          { "text": "Ritmo dinâmico, mas com planejamento", "value": 4, "weight": 0.8 },
+          { "text": "Ritmo equilibrado, sem pressa excessiva", "value": 3, "weight": 0.6 },
+          { "text": "Ritmo mais calmo, com tempo para reflexão", "value": 2, "weight": 0.4 },
+          { "text": "Ritmo bem tranquilo, sem pressão", "value": 1, "weight": 0.2 }
+        ],
+        "matchingWeight": 0.15
+      },
+      {
+        "id": "decisionMaking",
+        "type": "scale",
+        "question": "Como você toma decisões importantes?",
+        "description": "Seu processo de tomada de decisão",
+        "required": true,
+        "options": [
+          { "text": "Decido rapidamente, confio na intuição", "value": 5, "weight": 1 },
+          { "text": "Analiso dados básicos e decido", "value": 4, "weight": 0.8 },
+          { "text": "Busco equilíbrio entre análise e intuição", "value": 3, "weight": 0.6 },
+          { "text": "Preciso de dados detalhados para decidir", "value": 2, "weight": 0.4 },
+          { "text": "Analiso exaustivamente antes de decidir", "value": 1, "weight": 0.2 }
+        ],
+        "matchingWeight": 0.12
+      },
+      {
+        "id": "communicationStyle",
+        "type": "scale",
+        "question": "Como você prefere se comunicar no trabalho?",
+        "description": "Seu estilo de comunicação preferido",
+        "required": true,
+        "options": [
+          { "text": "Comunicação direta e objetiva", "value": 5, "weight": 1 },
+          { "text": "Clara, mas com contexto", "value": 4, "weight": 0.8 },
+          { "text": "Equilibrada entre formal e informal", "value": 3, "weight": 0.6 },
+          { "text": "Mais elaborada e detalhada", "value": 2, "weight": 0.4 },
+          { "text": "Formal e muito estruturada", "value": 1, "weight": 0.2 }
+        ],
+        "matchingWeight": 0.1
+      },
+      {
+        "id": "learningStyle",
+        "type": "scale",
+        "question": "Como você aprende melhor?",
+        "description": "Sua forma preferida de aprendizado",
+        "required": true,
+        "options": [
+          { "text": "Experimentando e errando na prática", "value": 5, "weight": 1 },
+          { "text": "Combinando teoria e prática", "value": 4, "weight": 0.8 },
+          { "text": "Com mentoria e feedback constante", "value": 3, "weight": 0.6 },
+          { "text": "Estudando teoria antes da prática", "value": 2, "weight": 0.4 },
+          { "text": "Cursos estruturados e certificações", "value": 1, "weight": 0.2 }
+        ],
+        "matchingWeight": 0.08
+      }
+    ],
+    "culturePreferences": [
+      {
+        "id": "companyValues",
+        "type": "scale",
+        "question": "Que tipo de valores empresariais são importantes para você?",
+        "description": "Princípios organizacionais que valoriza",
+        "required": true,
+        "options": [
+          { "text": "Inovação e disrupção constante", "value": 5, "weight": 1 },
+          { "text": "Crescimento e resultados acelerados", "value": 4, "weight": 0.8 },
+          { "text": "Equilíbrio entre inovação e estabilidade", "value": 3, "weight": 0.6 },
+          { "text": "Qualidade e excelência operacional", "value": 2, "weight": 0.4 },
+          { "text": "Tradição e processos consolidados", "value": 1, "weight": 0.2 }
+        ],
+        "matchingWeight": 0.2
+      },
+      {
+        "id": "workLifeBalance",
+        "type": "scale",
+        "question": "Qual é sua expectativa sobre work-life balance?",
+        "description": "Equilíbrio entre vida pessoal e profissional",
+        "required": true,
+        "options": [
+          { "text": "Flexibilidade total, work-life integration", "value": 5, "weight": 1 },
+          { "text": "Horários flexíveis, mas produtividade alta", "value": 4, "weight": 0.8 },
+          { "text": "Equilíbrio saudável entre ambos", "value": 3, "weight": 0.6 },
+          { "text": "Horários definidos, mas alguma flexibilidade", "value": 2, "weight": 0.4 },
+          { "text": "Estrutura clara de horários", "value": 1, "weight": 0.2 }
+        ],
+        "matchingWeight": 0.18
+      }
+    ],
+    "location": [
+      {
+        "id": "preferredStates",
+        "type": "multiselect",
+        "question": "Em quais estados você gostaria de trabalhar?",
+        "description": "Selecione seus estados preferidos",
+        "required": true,
+        "options": [
+          "Acre", "Alagoas", "Amapá", "Amazonas", "Bahia", "Ceará", "Distrito Federal", "Espírito Santo",
+          "Goiás", "Maranhão", "Mato Grosso", "Mato Grosso do Sul", "Minas Gerais", "Pará", "Paraíba",
+          "Paraná", "Pernambuco", "Piauí", "Rio de Janeiro", "Rio Grande do Norte", "Rio Grande do Sul",
+          "Rondônia", "Roraima", "Santa Catarina", "São Paulo", "Sergipe", "Tocantins"
+        ],
+        "matchingWeight": 0.25
+      },
+      {
+        "id": "workModel",
+        "type": "multiselect",
+        "question": "Qual modelo de trabalho você prefere?",
+        "description": "Modalidades de trabalho aceitas",
+        "required": true,
+        "options": ["Presencial", "Remoto", "Híbrido"],
+        "matchingWeight": 0.2
+      },
+      {
+        "id": "willingToRelocate",
+        "type": "boolean",
+        "question": "Você estaria disposto(a) a se mudar para uma nova cidade?",
+        "description": "Disponibilidade para relocação",
+        "required": true,
+        "matchingWeight": 0.1
+      }
+    ],
+    "compensation": [
+      {
+        "id": "expectedMin",
+        "type": "number",
+        "question": "Qual o salário mínimo que você aceita?",
+        "description": "Valor em reais (R$)",
+        "required": true,
+        "validation": { "min": 1000, "max": 100000 },
+        "matchingWeight": 0.3
+      },
+      {
+        "id": "expectedMax",
+        "type": "number",
+        "question": "Qual o salário máximo que você espera?",
+        "description": "Valor em reais (R$)",
+        "required": true,
+        "validation": { "min": 1000, "max": 200000 },
+        "matchingWeight": 0.25
+      },
+      {
+        "id": "benefitsPriority",
+        "type": "ranking",
+        "question": "Priorize os benefícios mais importantes para você",
+        "description": "Arraste para ordenar por importância",
+        "required": true,
+        "options": [
+          "Plano de saúde premium", "Plano odontológico", "Vale refeição", "Vale alimentação",
+          "Gympass ou academia", "Home office", "Horário flexível", "Férias flexíveis",
+          "Participação nos lucros", "Stock options", "Cursos e certificações", "Auxílio creche",
+          "Seguro de vida", "Previdência privada", "Day off aniversário", "Auxílio psicológico"
+        ],
+        "matchingWeight": 0.15
+      }
+    ]
+  },
+  "candidate:professional": [
+    {
+      "id": "leadership",
+      "type": "likert",
+      "question": "Eu me sinto confortável assumindo a liderança de projetos e equipes",
+      "dimension": "Liderança",
+      "category": "leadership",
+      "required": true,
+      "scale": { "min": 1, "max": 5, "labels": ["Discordo totalmente", "Discordo", "Neutro", "Concordo", "Concordo totalmente"] },
+      "matchingWeight": 0.2
+    },
+    {
+      "id": "communication",
+      "type": "likert",
+      "question": "Consigo comunicar ideias complexas de forma clara e objetiva",
+      "dimension": "Comunicação",
+      "category": "communication",
+      "required": true,
+      "scale": { "min": 1, "max": 5, "labels": ["Discordo totalmente", "Discordo", "Neutro", "Concordo", "Concordo totalmente"] },
+      "matchingWeight": 0.15
+    },
+    {
+      "id": "teamwork",
+      "type": "likert",
+      "question": "Prefiro trabalhar em equipe a trabalhar sozinho(a)",
+      "dimension": "Colaboração",
+      "category": "communication",
+      "required": true,
+      "scale": { "min": 1, "max": 5, "labels": ["Discordo totalmente", "Discordo", "Neutro", "Concordo", "Concordo totalmente"] },
+      "matchingWeight": 0.12
+    },
+    {
+      "id": "adaptability",
+      "type": "likert",
+      "question": "Me adapto facilmente a mudanças e situações inesperadas",
+      "dimension": "Adaptabilidade",
+      "category": "execution",
+      "required": true,
+      "scale": { "min": 1, "max": 5, "labels": ["Discordo totalmente", "Discordo", "Neutro", "Concordo", "Concordo totalmente"] },
+      "matchingWeight": 0.1
+    },
+    {
+      "id": "resultsOriented",
+      "type": "likert",
+      "question": "Sou orientado(a) por metas e resultados mensuráveis",
+      "dimension": "Foco em Resultados",
+      "category": "execution",
+      "required": true,
+      "scale": { "min": 1, "max": 5, "labels": ["Discordo totalmente", "Discordo", "Neutro", "Concordo", "Concordo totalmente"] },
+      "matchingWeight": 0.15
+    },
+    {
+      "id": "creativity",
+      "type": "likert",
+      "question": "Tenho facilidade para gerar ideias inovadoras e criativas",
+      "dimension": "Criatividade",
+      "category": "creative",
+      "required": true,
+      "scale": { "min": 1, "max": 5, "labels": ["Discordo totalmente", "Discordo", "Neutro", "Concordo", "Concordo totalmente"] },
+      "matchingWeight": 0.1
+    },
+    {
+      "id": "analytical",
+      "type": "likert",
+      "question": "Gosto de analisar dados e informações antes de agir",
+      "dimension": "Pensamento Analítico",
+      "category": "analytical",
+      "required": true,
+      "scale": { "min": 1, "max": 5, "labels": ["Discordo totalmente", "Discordo", "Neutro", "Concordo", "Concordo totalmente"] },
+      "matchingWeight": 0.12
+    },
+    {
+      "id": "pressureHandling",
+      "type": "likert",
+      "question": "Trabalho bem sob pressão e prazos apertados",
+      "dimension": "Gestão de Pressão",
+      "category": "execution",
+      "required": true,
+      "scale": { "min": 1, "max": 5, "labels": ["Discordo totalmente", "Discordo", "Neutro", "Concordo", "Concordo totalmente"] },
+      "matchingWeight": 0.08
+    }
+  ],
+  "candidate:dreamJob": [
+    {
+      "id": "position",
+      "type": "text",
+      "question": "Qual cargo você gostaria de ocupar?",
+      "description": "Ex: Desenvolvedor Frontend, Product Manager",
+      "required": true,
+      "validation": { "minLength": 2, "maxLength": 100 },
+      "matchingWeight": 0.25
+    },
+    {
+      "id": "positionLevel",
+      "type": "select",
+      "question": "Qual nível hierárquico você busca?",
+      "description": "Senioridade desejada",
+      "required": true,
+      "options": ["Júnior", "Pleno", "Sênior", "Especialista", "Coordenador", "Gerente", "Diretor", "VP/C-Level"],
+      "matchingWeight": 0.2
+    },
+    {
+      "id": "industry",
+      "type": "multiselect",
+      "question": "Em quais setores você gostaria de trabalhar?",
+      "description": "Selecione até 3 setores",
+      "required": true,
+      "maxSelections": 3,
+      "options": [
+        "Tecnologia", "Financeiro", "Varejo", "Saúde", "Consultoria", "Educação",
+        "Bens de Consumo", "Agronegócio", "Food Service", "Automotivo", "Energia",
+        "Mídia e Entretenimento", "Mineração", "Telecomunicações"
+      ],
+      "matchingWeight": 0.15
+    },
+    {
+      "id": "salaryMin",
+      "type": "number",
+      "question": "Salário mínimo desejado",
+      "description": "Valor em reais (R$)",
+      "required": true,
+      "validation": { "min": 1000, "max": 100000 },
+      "matchingWeight": 0.2
+    },
+    {
+      "id": "salaryMax",
+      "type": "number",
+      "question": "Salário máximo desejado",
+      "description": "Valor em reais (R$)",
+      "required": true,
+      "validation": { "min": 1000, "max": 200000 },
+      "matchingWeight": 0.15
+    },
+    {
+      "id": "workModel",
+      "type": "multiselect",
+      "question": "Modalidades de trabalho aceitas",
+      "description": "Escolha as modalidades que você aceita",
+      "required": true,
+      "options": ["Presencial", "Remoto", "Híbrido"],
+      "matchingWeight": 0.1
+    }
+  ],
+  "company:job": [
+    {
+      "id": "title",
+      "type": "select",
+      "question": "Qual o título da vaga?",
+      "description": "Selecione o cargo",
+      "required": true,
+      "options": [
+        "Desenvolvedor Frontend", "Desenvolvedor Backend", "Desenvolvedor Full Stack",
+        "Engenheiro de Software", "Arquiteto de Software", "Tech Lead",
+        "Data Scientist", "Data Analyst", "Data Engineer", "ML Engineer",
+        "UX Designer", "UI Designer", "Product Designer", "UX Researcher",
+        "Product Manager", "Product Owner", "Head of Product",
+        "Marketing Manager", "Growth Manager", "Digital Marketing Specialist",
+        "Sales Representative", "Account Executive", "Business Development Manager",
+        "Financial Analyst", "Controller", "Operations Manager",
+        "HR Generalist", "HR Business Partner", "Talent Acquisition Specialist"
+      ],
+      "matchingWeight": 0.25
+    },
+    {
+      "id": "department",
+      "type": "select",
+      "question": "Em qual departamento a vaga está localizada?",
+      "description": "Área da empresa",
+      "required": true,
+      "options": [
+        "Tecnologia", "Desenvolvimento", "DevOps", "Data Science", "Cybersecurity",
+        "Design", "UX/UI", "Marketing", "Vendas", "Business Development",
+        "Produto", "Recursos Humanos", "Financeiro", "Operações", "Jurídico",
+        "Customer Success", "Consultoria", "Estratégia", "Inovação"
+      ],
+      "matchingWeight": 0.15
+    },
+    {
+      "id": "experienceLevel",
+      "type": "select",
+      "question": "Qual nível de experiência é necessário?",
+      "description": "Senioridade da vaga",
+      "required": true,
+      "options": ["Júnior", "Pleno", "Sênior", "Especialista", "Coordenador", "Gerente", "Diretor", "VP/C-Level"],
+      "matchingWeight": 0.2
+    },
+    {
+      "id": "hardSkills",
+      "type": "multiselect",
+      "question": "Quais são as principais habilidades técnicas necessárias?",
+      "description": "Selecione até 8 habilidades",
+      "required": true,
+      "maxSelections": 8,
+      "options": [
+        "JavaScript", "TypeScript", "React", "Vue.js", "Angular", "Node.js", "Python", "Java",
+        "C#", ".NET", "PHP", "Ruby", "Go", "Rust", "Swift", "Kotlin",
+        "SQL", "MongoDB", "PostgreSQL", "MySQL", "Redis", "Elasticsearch",
+        "AWS", "Azure", "GCP", "Docker", "Kubernetes", "Jenkins", "GitLab CI",
+        "Machine Learning", "Deep Learning", "Data Science", "Big Data", "Hadoop", "Spark",
+        "Figma", "Adobe XD", "Sketch", "Photoshop", "Illustrator",
+        "Excel", "Power BI", "Tableau", "Salesforce", "HubSpot"
+      ],
+      "matchingWeight": 0.3
+    },
+    {
+      "id": "softSkillsIntensity",
+      "type": "slider",
+      "question": "Qual a intensidade necessária para cada soft skill?",
+      "description": "Avalie de 1 (baixo) a 5 (alto)",
+      "required": true,
+      "skills": [
+        { "id": "leadership", "label": "Liderança", "min": 1, "max": 5, "default": 3 },
+        { "id": "communication", "label": "Comunicação", "min": 1, "max": 5, "default": 3 },
+        { "id": "problemSolving", "label": "Resolução de Problemas", "min": 1, "max": 5, "default": 3 },
+        { "id": "creativity", "label": "Criatividade", "min": 1, "max": 5, "default": 3 },
+        { "id": "teamwork", "label": "Trabalho em Equipe", "min": 1, "max": 5, "default": 3 },
+        { "id": "adaptability", "label": "Adaptabilidade", "min": 1, "max": 5, "default": 3 }
+      ],
+      "matchingWeight": 0.25
+    },
+    {
+      "id": "salaryMin",
+      "type": "number",
+      "question": "Salário mínimo oferecido",
+      "description": "Valor em reais (R$)",
+      "required": true,
+      "validation": { "min": 1000, "max": 100000 },
+      "matchingWeight": 0.2
+    },
+    {
+      "id": "salaryMax",
+      "type": "number",
+      "question": "Salário máximo oferecido",
+      "description": "Valor em reais (R$)",
+      "required": true,
+      "validation": { "min": 1000, "max": 200000 },
+      "matchingWeight": 0.15
+    },
+    {
+      "id": "workModel",
+      "type": "select",
+      "question": "Qual o modelo de trabalho?",
+      "description": "Modalidade da vaga",
+      "required": true,
+      "options": ["Presencial", "Remoto", "Híbrido"],
+      "matchingWeight": 0.1
+    },
+    {
+      "id": "benefits",
+      "type": "multiselect",
+      "question": "Quais benefícios são oferecidos?",
+      "description": "Selecione todos os aplicáveis",
+      "required": false,
+      "options": [
+        "Plano de saúde premium", "Plano odontológico", "Vale refeição", "Vale alimentação",
+        "Gympass ou academia", "Home office", "Horário flexível", "Férias flexíveis",
+        "Participação nos lucros", "Stock options", "Cursos e certificações", "Auxílio creche",
+        "Seguro de vida", "Previdência privada", "Day off aniversário", "Auxílio psicológico"
+      ],
+      "matchingWeight": 0.05
+    }
+  ]
+}
