@@ -14,16 +14,627 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      applications: {
+        Row: {
+          applied_at: string | null
+          candidate_id: string | null
+          cover_letter: string | null
+          id: string
+          job_id: string | null
+          status: Database["public"]["Enums"]["application_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          applied_at?: string | null
+          candidate_id?: string | null
+          cover_letter?: string | null
+          id?: string
+          job_id?: string | null
+          status?: Database["public"]["Enums"]["application_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          applied_at?: string | null
+          candidate_id?: string | null
+          cover_letter?: string | null
+          id?: string
+          job_id?: string | null
+          status?: Database["public"]["Enums"]["application_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          ip_address: unknown | null
+          new_data: Json | null
+          old_data: Json | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          headline: string | null
+          id: string
+          linkedin_data: Json | null
+          location: string | null
+          preferences: Json | null
+          resume_score: number | null
+          skills_vector: Json | null
+          updated_at: string | null
+          user_id: string | null
+          validation_score: number | null
+          years_experience: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          headline?: string | null
+          id?: string
+          linkedin_data?: Json | null
+          location?: string | null
+          preferences?: Json | null
+          resume_score?: number | null
+          skills_vector?: Json | null
+          updated_at?: string | null
+          user_id?: string | null
+          validation_score?: number | null
+          years_experience?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          headline?: string | null
+          id?: string
+          linkedin_data?: Json | null
+          location?: string | null
+          preferences?: Json | null
+          resume_score?: number | null
+          skills_vector?: Json | null
+          updated_at?: string | null
+          user_id?: string | null
+          validation_score?: number | null
+          years_experience?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_profiles: {
+        Row: {
+          company_culture: Json | null
+          company_name: string
+          created_at: string | null
+          description: string | null
+          id: string
+          industry: string | null
+          location: string | null
+          logo_url: string | null
+          size_category: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          company_culture?: Json | null
+          company_name: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          industry?: string | null
+          location?: string | null
+          logo_url?: string | null
+          size_category?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          company_culture?: Json | null
+          company_name?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          industry?: string | null
+          location?: string | null
+          logo_url?: string | null
+          size_category?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jobs: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          description: string | null
+          expires_at: string | null
+          id: string
+          location: string | null
+          priority_score: number | null
+          requirements: Json | null
+          salary_max: number | null
+          salary_min: number | null
+          skills_vector: Json | null
+          status: Database["public"]["Enums"]["job_status"] | null
+          title: string
+          updated_at: string | null
+          work_model: Database["public"]["Enums"]["work_model"] | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          location?: string | null
+          priority_score?: number | null
+          requirements?: Json | null
+          salary_max?: number | null
+          salary_min?: number | null
+          skills_vector?: Json | null
+          status?: Database["public"]["Enums"]["job_status"] | null
+          title: string
+          updated_at?: string | null
+          work_model?: Database["public"]["Enums"]["work_model"] | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          location?: string | null
+          priority_score?: number | null
+          requirements?: Json | null
+          salary_max?: number | null
+          salary_min?: number | null
+          skills_vector?: Json | null
+          status?: Database["public"]["Enums"]["job_status"] | null
+          title?: string
+          updated_at?: string | null
+          work_model?: Database["public"]["Enums"]["work_model"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matching_results: {
+        Row: {
+          calculated_at: string | null
+          candidate_id: string | null
+          expires_at: string | null
+          explanation: string | null
+          factors_analyzed: Json | null
+          id: string
+          is_demo_match: boolean | null
+          job_id: string | null
+          match_percentage: number
+          score_breakdown: Json
+        }
+        Insert: {
+          calculated_at?: string | null
+          candidate_id?: string | null
+          expires_at?: string | null
+          explanation?: string | null
+          factors_analyzed?: Json | null
+          id?: string
+          is_demo_match?: boolean | null
+          job_id?: string | null
+          match_percentage: number
+          score_breakdown: Json
+        }
+        Update: {
+          calculated_at?: string | null
+          candidate_id?: string | null
+          expires_at?: string | null
+          explanation?: string | null
+          factors_analyzed?: Json | null
+          id?: string
+          is_demo_match?: boolean | null
+          job_id?: string | null
+          match_percentage?: number
+          score_breakdown?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matching_results_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matching_results_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          application_updates: boolean | null
+          created_at: string | null
+          email_notifications: boolean | null
+          id: string
+          match_notifications: boolean | null
+          updated_at: string | null
+          user_id: string | null
+          weekly_digest: boolean | null
+        }
+        Insert: {
+          application_updates?: boolean | null
+          created_at?: string | null
+          email_notifications?: boolean | null
+          id?: string
+          match_notifications?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          weekly_digest?: boolean | null
+        }
+        Update: {
+          application_updates?: boolean | null
+          created_at?: string | null
+          email_notifications?: boolean | null
+          id?: string
+          match_notifications?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          weekly_digest?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      questionnaire_responses: {
+        Row: {
+          calculated_score: number | null
+          candidate_id: string | null
+          category: Database["public"]["Enums"]["questionnaire_category"]
+          completion_time_seconds: number | null
+          created_at: string | null
+          id: string
+          responses: Json
+        }
+        Insert: {
+          calculated_score?: number | null
+          candidate_id?: string | null
+          category: Database["public"]["Enums"]["questionnaire_category"]
+          completion_time_seconds?: number | null
+          created_at?: string | null
+          id?: string
+          responses: Json
+        }
+        Update: {
+          calculated_score?: number | null
+          candidate_id?: string | null
+          category?: Database["public"]["Enums"]["questionnaire_category"]
+          completion_time_seconds?: number | null
+          created_at?: string | null
+          id?: string
+          responses?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questionnaire_responses_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resume_analyses: {
+        Row: {
+          ai_suggestions: Json | null
+          candidate_id: string | null
+          created_at: string | null
+          experience_summary: Json | null
+          extracted_data: Json | null
+          file_url: string | null
+          id: string
+          original_filename: string | null
+          overall_score: number | null
+          processing_status: string | null
+          skills_extracted: Json | null
+          soft_skills_score: number | null
+          technical_score: number | null
+          version: number | null
+        }
+        Insert: {
+          ai_suggestions?: Json | null
+          candidate_id?: string | null
+          created_at?: string | null
+          experience_summary?: Json | null
+          extracted_data?: Json | null
+          file_url?: string | null
+          id?: string
+          original_filename?: string | null
+          overall_score?: number | null
+          processing_status?: string | null
+          skills_extracted?: Json | null
+          soft_skills_score?: number | null
+          technical_score?: number | null
+          version?: number | null
+        }
+        Update: {
+          ai_suggestions?: Json | null
+          candidate_id?: string | null
+          created_at?: string | null
+          experience_summary?: Json | null
+          extracted_data?: Json | null
+          file_url?: string | null
+          id?: string
+          original_filename?: string | null
+          overall_score?: number | null
+          processing_status?: string | null
+          skills_extracted?: Json | null
+          soft_skills_score?: number | null
+          technical_score?: number | null
+          version?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resume_analyses_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skill_embeddings: {
+        Row: {
+          aliases: string[] | null
+          category: string | null
+          created_at: string | null
+          embedding: string | null
+          id: string
+          skill_name: string
+        }
+        Insert: {
+          aliases?: string[] | null
+          category?: string | null
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          skill_name: string
+        }
+        Update: {
+          aliases?: string[] | null
+          category?: string | null
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          skill_name?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          active_profile: Database["public"]["Enums"]["profile_type"] | null
+          created_at: string | null
+          email: string
+          id: string
+          oauth_id: string | null
+          oauth_provider: string | null
+          profiles: Database["public"]["Enums"]["profile_type"][] | null
+          updated_at: string | null
+        }
+        Insert: {
+          active_profile?: Database["public"]["Enums"]["profile_type"] | null
+          created_at?: string | null
+          email: string
+          id?: string
+          oauth_id?: string | null
+          oauth_provider?: string | null
+          profiles?: Database["public"]["Enums"]["profile_type"][] | null
+          updated_at?: string | null
+        }
+        Update: {
+          active_profile?: Database["public"]["Enums"]["profile_type"] | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          oauth_id?: string | null
+          oauth_provider?: string | null
+          profiles?: Database["public"]["Enums"]["profile_type"][] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      binary_quantize: {
+        Args: { "": string } | { "": unknown }
+        Returns: unknown
+      }
+      halfvec_avg: {
+        Args: { "": number[] }
+        Returns: unknown
+      }
+      halfvec_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      halfvec_send: {
+        Args: { "": unknown }
+        Returns: string
+      }
+      halfvec_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
+      }
+      hnsw_bit_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnsw_halfvec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnsw_sparsevec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      hnswhandler: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflat_bit_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflat_halfvec_support: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      ivfflathandler: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      l2_norm: {
+        Args: { "": unknown } | { "": unknown }
+        Returns: number
+      }
+      l2_normalize: {
+        Args: { "": string } | { "": unknown } | { "": unknown }
+        Returns: unknown
+      }
+      sparsevec_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      sparsevec_send: {
+        Args: { "": unknown }
+        Returns: string
+      }
+      sparsevec_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
+      }
+      vector_avg: {
+        Args: { "": number[] }
+        Returns: string
+      }
+      vector_dims: {
+        Args: { "": string } | { "": unknown }
+        Returns: number
+      }
+      vector_norm: {
+        Args: { "": string }
+        Returns: number
+      }
+      vector_out: {
+        Args: { "": string }
+        Returns: unknown
+      }
+      vector_send: {
+        Args: { "": string }
+        Returns: string
+      }
+      vector_typmod_in: {
+        Args: { "": unknown[] }
+        Returns: number
+      }
     }
     Enums: {
-      [_ in never]: never
+      application_status:
+        | "applied"
+        | "viewed"
+        | "rejected"
+        | "accepted"
+        | "interview_scheduled"
+      job_status: "active" | "paused" | "closed"
+      profile_type: "candidate" | "company"
+      questionnaire_category: "cultural" | "professional" | "technical"
+      work_model: "remote" | "hybrid" | "onsite"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +761,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      application_status: [
+        "applied",
+        "viewed",
+        "rejected",
+        "accepted",
+        "interview_scheduled",
+      ],
+      job_status: ["active", "paused", "closed"],
+      profile_type: ["candidate", "company"],
+      questionnaire_category: ["cultural", "professional", "technical"],
+      work_model: ["remote", "hybrid", "onsite"],
+    },
   },
 } as const
