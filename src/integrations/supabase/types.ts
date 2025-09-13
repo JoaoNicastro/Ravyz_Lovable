@@ -535,6 +535,14 @@ export type Database = {
         Args: { "": string } | { "": unknown }
         Returns: unknown
       }
+      get_current_user_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_user_profiles: {
+        Args: { user_uuid: string }
+        Returns: Database["public"]["Enums"]["profile_type"][]
+      }
       halfvec_avg: {
         Args: { "": number[] }
         Returns: unknown
