@@ -6,12 +6,16 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Mail, Lock, User, Building, Linkedin } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import heroImage from "@/assets/hero-recruitment.jpg";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,9 +24,35 @@ const Auth = () => {
     setTimeout(() => setIsLoading(false), 2000);
   };
 
-  const handleLinkedInAuth = () => {
-    // TODO: Implement LinkedIn OAuth
-    console.log("LinkedIn authentication");
+  const handleLinkedInAuth = async () => {
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'linkedin_oidc',
+        options: {
+          redirectTo: `${window.location.origin}/profile-selection`
+        }
+      });
+
+      if (error) {
+        console.error('LinkedIn auth error:', error);
+        toast({
+          title: "Erro na autenticação",
+          description: "Erro ao conectar com LinkedIn. Tente novamente.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('LinkedIn auth error:', error);
+      toast({
+        title: "Erro na autenticação", 
+        description: "Erro ao conectar com LinkedIn. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
