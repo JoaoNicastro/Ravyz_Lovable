@@ -18,11 +18,11 @@ All colors MUST be HSL for consistency and theming.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary brand - Professional purple */
-    --primary: 262 83% 58%;
+    /* Primary brand - RAVYZ Cyan */
+    --primary: 185 100% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 262 83% 52%;
-    --primary-light: 262 50% 95%;
+    --primary-hover: 185 100% 40%;
+    --primary-light: 185 100% 95%;
 
     /* Secondary - Complementary blue */
     --secondary: 210 100% 96%;
@@ -49,21 +49,21 @@ All colors MUST be HSL for consistency and theming.
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 262 83% 58%;
+    --ring: 185 100% 45%;
 
     --radius: 0.75rem;
 
-    /* Professional gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(262 83% 58%), hsl(210 100% 56%));
-    --gradient-secondary: linear-gradient(135deg, hsl(210 100% 96%), hsl(262 50% 95%));
-    --gradient-hero: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(210 100% 56%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 40% 98%) 100%);
+    /* RAVYZ brand gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(185 100% 45%), hsl(185 100% 65%));
+    --gradient-secondary: linear-gradient(135deg, hsl(210 100% 96%), hsl(185 100% 95%));
+    --gradient-hero: linear-gradient(135deg, hsl(185 100% 45%) 0%, hsl(185 100% 65%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(185 20% 98%) 100%);
 
-    /* Professional shadows */
-    --shadow-sm: 0 1px 3px 0 hsl(262 83% 58% / 0.1);
-    --shadow-md: 0 4px 12px -2px hsl(262 83% 58% / 0.15);
-    --shadow-lg: 0 10px 25px -5px hsl(262 83% 58% / 0.25);
-    --shadow-glow: 0 0 30px hsl(262 83% 58% / 0.3);
+    /* RAVYZ brand shadows */
+    --shadow-sm: 0 1px 3px 0 hsl(185 100% 45% / 0.1);
+    --shadow-md: 0 4px 12px -2px hsl(185 100% 45% / 0.15);
+    --shadow-lg: 0 10px 25px -5px hsl(185 100% 45% / 0.25);
+    --shadow-glow: 0 0 30px hsl(185 100% 45% / 0.3);
 
     /* Animation values */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -89,11 +89,11 @@ All colors MUST be HSL for consistency and theming.
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    /* Dark mode primary - lighter purple */
-    --primary: 262 83% 70%;
+    /* Dark mode primary - RAVYZ Cyan */
+    --primary: 185 100% 65%;
     --primary-foreground: 222.2 84% 4.9%;
-    --primary-hover: 262 83% 65%;
-    --primary-light: 262 50% 15%;
+    --primary-hover: 185 100% 60%;
+    --primary-light: 185 50% 15%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -117,18 +117,18 @@ All colors MUST be HSL for consistency and theming.
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 262 83% 70%;
+    --ring: 185 100% 65%;
 
-    /* Dark mode gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(262 83% 70%), hsl(210 100% 65%));
-    --gradient-secondary: linear-gradient(135deg, hsl(217.2 32.6% 17.5%), hsl(262 50% 15%));
-    --gradient-hero: linear-gradient(135deg, hsl(262 83% 70%) 0%, hsl(210 100% 65%) 100%);
+    /* Dark mode RAVYZ gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(185 100% 65%), hsl(185 100% 75%));
+    --gradient-secondary: linear-gradient(135deg, hsl(217.2 32.6% 17.5%), hsl(185 50% 15%));
+    --gradient-hero: linear-gradient(135deg, hsl(185 100% 65%) 0%, hsl(185 100% 75%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(222.2 84% 4.9%) 0%, hsl(217.2 32.6% 17.5%) 100%);
 
     --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.3);
     --shadow-md: 0 4px 12px -2px hsl(0 0% 0% / 0.4);
     --shadow-lg: 0 10px 25px -5px hsl(0 0% 0% / 0.5);
-    --shadow-glow: 0 0 30px hsl(262 83% 70% / 0.4);
+    --shadow-glow: 0 0 30px hsl(185 100% 65% / 0.4);
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
