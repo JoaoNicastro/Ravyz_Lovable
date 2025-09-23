@@ -10,6 +10,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import heroImage from "@/assets/hero-recruitment.jpg";
+import ravyzLogo from "@/assets/ravyz-logo.jpg";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -66,8 +67,12 @@ const Auth = () => {
         />
         <div className="absolute inset-0 bg-gradient-primary/80 flex items-center justify-center p-12">
           <div className="text-center text-primary-foreground max-w-md">
-            <div className="w-16 h-16 bg-primary-foreground/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <span className="text-primary-foreground font-bold text-2xl">R</span>
+            <div className="w-20 h-20 bg-primary-foreground/20 rounded-2xl flex items-center justify-center mx-auto mb-6 p-2">
+              <img 
+                src={ravyzLogo} 
+                alt="RAVYZ Logo" 
+                className="w-full h-full object-contain rounded-xl"
+              />
             </div>
             <h1 className="text-4xl font-bold mb-4">Bem-vindo ao RAVYZ</h1>
             <p className="text-lg text-primary-foreground/90">
