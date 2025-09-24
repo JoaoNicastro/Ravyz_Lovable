@@ -118,7 +118,7 @@ export type Database = {
           resume_score: number | null
           skills_vector: Json | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
           validation_score: number | null
           years_experience: number | null
         }
@@ -133,7 +133,7 @@ export type Database = {
           resume_score?: number | null
           skills_vector?: Json | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
           validation_score?: number | null
           years_experience?: number | null
         }
@@ -148,7 +148,7 @@ export type Database = {
           resume_score?: number | null
           skills_vector?: Json | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
           validation_score?: number | null
           years_experience?: number | null
         }
@@ -174,7 +174,7 @@ export type Database = {
           logo_url: string | null
           size_category: string | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           company_culture?: Json | null
@@ -187,7 +187,7 @@ export type Database = {
           logo_url?: string | null
           size_category?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           company_culture?: Json | null
@@ -200,7 +200,7 @@ export type Database = {
           logo_url?: string | null
           size_category?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -535,6 +535,14 @@ export type Database = {
         Args: { "": string } | { "": unknown }
         Returns: unknown
       }
+      get_current_user_candidate_profile_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_current_user_company_profile_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_current_user_id: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -606,6 +614,18 @@ export type Database = {
       sparsevec_typmod_in: {
         Args: { "": unknown[] }
         Returns: number
+      }
+      user_can_view_candidate_through_match: {
+        Args: { candidate_profile_id: string }
+        Returns: boolean
+      }
+      user_owns_candidate_profile: {
+        Args: { profile_id: string }
+        Returns: boolean
+      }
+      user_owns_company_profile: {
+        Args: { profile_id: string }
+        Returns: boolean
       }
       vector_avg: {
         Args: { "": number[] }

@@ -12,29 +12,57 @@ import CandidateRegistration from "./pages/onboarding/CandidateRegistration";
 import CandidateValidation from "./pages/onboarding/CandidateValidation";
 import ProfessionalAssessment from "./pages/onboarding/ProfessionalAssessment";
 import DreamJobBuilder from "./pages/onboarding/DreamJobBuilder";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/profile-selection" element={<ProfileSelection />} />
-          <Route path="/onboarding/fill-method" element={<FillMethodSelection />} />
-          <Route path="/onboarding/candidate" element={<CandidateRegistration />} />
-          <Route path="/onboarding/validation" element={<CandidateValidation />} />
-          <Route path="/onboarding/assessment" element={<ProfessionalAssessment />} />
-          <Route path="/onboarding/dream-job" element={<DreamJobBuilder />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/profile-selection" element={
+              <ProtectedRoute>
+                <ProfileSelection />
+              </ProtectedRoute>
+            } />
+            <Route path="/onboarding/fill-method" element={
+              <ProtectedRoute>
+                <FillMethodSelection />
+              </ProtectedRoute>
+            } />
+            <Route path="/onboarding/candidate" element={
+              <ProtectedRoute>
+                <CandidateRegistration />
+              </ProtectedRoute>
+            } />
+            <Route path="/onboarding/validation" element={
+              <ProtectedRoute>
+                <CandidateValidation />
+              </ProtectedRoute>
+            } />
+            <Route path="/onboarding/assessment" element={
+              <ProtectedRoute>
+                <ProfessionalAssessment />
+              </ProtectedRoute>
+            } />
+            <Route path="/onboarding/dream-job" element={
+              <ProtectedRoute>
+                <DreamJobBuilder />
+              </ProtectedRoute>
+            } />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

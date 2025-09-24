@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,50 +7,56 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Mail, Lock, User, Building, Linkedin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import heroImage from "@/assets/hero-recruitment.jpg";
 import ravyzLogo from "@/assets/ravyz-logo.jpg";
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [selectedProfile, setSelectedProfile] = useState<"candidate" | "company" | null>(null);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { user, signIn, signUp, signInWithLinkedIn } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/profile-selection', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: Implement auth logic
-    setTimeout(() => setIsLoading(false), 2000);
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+    const name = formData.get('name') as string;
+
+    try {
+      if (authMode === 'login') {
+        const { error } = await signIn(email, password);
+        if (!error) {
+          navigate('/profile-selection');
+        }
+      } else {
+        if (!selectedProfile) {
+          // Show error that profile type must be selected
+          return;
+        }
+        const { error } = await signUp(email, password, name);
+        // Note: signUp handles success/error messaging
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleLinkedInAuth = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'linkedin_oidc',
-        options: {
-          redirectTo: `${window.location.origin}/profile-selection`
-        }
-      });
-
-      if (error) {
-        console.error('LinkedIn auth error:', error);
-        toast({
-          title: "Erro na autenticação",
-          description: "Erro ao conectar com LinkedIn. Tente novamente.",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('LinkedIn auth error:', error);
-      toast({
-        title: "Erro na autenticação", 
-        description: "Erro ao conectar com LinkedIn. Tente novamente.",
-        variant: "destructive"
-      });
+      await signInWithLinkedIn();
     } finally {
       setIsLoading(false);
     }
@@ -141,6 +147,7 @@ const Auth = () => {
                         <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="email"
+                          name="email"
                           type="email"
                           placeholder="seu@email.com"
                           className="pl-10"
@@ -155,10 +162,12 @@ const Auth = () => {
                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="password"
+                          name="password"
                           type="password"
                           placeholder="••••••••"
                           className="pl-10"
                           required
+                          minLength={6}
                         />
                       </div>
                     </div>
@@ -191,17 +200,30 @@ const Auth = () => {
                   <div className="space-y-3">
                     <Label>Eu sou:</Label>
                     <div className="grid grid-cols-2 gap-3">
-                      <Button variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
+                      <Button 
+                        type="button"
+                        variant={selectedProfile === 'candidate' ? 'default' : 'outline'} 
+                        className="h-auto p-4 flex flex-col items-center space-y-2"
+                        onClick={() => setSelectedProfile('candidate')}
+                      >
                         <User className="h-6 w-6 text-primary" />
                         <span className="font-medium">Candidato</span>
                         <Badge variant="secondary" className="text-xs">Buscar vagas</Badge>
                       </Button>
-                      <Button variant="outline" className="h-auto p-4 flex flex-col items-center space-y-2">
+                      <Button 
+                        type="button"
+                        variant={selectedProfile === 'company' ? 'default' : 'outline'} 
+                        className="h-auto p-4 flex flex-col items-center space-y-2"
+                        onClick={() => setSelectedProfile('company')}
+                      >
                         <Building className="h-6 w-6 text-primary" />
                         <span className="font-medium">Empresa</span>
                         <Badge variant="secondary" className="text-xs">Contratar</Badge>
                       </Button>
                     </div>
+                    {authMode === 'register' && !selectedProfile && (
+                      <p className="text-sm text-destructive">Selecione seu tipo de perfil</p>
+                    )}
                   </div>
 
                   {/* LinkedIn Registration */}
@@ -230,9 +252,11 @@ const Auth = () => {
                       <Label htmlFor="name">Nome completo</Label>
                       <Input
                         id="name"
+                        name="name"
                         type="text"
                         placeholder="Seu nome completo"
                         required
+                        maxLength={100}
                       />
                     </div>
 
@@ -242,10 +266,12 @@ const Auth = () => {
                         <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="register-email"
+                          name="email"
                           type="email"
                           placeholder="seu@email.com"
                           className="pl-10"
                           required
+                          maxLength={255}
                         />
                       </div>
                     </div>
@@ -256,15 +282,21 @@ const Auth = () => {
                         <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="register-password"
+                          name="password"
                           type="password"
                           placeholder="••••••••"
                           className="pl-10"
                           required
+                          minLength={6}
                         />
                       </div>
                     </div>
 
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      disabled={isLoading || (authMode === 'register' && !selectedProfile)}
+                    >
                       {isLoading ? "Criando conta..." : "Criar conta"}
                     </Button>
                   </form>
