@@ -19,11 +19,25 @@ const Auth = () => {
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    // TODO: Implement auth logic
-    setTimeout(() => setIsLoading(false), 2000);
-  };
+  e.preventDefault();
+  setIsLoading(true);
+
+  try {
+    if (authMode === "register") {
+      navigate("/profile-selection");
+    }
+  } catch (error) {
+    console.error(error);
+    toast({
+      title: "Erro",
+      description: "Não foi possível processar sua solicitação.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const handleLinkedInAuth = async () => {
     try {
