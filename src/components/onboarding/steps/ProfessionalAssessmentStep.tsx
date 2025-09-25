@@ -1,0 +1,372 @@
+import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { ChevronRight, Plus, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useState } from "react";
+
+const assessmentSchema = z.object({
+  currentRole: z.string().min(1, "Cargo atual é obrigatório"),
+  currentCompany: z.string().min(1, "Empresa atual é obrigatória"),
+  yearsInRole: z.number().min(0, "Anos no cargo deve ser um número positivo"),
+  keyAchievements: z.string().min(50, "Descreva suas principais conquistas (mínimo 50 caracteres)"),
+  skills: z.array(z.string()).min(3, "Adicione pelo menos 3 habilidades"),
+  careerGoals: z.string().min(50, "Descreva seus objetivos de carreira (mínimo 50 caracteres)"),
+  preferredRoles: z.array(z.string()).min(1, "Adicione pelo menos 1 cargo de interesse"),
+});
+
+type AssessmentData = z.infer<typeof assessmentSchema>;
+
+interface StepProps {
+  onNext: (data: AssessmentData) => void;
+  onBack: () => void;
+  isLoading: boolean;
+  data?: AssessmentData;
+}
+
+const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data }) => {
+  const [newSkill, setNewSkill] = useState("");
+  const [newRole, setNewRole] = useState("");
+
+  const form = useForm<AssessmentData>({
+    resolver: zodResolver(assessmentSchema),
+    defaultValues: data || {
+      skills: [],
+      preferredRoles: [],
+      yearsInRole: 0,
+    },
+  });
+
+  const addSkill = () => {
+    if (newSkill.trim()) {
+      const currentSkills = form.getValues("skills");
+      form.setValue("skills", [...currentSkills, newSkill.trim()]);
+      setNewSkill("");
+    }
+  };
+
+  const removeSkill = (index: number) => {
+    const currentSkills = form.getValues("skills");
+    form.setValue("skills", currentSkills.filter((_, i) => i !== index));
+  };
+
+  const addRole = () => {
+    if (newRole.trim()) {
+      const currentRoles = form.getValues("preferredRoles");
+      form.setValue("preferredRoles", [...currentRoles, newRole.trim()]);
+      setNewRole("");
+    }
+  };
+
+  const removeRole = (index: number) => {
+    const currentRoles = form.getValues("preferredRoles");
+    form.setValue("preferredRoles", currentRoles.filter((_, i) => i !== index));
+  };
+
+  const onSubmit = async (formData: AssessmentData) => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Usuário não encontrado");
+
+      // Get candidate profile
+      const { data: profile, error: profileError } = await supabase
+        .from('candidate_profiles')
+        .select('*')
+        .eq('user_id', user.user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Save professional assessment responses
+      const { error: responseError } = await supabase
+        .from('questionnaire_responses')
+        .upsert({
+          candidate_id: profile.id,
+          category: 'professional',
+          responses: formData,
+          calculated_score: calculateProfessionalScore(formData),
+        }, {
+          onConflict: 'candidate_id,category'
+        });
+
+      if (responseError) throw responseError;
+
+      // Update profile with professional data
+      const existingPrefs = (profile.preferences as any) || {};
+      const { error: updateError } = await supabase
+        .from('candidate_profiles')
+        .update({
+          skills_vector: {
+            skills: formData.skills,
+            preferredRoles: formData.preferredRoles,
+          },
+          preferences: {
+            ...existingPrefs,
+            completionLevel: 75
+          }
+        })
+        .eq('id', profile.id);
+
+      if (updateError) throw updateError;
+
+      toast.success("Avaliação profissional salva!");
+      onNext(formData);
+    } catch (error) {
+      console.error('Error saving assessment:', error);
+      toast.error("Erro ao salvar avaliação");
+    }
+  };
+
+  const calculateProfessionalScore = (responses: AssessmentData): number => {
+    let score = 0;
+    
+    // Score based on experience
+    score += Math.min(responses.yearsInRole * 2, 20);
+    
+    // Score based on skills count
+    score += Math.min(responses.skills.length * 2, 30);
+    
+    // Score based on achievements description length
+    score += Math.min(responses.keyAchievements.length / 10, 25);
+    
+    // Score based on career goals clarity
+    score += Math.min(responses.careerGoals.length / 10, 25);
+    
+    return Math.min(score, 100);
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-6">
+      <div className="text-center space-y-2">
+        <h2 className="text-xl font-semibold text-foreground">
+          Conte sobre sua experiência profissional
+        </h2>
+        <p className="text-muted-foreground">
+          Essas informações nos ajudam a encontrar oportunidades alinhadas com seu perfil
+        </p>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Current Position */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Posição Atual</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="currentRole"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cargo Atual</FormLabel>
+                      <FormControl>
+                        <Input placeholder="ex: Desenvolvedor Frontend" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="currentCompany"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Empresa Atual</FormLabel>
+                      <FormControl>
+                        <Input placeholder="ex: Tech Company Ltd" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="yearsInRole"
+                render={({ field }) => (
+                  <FormItem className="max-w-xs">
+                    <FormLabel>Anos neste Cargo</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="50"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Achievements */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Principais Conquistas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="keyAchievements"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descreva suas principais conquistas profissionais</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="ex: Liderei o desenvolvimento de uma aplicação que aumentou a eficiência da equipe em 40%..."
+                        className="min-h-[100px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Skills */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Habilidades Técnicas</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="ex: React, Python, Project Management..."
+                  value={newSkill}
+                  onChange={(e) => setNewSkill(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                />
+                <Button type="button" onClick={addSkill} size="sm">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {form.watch("skills").map((skill, index) => (
+                  <Badge key={index} variant="secondary" className="gap-1">
+                    {skill}
+                    <button
+                      type="button"
+                      onClick={() => removeSkill(index)}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+
+              <FormField
+                control={form.control}
+                name="skills"
+                render={() => (
+                  <FormItem>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Career Goals */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Objetivos de Carreira</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="careerGoals"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Quais são seus objetivos profissionais?</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="ex: Busco crescer como líder técnico, aprender novas tecnologias..."
+                        className="min-h-[100px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Preferred Roles */}
+              <div className="space-y-2">
+                <Label>Cargos de Interesse</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="ex: Senior Developer, Tech Lead..."
+                    value={newRole}
+                    onChange={(e) => setNewRole(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addRole())}
+                  />
+                  <Button type="button" onClick={addRole} size="sm">
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {form.watch("preferredRoles").map((role, index) => (
+                    <Badge key={index} variant="outline" className="gap-1">
+                      {role}
+                      <button
+                        type="button"
+                        onClick={() => removeRole(index)}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="preferredRoles"
+                  render={() => (
+                    <FormItem>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end pt-6">
+            <Button
+              type="submit"
+              disabled={isLoading}
+              size="lg"
+            >
+              {isLoading ? "Salvando..." : "Continuar"}
+              <ChevronRight className="ml-2 w-4 h-4" />
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
+};
+
+export default ProfessionalAssessmentStep;

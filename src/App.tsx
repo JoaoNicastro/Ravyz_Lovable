@@ -7,11 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import ProfileSelection from "./pages/ProfileSelection";
-import FillMethodSelection from "./pages/onboarding/FillMethodSelection";
-import CandidateRegistration from "./pages/onboarding/CandidateRegistration";
-import CandidateValidation from "./pages/onboarding/CandidateValidation";
-import ProfessionalAssessment from "./pages/onboarding/ProfessionalAssessment";
-import DreamJobBuilder from "./pages/onboarding/DreamJobBuilder";
+import OnboardingFlow from "./pages/onboarding/OnboardingFlow";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -32,29 +28,9 @@ const App = () => (
                 <ProfileSelection />
               </ProtectedRoute>
             } />
-            <Route path="/onboarding/fill-method" element={
+            <Route path="/onboarding" element={
               <ProtectedRoute>
-                <FillMethodSelection />
-              </ProtectedRoute>
-            } />
-            <Route path="/onboarding/candidate" element={
-              <ProtectedRoute>
-                <CandidateRegistration />
-              </ProtectedRoute>
-            } />
-            <Route path="/onboarding/validation" element={
-              <ProtectedRoute>
-                <CandidateValidation />
-              </ProtectedRoute>
-            } />
-            <Route path="/onboarding/assessment" element={
-              <ProtectedRoute>
-                <ProfessionalAssessment />
-              </ProtectedRoute>
-            } />
-            <Route path="/onboarding/dream-job" element={
-              <ProtectedRoute>
-                <DreamJobBuilder />
+                <OnboardingFlow />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
