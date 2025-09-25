@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Mail, Lock, User, Building, Linkedin } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { ArrowLeft, User, Building, Linkedin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { AuthForm } from "@/components/forms/AuthForm";
 import heroImage from "@/assets/hero-recruitment.jpg";
 import ravyzLogo from "@/assets/ravyz-logo.jpg";
 
@@ -25,27 +25,19 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAuthSubmit = async (data: any) => {
     setIsLoading(true);
-
-    const formData = new FormData(e.target as HTMLFormElement);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-    const name = formData.get('name') as string;
-
     try {
       if (authMode === 'login') {
-        const { error } = await signIn(email, password);
+        const { error } = await signIn(data.email, data.password);
         if (!error) {
           navigate('/profile-selection');
         }
       } else {
         if (!selectedProfile) {
-          // Show error that profile type must be selected
-          return;
+          throw new Error('Selecione seu tipo de perfil');
         }
-        const { error } = await signUp(email, password, name);
+        const { error } = await signUp(data.email, data.password, data.name);
         // Note: signUp handles success/error messaging
       }
     } finally {
@@ -140,42 +132,11 @@ const Auth = () => {
                   </div>
 
                   {/* Email/Password Form */}
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          placeholder="seu@email.com"
-                          className="pl-10"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="password">Senha</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="password"
-                          name="password"
-                          type="password"
-                          placeholder="••••••••"
-                          className="pl-10"
-                          required
-                          minLength={6}
-                        />
-                      </div>
-                    </div>
-
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                      {isLoading ? "Entrando..." : "Entrar"}
-                    </Button>
-                  </form>
+                  <AuthForm 
+                    mode="login" 
+                    onSubmit={handleAuthSubmit} 
+                    isLoading={isLoading} 
+                  />
 
                   <div className="text-center">
                     <Button variant="link" className="text-sm text-muted-foreground">
@@ -247,59 +208,11 @@ const Auth = () => {
                   </div>
 
                   {/* Manual Registration Form */}
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Nome completo</Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        type="text"
-                        placeholder="Seu nome completo"
-                        required
-                        maxLength={100}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="register-email">Email</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="register-email"
-                          name="email"
-                          type="email"
-                          placeholder="seu@email.com"
-                          className="pl-10"
-                          required
-                          maxLength={255}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="register-password">Senha</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="register-password"
-                          name="password"
-                          type="password"
-                          placeholder="••••••••"
-                          className="pl-10"
-                          required
-                          minLength={6}
-                        />
-                      </div>
-                    </div>
-
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
-                      disabled={isLoading || (authMode === 'register' && !selectedProfile)}
-                    >
-                      {isLoading ? "Criando conta..." : "Criar conta"}
-                    </Button>
-                  </form>
+                  <AuthForm 
+                    mode="register" 
+                    onSubmit={handleAuthSubmit} 
+                    isLoading={isLoading || !selectedProfile} 
+                  />
 
                   <p className="text-xs text-muted-foreground text-center">
                     Ao criar uma conta, você concorda com nossos{" "}
