@@ -29,9 +29,9 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/onboarding" element={
-              <ProtectedRoute>
+              {/* <ProtectedRoute> */}
                 <OnboardingFlow />
-              </ProtectedRoute>
+              {/* </ProtectedRoute> */}
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
