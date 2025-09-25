@@ -23,68 +23,9 @@ interface StepProps {
   data?: CandidateData;
 }
 
-const CandidateRegistrationStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data }) => {
-  const handleSubmit = async (formData: CandidateData) => {
-    try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não encontrado");
-
-      // Get or create candidate profile
-      let { data: profile, error: profileError } = await supabase
-        .from('candidate_profiles')
-        .select('*')
-        .eq('user_id', user.user.id)
-        .single();
-
-      if (profileError && profileError.code !== 'PGRST116') {
-        throw profileError;
-      }
-
-      if (!profile) {
-        // Create new profile
-        const { data: newProfile, error: createError } = await supabase
-          .from('candidate_profiles')
-          .insert({
-            user_id: user.user.id,
-            avatar_url: formData.avatar_url,
-            headline: formData.headline,
-            location: formData.location,
-            years_experience: formData.years_experience,
-            preferences: {
-              completionLevel: 25
-            }
-          })
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        profile = newProfile;
-      } else {
-        // Update existing profile
-        const existingPrefs = (profile.preferences as any) || {};
-        const { error: updateError } = await supabase
-          .from('candidate_profiles')
-          .update({
-            avatar_url: formData.avatar_url,
-            headline: formData.headline,
-            location: formData.location,
-            years_experience: formData.years_experience,
-            preferences: {
-              ...existingPrefs,
-              completionLevel: 25
-            }
-          })
-          .eq('id', profile.id);
-
-        if (updateError) throw updateError;
-      }
-
-      toast.success("Perfil básico salvo!");
-      onNext(formData);
-    } catch (error) {
-      console.error('Error saving candidate profile:', error);
-      toast.error("Erro ao salvar perfil");
-    }
+const CandidateRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
+  const handleSubmit = (formData: CandidateData) => {
+    onNext(formData);
   };
 
   return (
@@ -105,8 +46,7 @@ const CandidateRegistrationStep: React.FC<StepProps> = ({ onNext, onBack, isLoad
         <CardContent>
           <CandidateProfileForm
             onSubmit={handleSubmit}
-            onBack={onBack}
-            isLoading={isLoading}
+            initialData={data}
           />
         </CardContent>
       </Card>

@@ -57,7 +57,7 @@ const industries = [
   "Agronegócio", "Energia", "Entretenimento", "Governo", "ONG"
 ];
 
-const DreamJobStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data }) => {
+const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
   const [newLocation, setNewLocation] = useState("");
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>(data?.industryPreferences || []);
 
@@ -92,55 +92,8 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data }) 
     form.setValue("industryPreferences", updated);
   };
 
-  const onSubmit = async (formData: DreamJobData) => {
-    try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não encontrado");
-
-      // Get candidate profile
-      const { data: profile, error: profileError } = await supabase
-        .from('candidate_profiles')
-        .select('*')
-        .eq('user_id', user.user.id)
-        .single();
-
-      if (profileError) throw profileError;
-
-      // Save dream job preferences as professional category
-      const { error: responseError } = await supabase
-        .from('questionnaire_responses')
-        .upsert({
-          candidate_id: profile.id,
-          category: 'professional',
-          responses: { dreamJob: formData },
-          calculated_score: 100, // Dream job is complete when submitted
-        }, {
-          onConflict: 'candidate_id,category'
-        });
-
-      if (responseError) throw responseError;
-
-      // Update profile completion to 100%
-      const existingPrefs = (profile.preferences as any) || {};
-      const { error: updateError } = await supabase
-        .from('candidate_profiles')
-        .update({
-          preferences: {
-            ...existingPrefs,
-            completionLevel: 100,
-            dreamJob: formData
-          }
-        })
-        .eq('id', profile.id);
-
-      if (updateError) throw updateError;
-
-      toast.success("Preferências de emprego dos sonhos salvas!");
-      onNext(formData);
-    } catch (error) {
-      console.error('Error saving dream job:', error);
-      toast.error("Erro ao salvar preferências");
-    }
+  const onSubmit = (formData: DreamJobData) => {
+    onNext(formData);
   };
 
   const salaryRange = form.watch("salaryRange");
@@ -423,10 +376,11 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data }) 
           <div className="flex justify-end pt-6">
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={form.formState.isSubmitting}
               size="lg"
+              className="min-w-[140px]"
             >
-              {isLoading ? "Finalizando..." : "Finalizar Onboarding"}
+              {form.formState.isSubmitting ? "Finalizando..." : "Finalizar Onboarding"}
               <CheckCircle className="ml-2 w-4 h-4" />
             </Button>
           </div>

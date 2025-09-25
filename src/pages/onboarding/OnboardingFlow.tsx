@@ -125,29 +125,155 @@ const OnboardingFlow = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Usuário não encontrado");
 
+      // Combine all collected data
+      const allData = {
+        ...stepData,
+        [STEPS[currentStep].id]: stepData[STEPS[currentStep].id] // Include current step data
+      };
+
+      // Save candidate profile
+      const registrationData = allData['registration'];
+      const validationData = allData['validation'];
+      const assessmentData = allData['assessment'];
+      const dreamJobData = allData['dream-job'];
+
+      // Create or update candidate profile
+      let { data: profile, error: profileError } = await supabase
+        .from('candidate_profiles')
+        .select('*')
+        .eq('user_id', user.user.id)
+        .single();
+
+      if (profileError && profileError.code !== 'PGRST116') {
+        throw profileError;
+      }
+
+      const profileData = {
+        user_id: user.user.id,
+        avatar_url: registrationData?.avatar_url,
+        headline: registrationData?.headline,
+        location: registrationData?.location,
+        years_experience: registrationData?.years_experience,
+        current_position: assessmentData?.current_position,
+        key_achievements: assessmentData?.achievements,
+        skills: assessmentData?.skills || [],
+        preferred_roles: assessmentData?.preferred_roles || [],
+        career_goals: assessmentData?.career_goals,
+        preferences: {
+          completionLevel: 100,
+          desired_role: dreamJobData?.desired_role,
+          company_size: dreamJobData?.company_size,
+          work_model: dreamJobData?.work_model,
+          salary_min: dreamJobData?.salary_min,
+          salary_max: dreamJobData?.salary_max,
+          preferred_locations: dreamJobData?.locations || [],
+          industry_interests: dreamJobData?.industries || [],
+          deal_breakers: dreamJobData?.deal_breakers,
+          additional_preferences: dreamJobData?.additional_preferences
+        }
+      };
+
+      if (!profile) {
+        // Create new profile
+        const { error: createError } = await supabase
+          .from('candidate_profiles')
+          .insert(profileData);
+        if (createError) throw createError;
+      } else {
+        // Update existing profile
+        const { error: updateError } = await supabase
+          .from('candidate_profiles')
+          .update(profileData)
+          .eq('id', profile.id);
+        if (updateError) throw updateError;
+      }
+
+      // Save questionnaire responses
+      if (validationData || assessmentData) {
+        // First get the candidate profile to get the candidate_id
+        const { data: candidateProfile } = await supabase
+          .from('candidate_profiles')
+          .select('id')
+          .eq('user_id', user.user.id)
+          .single();
+
+        if (candidateProfile) {
+          const responses = {
+            ...validationData,
+            ...assessmentData
+          };
+
+          // Save cultural responses
+          if (validationData) {
+            const { error: culturalError } = await supabase
+              .from('questionnaire_responses')
+              .upsert({
+                candidate_id: candidateProfile.id,
+                category: 'cultural' as const,
+                responses: validationData,
+                calculated_score: calculateCulturalScore(validationData)
+              });
+
+            if (culturalError) throw culturalError;
+          }
+
+          // Save professional responses
+          if (assessmentData) {
+            const { error: professionalError } = await supabase
+              .from('questionnaire_responses')
+              .upsert({
+                candidate_id: candidateProfile.id,
+                category: 'professional' as const,
+                responses: assessmentData,
+                calculated_score: calculateProfessionalScore(assessmentData)
+              });
+
+            if (professionalError) throw professionalError;
+          }
+        }
+      }
+
       // Update user completion status
       const { error } = await supabase
         .from('users')
         .update({ 
-          profiles: ['candidate'] // Mark as completed candidate onboarding
+          profiles: ['candidate']
         })
         .eq('id', user.user.id);
 
       if (error) throw error;
 
       toast.success("Onboarding concluído com sucesso!");
-      navigate("/"); // Redirect to dashboard
+      navigate("/");
     } catch (error) {
       console.error("Error completing onboarding:", error);
       toast.error("Erro ao finalizar onboarding");
     }
   };
 
+  const calculateCulturalScore = (data: any) => {
+    const values = Object.values(data);
+    const numericValues = values.filter(v => typeof v === 'number');
+    return numericValues.length > 0 
+      ? numericValues.reduce((sum: number, val: any) => sum + val, 0) / numericValues.length 
+      : 0;
+  };
+
+  const calculateProfessionalScore = (data: any) => {
+    let score = 0;
+    if (data.current_position) score += 20;
+    if (data.achievements) score += 30;
+    if (data.skills && data.skills.length > 0) score += 25;
+    if (data.preferred_roles && data.preferred_roles.length > 0) score += 15;
+    if (data.career_goals) score += 10;
+    return score;
+  };
+
   const progressPercentage = ((currentStep + 1) / STEPS.length) * 100;
   const CurrentStepComponent = STEPS[currentStep].component;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24">{/* Added padding bottom for fixed footer */}
       {/* Header with Progress */}
       <div className="bg-card border-b border-border">
         <div className="max-w-4xl mx-auto px-6 py-6">
@@ -207,21 +333,28 @@ const OnboardingFlow = () => {
       </div>
 
       {/* Footer Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4">
-        <div className="max-w-4xl mx-auto flex justify-between">
+      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 shadow-lg">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
           <Button
             variant="outline"
             onClick={handleBack}
             disabled={isLoading}
+            size="lg"
+            className="min-w-[120px]"
           >
             <ChevronLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
 
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              Passo {currentStep + 1} de {STEPS.length}
-            </span>
+            <div className="text-center">
+              <div className="text-sm font-medium text-foreground">
+                Passo {currentStep + 1} de {STEPS.length}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {Math.round(progressPercentage)}% concluído
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -75,8 +75,6 @@ const CandidateRegistration = () => {
           <CardContent>
             <CandidateProfileForm
               onSubmit={handleSubmit}
-              onBack={handleBack}
-              isLoading={isLoading}
             />
           </CardContent>
         </Card>

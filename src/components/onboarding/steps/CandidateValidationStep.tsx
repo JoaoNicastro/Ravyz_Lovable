@@ -86,60 +86,14 @@ const questions = [
   },
 ];
 
-const CandidateValidationStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data }) => {
+const CandidateValidationStep: React.FC<StepProps> = ({ onNext, data }) => {
   const form = useForm<ValidationData>({
     resolver: zodResolver(validationSchema),
     defaultValues: data || {},
   });
 
-  const onSubmit = async (formData: ValidationData) => {
-    try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não encontrado");
-
-      // Get candidate profile
-      const { data: profile, error: profileError } = await supabase
-        .from('candidate_profiles')
-        .select('*')
-        .eq('user_id', user.user.id)
-        .single();
-
-      if (profileError) throw profileError;
-
-      // Save cultural validation responses
-      const { error: responseError } = await supabase
-        .from('questionnaire_responses')
-        .upsert({
-          candidate_id: profile.id,
-          category: 'cultural',
-          responses: formData,
-          calculated_score: calculateCulturalScore(formData),
-        }, {
-          onConflict: 'candidate_id,category'
-        });
-
-      if (responseError) throw responseError;
-
-      // Update profile completion
-      const existingPrefs = (profile.preferences as any) || {};
-      const { error: updateError } = await supabase
-        .from('candidate_profiles')
-        .update({
-          preferences: {
-            ...existingPrefs,
-            completionLevel: 50
-          }
-        })
-        .eq('id', profile.id);
-
-      if (updateError) throw updateError;
-
-      toast.success("Validação cultural salva!");
-      onNext(formData);
-    } catch (error) {
-      console.error('Error saving validation:', error);
-      toast.error("Erro ao salvar validação");
-    }
+  const onSubmit = (formData: ValidationData) => {
+    onNext(formData);
   };
 
   const calculateCulturalScore = (responses: ValidationData): number => {
@@ -220,10 +174,11 @@ const CandidateValidationStep: React.FC<StepProps> = ({ onNext, onBack, isLoadin
           <div className="flex justify-end pt-6">
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={form.formState.isSubmitting}
               size="lg"
+              className="min-w-[140px]"
             >
-              {isLoading ? "Salvando..." : "Continuar"}
+              {form.formState.isSubmitting ? "Salvando..." : "Continuar"}
               <ChevronRight className="ml-2 w-4 h-4" />
             </Button>
           </div>

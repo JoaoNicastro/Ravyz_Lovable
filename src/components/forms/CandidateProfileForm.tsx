@@ -22,13 +22,11 @@ const candidateProfileSchema = z.object({
 type CandidateProfileFormData = z.infer<typeof candidateProfileSchema>;
 
 interface CandidateProfileFormProps {
-  onSubmit: (data: CandidateProfileFormData) => Promise<void>;
-  onBack: () => void;
-  isLoading: boolean;
+  onSubmit: (data: CandidateProfileFormData) => void | Promise<void>;
   initialData?: Partial<CandidateProfileFormData>;
 }
 
-export function CandidateProfileForm({ onSubmit, onBack, isLoading, initialData }: CandidateProfileFormProps) {
+export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfileFormProps) {
   const [newSkill, setNewSkill] = useState("");
   
   const form = useForm<CandidateProfileFormData>({
@@ -193,14 +191,14 @@ export function CandidateProfileForm({ onSubmit, onBack, isLoading, initialData 
         </div>
 
         {/* Navigation */}
-        <div className="flex justify-between pt-6">
-          <Button type="button" variant="outline" onClick={onBack}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Voltar
-          </Button>
-          
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Salvando..." : "Continuar"}
+        <div className="flex justify-end pt-6">
+          <Button 
+            type="submit" 
+            disabled={form.formState.isSubmitting}
+            size="lg"
+            className="min-w-[140px]"
+          >
+            {form.formState.isSubmitting ? "Salvando..." : "Continuar"}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

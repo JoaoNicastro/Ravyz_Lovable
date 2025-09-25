@@ -51,7 +51,7 @@ const methods = [
   },
 ];
 
-const FillMethodStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data }) => {
+const FillMethodStep: React.FC<StepProps> = ({ onNext, data }) => {
   const form = useForm<FillMethodData>({
     resolver: zodResolver(fillMethodSchema),
     defaultValues: data || { method: undefined },
@@ -160,10 +160,11 @@ const FillMethodStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data }
           <div className="flex justify-end pt-6">
             <Button
               type="submit"
-              disabled={isLoading || !form.watch("method")}
+              disabled={!form.watch("method") || form.formState.isSubmitting}
               size="lg"
+              className="min-w-[140px]"
             >
-              {isLoading ? "Processando..." : "Continuar"}
+              {form.formState.isSubmitting ? "Processando..." : "Continuar"}
               <ChevronRight className="ml-2 w-4 h-4" />
             </Button>
           </div>

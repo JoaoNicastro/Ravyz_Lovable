@@ -33,7 +33,7 @@ interface StepProps {
   data?: AssessmentData;
 }
 
-const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data }) => {
+const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
   const [newSkill, setNewSkill] = useState("");
   const [newRole, setNewRole] = useState("");
 
@@ -72,58 +72,8 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, onBack, isLoa
     form.setValue("preferredRoles", currentRoles.filter((_, i) => i !== index));
   };
 
-  const onSubmit = async (formData: AssessmentData) => {
-    try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não encontrado");
-
-      // Get candidate profile
-      const { data: profile, error: profileError } = await supabase
-        .from('candidate_profiles')
-        .select('*')
-        .eq('user_id', user.user.id)
-        .single();
-
-      if (profileError) throw profileError;
-
-      // Save professional assessment responses
-      const { error: responseError } = await supabase
-        .from('questionnaire_responses')
-        .upsert({
-          candidate_id: profile.id,
-          category: 'professional',
-          responses: formData,
-          calculated_score: calculateProfessionalScore(formData),
-        }, {
-          onConflict: 'candidate_id,category'
-        });
-
-      if (responseError) throw responseError;
-
-      // Update profile with professional data
-      const existingPrefs = (profile.preferences as any) || {};
-      const { error: updateError } = await supabase
-        .from('candidate_profiles')
-        .update({
-          skills_vector: {
-            skills: formData.skills,
-            preferredRoles: formData.preferredRoles,
-          },
-          preferences: {
-            ...existingPrefs,
-            completionLevel: 75
-          }
-        })
-        .eq('id', profile.id);
-
-      if (updateError) throw updateError;
-
-      toast.success("Avaliação profissional salva!");
-      onNext(formData);
-    } catch (error) {
-      console.error('Error saving assessment:', error);
-      toast.error("Erro ao salvar avaliação");
-    }
+  const onSubmit = (formData: AssessmentData) => {
+    onNext(formData);
   };
 
   const calculateProfessionalScore = (responses: AssessmentData): number => {
@@ -356,10 +306,11 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, onBack, isLoa
           <div className="flex justify-end pt-6">
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={form.formState.isSubmitting}
               size="lg"
+              className="min-w-[140px]"
             >
-              {isLoading ? "Salvando..." : "Continuar"}
+              {form.formState.isSubmitting ? "Salvando..." : "Continuar"}
               <ChevronRight className="ml-2 w-4 h-4" />
             </Button>
           </div>
