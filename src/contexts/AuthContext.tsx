@@ -32,9 +32,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Handle successful authentication
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Check if user has completed profile selection
+          try {
+            const { data: userData } = await supabase
+              .from('users')
+              .select('active_profile, profiles')
+              .eq('id', session.user.id)
+              .single();
+
+            // If user doesn't have an active profile, redirect to profile selection
+            if (!userData?.active_profile) {
+              setTimeout(() => {
+                window.location.href = '/profile-selection';
+              }, 1000);
+            } else {
+              // User has profile, redirect to home
+              setTimeout(() => {
+                window.location.href = '/';
+              }, 1000);
+            }
+          } catch (error) {
+            console.error('Error checking user profile:', error);
+            // If there's an error, redirect to profile selection as fallback
+            setTimeout(() => {
+              window.location.href = '/profile-selection';
+            }, 1000);
+          }
+        }
+        
         setLoading(false);
       }
     );
@@ -53,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const redirectUrl = `${window.location.origin}/profile-selection`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -87,10 +118,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           variant: "destructive"
         });
       } else {
-        toast({
-          title: "Conta criada!",
-          description: "Verifique seu email para confirmar a conta.",
-        });
+        // Check if email confirmation is disabled (for development)
+        if (data.user && !data.session) {
+          toast({
+            title: "Conta criada!",
+            description: "Verifique seu email para confirmar a conta.",
+          });
+        } else if (data.session) {
+          toast({
+            title: "Conta criada!",
+            description: "Redirecionando para seleção de perfil...",
+          });
+        }
       }
 
       return { error };
@@ -106,7 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -132,6 +171,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: "Erro no login",
           description: errorMessage,
           variant: "destructive"
+        });
+      } else if (data.user) {
+        toast({
+          title: "Login realizado!",
+          description: "Redirecionando...",
         });
       }
 

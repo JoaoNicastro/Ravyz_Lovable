@@ -1,11 +1,145 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Users, Target, Zap, Shield, TrendingUp, Briefcase } from "lucide-react";
+import { ArrowRight, Users, Target, Zap, Shield, TrendingUp, Briefcase, LogOut, User } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import heroImage from "@/assets/hero-recruitment.jpg";
 
 const Index = () => {
+  const { user, signOut, loading } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  const renderAuthButtons = () => {
+    if (loading) {
+      return (
+        <div className="w-8 h-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      );
+    }
+
+    if (user) {
+      return (
+        <div className="flex items-center space-x-4">
+          <Link to="/profile-selection">
+            <Button variant="ghost" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              Dashboard
+            </Button>
+          </Link>
+          <Button 
+            variant="outline" 
+            onClick={handleSignOut}
+            className="flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Sair
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center space-x-4">
+        <Link to="/auth">
+          <Button variant="ghost">Login</Button>
+        </Link>
+        <Link to="/auth">
+          <Button className="bg-gradient-primary hover:shadow-glow transition-all duration-300">
+            Começar Agora
+          </Button>
+        </Link>
+      </div>
+    );
+  };
+
+  const renderHeroContent = () => {
+    if (user) {
+      return (
+        <div className="text-center">
+          <Badge className="mb-6 bg-success/20 text-success border-success/20">
+            ✓ Logado como {user.email}
+          </Badge>
+          
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+            Bem-vindo de volta!
+          </h1>
+          
+          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+            Continue de onde parou ou acesse seu dashboard para gerenciar seu perfil e oportunidades.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+            <Link to="/profile-selection">
+              <Button size="lg" className="bg-gradient-primary hover:shadow-glow transition-all duration-300">
+                <User className="mr-2 h-5 w-5" />
+                Ir para Dashboard
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="text-center">
+        <Badge className="mb-6 bg-primary-light text-primary border-primary/20">
+          🚀 Powered by AI
+        </Badge>
+        
+        <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
+          O Futuro do
+          <span className="bg-gradient-primary bg-clip-text text-transparent"> Recrutamento</span>
+        </h1>
+        
+        <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+          Conectamos talentos e empresas com precisão de IA. Matching inteligente, 
+          análise completa de currículos e transparência total no processo seletivo.
+        </p>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+          <Link to="/auth">
+            <Button size="lg" className="bg-gradient-primary hover:shadow-glow transition-all duration-300">
+              <Users className="mr-2 h-5 w-5" />
+              Sou Candidato
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </Link>
+          
+          <Link to="/auth">
+            <Button size="lg" variant="outline" className="border-primary/20 hover:bg-primary-light">
+              <Briefcase className="mr-2 h-5 w-5" />
+              Sou Empresa
+            </Button>
+          </Link>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-2xl mx-auto">
+          <div>
+            <div className="text-3xl font-bold text-primary">95%</div>
+            <div className="text-sm text-muted-foreground">Precisão no Match</div>
+          </div>
+          <div>
+            <div className="text-3xl font-bold text-primary">24h</div>
+            <div className="text-sm text-muted-foreground">Tempo Médio</div>
+          </div>
+          <div>
+            <div className="text-3xl font-bold text-primary">10k+</div>
+            <div className="text-sm text-muted-foreground">Candidatos</div>
+          </div>
+          <div>
+            <div className="text-3xl font-bold text-primary">500+</div>
+            <div className="text-sm text-muted-foreground">Empresas</div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -30,16 +164,7 @@ const Index = () => {
             </a>
           </nav>
 
-          <div className="flex items-center space-x-4">
-            <Link to="/auth">
-              <Button variant="ghost">Login</Button>
-            </Link>
-            <Link to="/auth">
-              <Button className="bg-gradient-primary hover:shadow-glow transition-all duration-300">
-                Começar Agora
-              </Button>
-            </Link>
-          </div>
+          {renderAuthButtons()}
         </div>
       </header>
 
@@ -55,57 +180,8 @@ const Index = () => {
           <div className="absolute inset-0 bg-gradient-to-b from-background/80 to-background/95" />
         </div>
         
-        <div className="container mx-auto text-center relative z-10">
-          <Badge className="mb-6 bg-primary-light text-primary border-primary/20">
-            🚀 Powered by AI
-          </Badge>
-          
-          <h1 className="text-5xl md:text-6xl font-bold text-foreground mb-6">
-            O Futuro do
-            <span className="bg-gradient-primary bg-clip-text text-transparent"> Recrutamento</span>
-          </h1>
-          
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Conectamos talentos e empresas com precisão de IA. Matching inteligente, 
-            análise completa de currículos e transparência total no processo seletivo.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-            <Link to="/auth">
-              <Button size="lg" className="bg-gradient-primary hover:shadow-glow transition-all duration-300">
-                <Users className="mr-2 h-5 w-5" />
-                Sou Candidato
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            
-            <Link to="/auth">
-              <Button size="lg" variant="outline" className="border-primary/20 hover:bg-primary-light">
-                <Briefcase className="mr-2 h-5 w-5" />
-                Sou Empresa
-              </Button>
-            </Link>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-2xl mx-auto">
-            <div>
-              <div className="text-3xl font-bold text-primary">95%</div>
-              <div className="text-sm text-muted-foreground">Precisão no Match</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary">24h</div>
-              <div className="text-sm text-muted-foreground">Tempo Médio</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary">10k+</div>
-              <div className="text-sm text-muted-foreground">Candidatos</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary">500+</div>
-              <div className="text-sm text-muted-foreground">Empresas</div>
-            </div>
-          </div>
+        <div className="container mx-auto relative z-10">
+          {renderHeroContent()}
         </div>
       </section>
 
