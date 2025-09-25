@@ -28,10 +28,14 @@ const App = () => (
                 <ProfileSelection />
               </ProtectedRoute>
             } />
-            <Route path="/onboarding" element={
+            {/* <Route path="/onboarding" element={
               <ProtectedRoute>
                 <OnboardingFlow />
               </ProtectedRoute>
+            } /> */}
+             <Route path="/onboarding" element={
+              
+                <OnboardingFlow />
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
