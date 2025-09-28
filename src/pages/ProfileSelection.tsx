@@ -35,7 +35,7 @@ const ProfileSelection = () => {
       if (selectedProfile === 'candidate') {
         navigate('/onboarding/candidate');
       } else {
-        navigate('/company/profile');
+        navigate('/company/onboarding');
       }
       
       toast.success(`Perfil ${selectedProfile === 'candidate' ? 'candidato' : 'empresa'} selecionado!`);
