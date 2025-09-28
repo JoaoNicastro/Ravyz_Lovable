@@ -109,23 +109,23 @@ const ResumeAnalyze = () => {
         });
 
       if (uploadError) throw uploadError;
-      setUploadProgress(50);
+      setUploadProgress(70);
 
       // Get the public URL for the file
       const { data: { publicUrl } } = supabase.storage
         .from('resumes')
         .getPublicUrl(filename);
 
-      setUploadProgress(60);
+      setUploadProgress(90);
 
       // Create resume analysis record
-      const { data: analysisData, error: analysisError } = await supabase
+      const { error: analysisError } = await supabase
         .from('resume_analyses')
         .insert({
           candidate_id: candidateProfile.id,
           file_url: publicUrl,
           original_filename: file.name,
-          processing_status: 'processing',
+          processing_status: 'pending',
           version: 1,
           technical_score: 0,
           soft_skills_score: 0,
@@ -134,75 +134,13 @@ const ResumeAnalyze = () => {
           skills_extracted: [],
           ai_suggestions: [],
           experience_summary: {}
-        })
-        .select('id')
-        .single();
+        });
 
       if (analysisError) throw analysisError;
       
-      setUploadProgress(70);
-
-      // Call the resume parser edge function
-      const { data: parseResult, error: parseError } = await supabase.functions.invoke('parse-resume', {
-        body: {
-          resumeAnalysisId: analysisData.id,
-          fileUrl: publicUrl
-        }
-      });
-
-      if (parseError) {
-        console.error('Parse error:', parseError);
-        // Update status to failed
-        await supabase
-          .from('resume_analyses')
-          .update({ processing_status: 'failed' })
-          .eq('id', analysisData.id);
-        throw parseError;
-      }
-
-      setUploadProgress(90);
-
-      // If parsing was successful, update candidate profile with extracted data
-      if (parseResult?.success && parseResult?.data) {
-        const extractedData = parseResult.data;
-        
-        // Update candidate profile with extracted information
-        const updateData: any = {};
-        
-        if (extractedData.personalInfo.name) {
-          updateData.headline = extractedData.personalInfo.name;
-        }
-        
-        if (extractedData.personalInfo.location) {
-          updateData.location = extractedData.personalInfo.location;
-        }
-
-        if (extractedData.skills.technical.length > 0) {
-          updateData.skills_vector = {
-            technical: extractedData.skills.technical,
-            soft: extractedData.skills.soft
-          };
-        }
-
-        if (extractedData.experience.length > 0) {
-          updateData.years_experience = calculateTotalYearsFromExperience(extractedData.experience);
-        }
-
-        if (Object.keys(updateData).length > 0) {
-          const { error: profileUpdateError } = await supabase
-            .from('candidate_profiles')
-            .update(updateData)
-            .eq('id', candidateProfile.id);
-
-          if (profileUpdateError) {
-            console.error('Profile update error:', profileUpdateError);
-          }
-        }
-      }
-      
       setUploadProgress(100);
 
-      toast.success('Currículo analisado com sucesso! Dados extraídos automaticamente.');
+      toast.success('Currículo enviado com sucesso!');
       
       // Navigate to next step in onboarding
       setTimeout(() => {
@@ -211,28 +149,11 @@ const ResumeAnalyze = () => {
 
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error(`Erro ao processar currículo: ${error.message}`);
+      toast.error(`Erro ao enviar currículo: ${error.message}`);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
     }
-  };
-
-  // Helper function to calculate total years of experience
-  const calculateTotalYearsFromExperience = (experience: any[]) => {
-    let totalYears = 0;
-    const currentYear = new Date().getFullYear();
-    
-    for (const exp of experience) {
-      const startYear = exp.startDate ? parseInt(exp.startDate) : currentYear - 1;
-      const endYear = exp.endDate === 'Present' || !exp.endDate ? currentYear : parseInt(exp.endDate);
-      
-      if (!isNaN(startYear) && !isNaN(endYear)) {
-        totalYears += Math.max(0, endYear - startYear);
-      }
-    }
-    
-    return totalYears;
   };
 
   return (
