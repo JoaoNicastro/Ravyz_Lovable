@@ -1,6 +1,6 @@
 # RAVYZ - Arquitetura e Fluxo de Navegação
 
-**Última atualização:** 28 de Setembro, 2025 - 19:30 UTC
+**Última atualização:** 28 de Setembro, 2025 - 20:45 UTC
 
 ## 1. Mapa de Pastas Principais
 
@@ -10,8 +10,8 @@
 - **`/forgot-password`** → `ForgotPassword.tsx` - Recuperação de senha
 - **`/reset-password`** → `ResetPassword.tsx` - Redefinir senha
 - **`/profile-selection`** → `ProfileSelection.tsx` - Escolha Candidato/Empresa
-- **`/onboarding/candidate`** → `OnboardingFlow.tsx` - Fluxo candidato (5 passos)
-- **`/company/onboarding`** → `CompanyOnboardingFlow.tsx` - Fluxo empresa (3 passos)
+- **`/onboarding/candidate`** → `OnboardingFlow.tsx` - Fluxo candidato (6 passos)
+- **`/onboarding/company`** → `CompanyOnboardingFlow.tsx` - Fluxo empresa (3 passos)
 - **`/dashboard/candidate`** → `CandidateDashboard.tsx` - Dashboard do candidato
 - **`/dashboard/company`** → `CompanyDashboard.tsx` - Dashboard da empresa
 - **`/resume/analyze`** → `ResumeAnalyze.tsx` - Upload e análise de currículo
@@ -71,18 +71,19 @@ graph TD
     
     D --> G{Perfil selecionado}
     G -->|Candidato| H[/onboarding/candidate]
-    G -->|Empresa| I[/company/onboarding]
+    G -->|Empresa| I[/onboarding/company]
     
-    H --> H1[Passo 1: Registro]
-    H1 --> H2[Passo 2: Assessment]
-    H2 --> H3[Passo 3: Validação]
-    H3 --> H4[Passo 4: Dream Job]
-    H4 --> H5[Passo 5: Método Preenchimento]
-    H5 --> J[/dashboard/candidate]
+    H --> H1[Passo 1: Método Preenchimento]
+    H1 --> H2[Passo 2: Informações Básicas]
+    H2 --> H3[Passo 3: Validação Cultural]
+    H3 --> H4[Passo 4: Avaliação Profissional]
+    H4 --> H5[Passo 5: Avaliação de Perfil]
+    H5 --> H6[Passo 6: Emprego dos Sonhos]
+    H6 --> J[/dashboard/candidate]
     
-    I --> I1[Passo 1: Registro Empresa]
-    I1 --> I2[Passo 2: Definição Job]
-    I2 --> I3[Passo 3: Assessment Empresa]
+    I --> I1[Passo 1: Informações da Empresa]
+    I1 --> I2[Passo 2: Primeira Vaga]
+    I2 --> I3[Passo 3: Assessment da Vaga]
     I3 --> K[/dashboard/company]
     
     L[/resume/analyze] --> H2

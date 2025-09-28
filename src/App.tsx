@@ -33,10 +33,9 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/profile-selection" element={<ProfileSelection />} />
-            <Route path="/onboarding" element={<OnboardingFlow />} />
             <Route path="/onboarding/candidate" element={<OnboardingFlow />} />
+            <Route path="/onboarding/company" element={<CompanyOnboardingFlow />} />
             <Route path="/company/profile" element={<CompanyProfile />} />
-            <Route path="/company/onboarding" element={<CompanyOnboardingFlow />} />
             <Route path="/dashboard/candidate" element={<CandidateDashboard />} />
             <Route path="/dashboard/company" element={<CompanyDashboard />} />
             <Route path="/resume/analyze" element={<ResumeAnalyze />} />

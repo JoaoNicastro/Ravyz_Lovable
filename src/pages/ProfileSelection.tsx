@@ -58,7 +58,7 @@ const ProfileSelection = () => {
       // 3. Redirecionamento confiável
       const targetRoute = selectedProfile === 'candidate' 
         ? '/onboarding/candidate' 
-        : '/company/onboarding';
+        : '/onboarding/company';
       
       console.log("🔄 Redirecionando para:", targetRoute);
       

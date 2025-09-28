@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import CompanyRegistrationStep from "@/components/onboarding/steps/CompanyRegistrationStep";
@@ -200,92 +198,88 @@ const CompanyOnboardingFlow: React.FC = () => {
   const progress = ((currentStep + 1) / STEPS.length) * 100;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b border-border">
-        <div className="max-w-4xl mx-auto p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">R</span>
+    <div className="min-h-screen bg-background pb-24">
+      {/* Header with Progress */}
+      <div className="bg-card border-b border-border">
+        <div className="max-w-4xl mx-auto px-6 py-6">
+          <div className="space-y-4">
+            {/* Progress Bar */}
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <Progress value={progress} className="h-2" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Configuração da Empresa</h1>
-                <p className="text-muted-foreground">Configure seu perfil e publique sua primeira vaga</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Progress */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Progresso</span>
-              <span className="text-foreground font-medium">
+              <span className="text-sm font-medium text-muted-foreground">
                 {currentStep + 1} de {STEPS.length}
               </span>
             </div>
-            <Progress value={progress} className="h-2" />
-          </div>
 
-          {/* Step Navigation Pills */}
-          <div className="flex space-x-2 mt-4 overflow-x-auto">
-            {STEPS.map((step, index) => (
-              <div
-                key={step.id}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-full text-sm whitespace-nowrap ${
-                  index === currentStep
-                    ? "bg-primary text-primary-foreground"
-                    : index < currentStep
-                    ? "bg-success text-success-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                {index < currentStep ? (
-                  <CheckCircle className="h-4 w-4" />
-                ) : (
-                  <span className="w-4 h-4 rounded-full border-2 border-current flex items-center justify-center text-xs">
-                    {index + 1}
+            {/* Step Info */}
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">
+                {STEPS[currentStep].title}
+              </h1>
+              <p className="text-muted-foreground">
+                {STEPS[currentStep].description}
+              </p>
+            </div>
+
+            {/* Step Navigation Pills */}
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {STEPS.map((step, index) => (
+                <div
+                  key={step.id}
+                  className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm whitespace-nowrap ${
+                    index === currentStep
+                      ? "bg-primary text-primary-foreground"
+                      : index < currentStep
+                      ? "bg-success/20 text-success"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold">
+                    {index < currentStep ? "✓" : index + 1}
                   </span>
-                )}
-                <span>{step.title}</span>
-              </div>
-            ))}
+                  {step.title}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-4xl mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{STEPS[currentStep].title}</CardTitle>
-            <p className="text-muted-foreground">{STEPS[currentStep].description}</p>
-          </CardHeader>
-          <CardContent>
-            <CurrentStepComponent
-              onNext={handleNext}
-              onBack={handleBack}
-              isLoading={isLoading}
-              data={stepData[STEPS[currentStep].id]}
-            />
-          </CardContent>
-        </Card>
+      {/* Step Content */}
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        <CurrentStepComponent
+          onNext={handleNext}
+          onBack={handleBack}
+          isLoading={isLoading}
+          data={stepData[STEPS[currentStep].id]}
+        />
       </div>
 
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+      {/* Footer Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 shadow-lg">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
           <Button
             variant="outline"
             onClick={handleBack}
             disabled={isLoading}
+            size="lg"
+            className="min-w-[120px]"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Voltar
           </Button>
 
-          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <span>Etapa {currentStep + 1} de {STEPS.length}</span>
+          <div className="flex items-center gap-4">
+            <div className="text-center">
+              <div className="text-sm font-medium text-foreground">
+                Passo {currentStep + 1} de {STEPS.length}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {Math.round(progress)}% concluído
+              </div>
+            </div>
           </div>
         </div>
       </div>
