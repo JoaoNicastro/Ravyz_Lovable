@@ -11,11 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Building2, Users, MapPin, Info } from "lucide-react";
 
 const companyRegistrationSchema = z.object({
-  company_name: z.string().min(1, "Nome da empresa é obrigatório"),
-  description: z.string().min(10, "Descrição deve ter pelo menos 10 caracteres"),
+  company_name: z.string().min(2, "Nome da empresa deve ter pelo menos 2 caracteres"),
   industry: z.string().min(1, "Setor é obrigatório"),
   size_category: z.string().min(1, "Tamanho da empresa é obrigatório"),
-  location: z.string().min(1, "Localização é obrigatória"),
+  description: z.string().optional(),
 });
 
 type CompanyRegistrationData = z.infer<typeof companyRegistrationSchema>;
@@ -32,10 +31,9 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
     resolver: zodResolver(companyRegistrationSchema),
     defaultValues: data || {
       company_name: "",
-      description: "",
       industry: "",
       size_category: "",
-      location: "",
+      description: "",
     },
   });
 
@@ -85,11 +83,11 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
               <FormItem>
                 <FormLabel className="flex items-center space-x-2">
                   <Info className="h-4 w-4" />
-                  <span>Descrição da Empresa *</span>
+                  <span>Descrição da Empresa</span>
                 </FormLabel>
                 <FormControl>
                   <Textarea 
-                    placeholder="Conte um pouco sobre sua empresa, seus valores e o que faz..."
+                    placeholder="Conte um pouco sobre sua empresa, seus valores e o que faz... (opcional)"
                     className="min-h-[100px]"
                     {...field} 
                   />
@@ -117,11 +115,6 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
                     <SelectItem value="financas">Finanças</SelectItem>
                     <SelectItem value="saude">Saúde</SelectItem>
                     <SelectItem value="educacao">Educação</SelectItem>
-                    <SelectItem value="varejo">Varejo</SelectItem>
-                    <SelectItem value="servicos">Serviços</SelectItem>
-                    <SelectItem value="industria">Indústria</SelectItem>
-                    <SelectItem value="consultoria">Consultoria</SelectItem>
-                    <SelectItem value="marketing">Marketing & Publicidade</SelectItem>
                     <SelectItem value="outros">Outros</SelectItem>
                   </SelectContent>
                 </Select>
@@ -150,31 +143,9 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
                     <SelectItem value="1-10">1-10 funcionários</SelectItem>
                     <SelectItem value="11-50">11-50 funcionários</SelectItem>
                     <SelectItem value="51-200">51-200 funcionários</SelectItem>
-                    <SelectItem value="201-500">201-500 funcionários</SelectItem>
-                    <SelectItem value="500+">500+ funcionários</SelectItem>
+                    <SelectItem value="200+">200+ funcionários</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Location */}
-          <FormField
-            control={form.control}
-            name="location"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center space-x-2">
-                  <MapPin className="h-4 w-4" />
-                  <span>Localização *</span>
-                </FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Ex: São Paulo, SP" 
-                    {...field} 
-                  />
-                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
