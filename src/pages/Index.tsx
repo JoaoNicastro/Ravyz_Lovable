@@ -43,10 +43,10 @@ const Index = () => {
 
     return (
       <div className="flex items-center space-x-4">
-        <Link to="/auth">
+        <Link to="/auth?tab=login">
           <Button variant="ghost">Login</Button>
         </Link>
-        <Link to="/auth">
+        <Link to="/auth?tab=register">
           <Button className="bg-gradient-primary hover:shadow-glow transition-all duration-300">
             Começar Agora
           </Button>
@@ -101,7 +101,7 @@ const Index = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-          <Link to="/auth">
+          <Link to="/auth?tab=register">
             <Button size="lg" className="bg-gradient-primary hover:shadow-glow transition-all duration-300">
               <Users className="mr-2 h-5 w-5" />
               Sou Candidato
@@ -109,7 +109,7 @@ const Index = () => {
             </Button>
           </Link>
           
-          <Link to="/auth">
+          <Link to="/auth?tab=register">
             <Button size="lg" variant="outline" className="border-primary/20 hover:bg-primary-light">
               <Briefcase className="mr-2 h-5 w-5" />
               Sou Empresa
@@ -297,14 +297,14 @@ const Index = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/auth">
+              <Link to="/auth?tab=register">
                 <Button size="lg" variant="secondary" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
                   <Users className="mr-2 h-5 w-5" />
                   Cadastrar como Candidato
                 </Button>
               </Link>
               
-              <Link to="/auth">
+              <Link to="/auth?tab=register">
                 <Button size="lg" variant="outline" className="border-primary-foreground/20 text-primary hover:bg-primary-foreground/10">
                   <Briefcase className="mr-2 h-5 w-5" />
                   Cadastrar Empresa
