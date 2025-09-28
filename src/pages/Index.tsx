@@ -5,6 +5,7 @@ import { ArrowRight, Users, Target, Zap, Shield, TrendingUp, Briefcase, LogOut, 
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import heroImage from "@/assets/hero-recruitment.jpg";
+import ravyzLogo from "@/assets/ravyz-logo.png";
 
 const Index = () => {
   const { user, signOut, loading } = useAuth();
@@ -146,9 +147,11 @@ const Index = () => {
       <header className="border-b border-border/50 bg-background/95 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">R</span>
-            </div>
+            <img 
+              src={ravyzLogo} 
+              alt="RAVYZ Logo" 
+              className="w-8 h-8 object-contain"
+            />
             <span className="text-xl font-bold text-foreground">RAVYZ</span>
           </div>
           
@@ -321,9 +324,11 @@ const Index = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-lg">R</span>
-                </div>
+                <img 
+                  src={ravyzLogo} 
+                  alt="RAVYZ Logo" 
+                  className="w-8 h-8 object-contain"
+                />
                 <span className="text-xl font-bold text-foreground">RAVYZ</span>
               </div>
               <p className="text-muted-foreground">

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import ravyzLogo from "@/assets/ravyz-logo.png";
 
 // Step components
 import FillMethodStep from "@/components/onboarding/steps/FillMethodStep";
@@ -316,6 +317,16 @@ const OnboardingFlow = () => {
       <div className="bg-card border-b border-border">
         <div className="max-w-4xl mx-auto px-6 py-6">
           <div className="space-y-4">
+            {/* Logo and Title */}
+            <div className="flex items-center gap-3 mb-2">
+              <img 
+                src={ravyzLogo} 
+                alt="RAVYZ Logo" 
+                className="w-8 h-8 object-contain"
+              />
+              <span className="text-lg font-semibold">RAVYZ</span>
+            </div>
+            
             {/* Progress Bar */}
             <div className="flex items-center gap-4">
               <div className="flex-1">

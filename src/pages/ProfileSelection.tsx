@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import ravyzLogo from "@/assets/ravyz-logo.png";
 
 const ProfileSelection = () => {
   const [selectedProfile, setSelectedProfile] = useState<'candidate' | 'company' | null>(null);
@@ -91,8 +92,12 @@ const ProfileSelection = () => {
       <div className="w-full max-w-2xl space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
-          <div className="w-16 h-16 bg-gradient-primary rounded-2xl flex items-center justify-center mx-auto">
-            <span className="text-primary-foreground font-bold text-2xl">R</span>
+          <div className="flex justify-center">
+            <img 
+              src={ravyzLogo} 
+              alt="RAVYZ Logo" 
+              className="w-16 h-16 object-contain"
+            />
           </div>
           <h1 className="text-3xl font-bold text-foreground">Bem-vindo ao RAVYZ</h1>
           <p className="text-muted-foreground text-lg">

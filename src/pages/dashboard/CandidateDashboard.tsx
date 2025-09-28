@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { MatchRadarChart } from '@/components/MatchRadarChart';
 import { Notifications } from '@/components/Notifications';
 import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign } from 'lucide-react';
+import ravyzLogo from '@/assets/ravyz-logo.png';
 
 interface MatchResult {
   id: string;
@@ -162,12 +163,20 @@ export default function CandidateDashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard do Candidato</h1>
-          <p className="text-muted-foreground">
-            Acompanhe seus matches e oportunidades
-          </p>
+      {/* Header with Logo */}
+      <div className="flex items-center justify-between mb-8 pb-6 border-b">
+        <div className="flex items-center gap-4">
+          <img 
+            src={ravyzLogo} 
+            alt="RAVYZ Logo" 
+            className="w-10 h-10 object-contain"
+          />
+          <div>
+            <h1 className="text-3xl font-bold">Dashboard do Candidato</h1>
+            <p className="text-muted-foreground">
+              Acompanhe seus matches e oportunidades
+            </p>
+          </div>
         </div>
         <Notifications />
       </div>

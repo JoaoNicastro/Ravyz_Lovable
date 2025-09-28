@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import CompanyRegistrationStep from "@/components/onboarding/steps/CompanyRegistrationStep";
 import CompanyJobDefinitionStep from "@/components/onboarding/steps/CompanyJobDefinitionStep";
+import ravyzLogo from "@/assets/ravyz-logo.png";
 
 interface StepData {
   id: string;
@@ -203,6 +204,16 @@ const CompanyOnboardingFlow: React.FC = () => {
       <div className="bg-card border-b border-border">
         <div className="max-w-4xl mx-auto px-6 py-6">
           <div className="space-y-4">
+            {/* Logo and Title */}
+            <div className="flex items-center gap-3 mb-2">
+              <img 
+                src={ravyzLogo} 
+                alt="RAVYZ Logo" 
+                className="w-8 h-8 object-contain"
+              />
+              <span className="text-lg font-semibold">RAVYZ</span>
+            </div>
+            
             {/* Progress Bar */}
             <div className="flex items-center gap-4">
               <div className="flex-1">
