@@ -286,6 +286,55 @@ export type Database = {
           },
         ]
       }
+      match_feedback: {
+        Row: {
+          candidate_id: string | null
+          company_id: string | null
+          created_at: string
+          feedback: string
+          id: string
+          job_id: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          feedback: string
+          id?: string
+          job_id?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          feedback?: string
+          id?: string
+          job_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_feedback_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_feedback_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "company_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_feedback_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matching_results: {
         Row: {
           calculated_at: string | null
@@ -293,6 +342,7 @@ export type Database = {
           expires_at: string | null
           explanation: string | null
           factors_analyzed: Json | null
+          feedback_status: string | null
           id: string
           is_demo_match: boolean | null
           job_id: string | null
@@ -305,6 +355,7 @@ export type Database = {
           expires_at?: string | null
           explanation?: string | null
           factors_analyzed?: Json | null
+          feedback_status?: string | null
           id?: string
           is_demo_match?: boolean | null
           job_id?: string | null
@@ -317,6 +368,7 @@ export type Database = {
           expires_at?: string | null
           explanation?: string | null
           factors_analyzed?: Json | null
+          feedback_status?: string | null
           id?: string
           is_demo_match?: boolean | null
           job_id?: string | null

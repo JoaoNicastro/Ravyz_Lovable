@@ -10,6 +10,8 @@ import ProfileSelection from "./pages/ProfileSelection";
 import OnboardingFlow from "./pages/onboarding/OnboardingFlow";
 import CompanyProfile from "./pages/company/CompanyProfile";
 import CompanyOnboardingFlow from "./pages/onboarding/CompanyOnboardingFlow";
+import CandidateDashboard from "./pages/dashboard/CandidateDashboard";
+import CompanyDashboard from "./pages/dashboard/CompanyDashboard";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -52,6 +54,16 @@ const App = () => (
             <Route path="/company/onboarding" element={
               <ProtectedRoute>
                 <CompanyOnboardingFlow />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/candidate" element={
+              <ProtectedRoute>
+                <CandidateDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/dashboard/company" element={
+              <ProtectedRoute>
+                <CompanyDashboard />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
