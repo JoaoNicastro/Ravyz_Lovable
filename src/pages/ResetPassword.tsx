@@ -17,14 +17,14 @@ const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const { updatePassword } = useAuth();
 
-  // Check if we have access token from email link
+  // Check if we have the required parameters from the email link
   useEffect(() => {
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
+    const type = searchParams.get('type');
+    const tokenHash = searchParams.get('token_hash');
     
-    if (!accessToken) {
+    if (type !== 'recovery' || !tokenHash) {
       toast.error('Link inválido ou expirado');
-      navigate('/auth');
+      navigate('/forgot-password');
     }
   }, [searchParams, navigate]);
 
@@ -61,10 +61,10 @@ const ResetPassword = () => {
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="flex items-center space-x-4 mb-8">
-          <Link to="/auth">
+          <Link to="/forgot-password">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar ao Login
+              Voltar
             </Button>
           </Link>
         </div>
