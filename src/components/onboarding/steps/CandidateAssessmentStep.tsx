@@ -1,277 +1,273 @@
-import React from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from "@/components/ui/form";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Progress } from "@/components/ui/progress";
-import { Label } from "@/components/ui/label";
-import { BarChart3, Target, TrendingUp, Heart } from "lucide-react";
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Progress } from '@/components/ui/progress';
 
-// Schema for assessment responses (30 questions, scale 1-5)
-const assessmentSchema = z.object({
-  // Compensation questions (7 questions)
-  comp_1: z.number().min(1).max(5),
-  comp_2: z.number().min(1).max(5),
-  comp_3: z.number().min(1).max(5),
-  comp_4: z.number().min(1).max(5),
-  comp_5: z.number().min(1).max(5),
-  comp_6: z.number().min(1).max(5),
-  comp_7: z.number().min(1).max(5),
-  
-  // Ambiente questions (8 questions)
-  env_1: z.number().min(1).max(5),
-  env_2: z.number().min(1).max(5),
-  env_3: z.number().min(1).max(5),
-  env_4: z.number().min(1).max(5),
-  env_5: z.number().min(1).max(5),
-  env_6: z.number().min(1).max(5),
-  env_7: z.number().min(1).max(5),
-  env_8: z.number().min(1).max(5),
-  
-  // Propósito questions (8 questions)
-  purpose_1: z.number().min(1).max(5),
-  purpose_2: z.number().min(1).max(5),
-  purpose_3: z.number().min(1).max(5),
-  purpose_4: z.number().min(1).max(5),
-  purpose_5: z.number().min(1).max(5),
-  purpose_6: z.number().min(1).max(5),
-  purpose_7: z.number().min(1).max(5),
-  purpose_8: z.number().min(1).max(5),
-  
-  // Crescimento questions (7 questions)
-  growth_1: z.number().min(1).max(5),
-  growth_2: z.number().min(1).max(5),
-  growth_3: z.number().min(1).max(5),
-  growth_4: z.number().min(1).max(5),
-  growth_5: z.number().min(1).max(5),
-  growth_6: z.number().min(1).max(5),
-  growth_7: z.number().min(1).max(5),
-});
+// MATCH RAVYZ Assessment Questions (30 questions across 4 pillars)
+const CANDIDATE_ASSESSMENT_QUESTIONS = [
+  // Compensation (Questions 1-7)
+  { id: 'q1', text: 'O pacote de remuneração é o fator principal na sua escolha de uma vaga?', pillar: 'compensation' },
+  { id: 'q2', text: 'Você aceitaria uma vaga menos alinhada aos seus valores em troca de uma remuneração maior?', pillar: 'compensation' },
+  { id: 'q3', text: 'O reconhecimento financeiro imediato pesa mais do que perspectivas de longo prazo?', pillar: 'compensation' },
+  { id: 'q4', text: 'Benefícios como bônus e stock options são determinantes na sua decisão?', pillar: 'compensation' },
+  { id: 'q5', text: 'Você estaria disposto a mudar de emprego apenas por uma proposta financeira melhor?', pillar: 'compensation' },
+  { id: 'q6', text: 'Você permaneceria numa empresa que paga menos, se tivesse crescimento e propósito claros?', pillar: 'compensation', isContrasting: true },
+  { id: 'q7', text: 'Até que ponto remuneração influencia sua motivação no dia a dia?', pillar: 'compensation' },
 
-type AssessmentData = z.infer<typeof assessmentSchema>;
+  // Ambiente (Questions 8-14)
+  { id: 'q8', text: 'A qualidade do relacionamento com colegas influencia fortemente seu desempenho?', pillar: 'ambiente' },
+  { id: 'q9', text: 'Você prioriza empresas que têm líderes inspiradores e coerentes?', pillar: 'ambiente' },
+  { id: 'q10', text: 'Para você, a cultura pesa tanto quanto o salário na decisão de aceitar uma vaga?', pillar: 'ambiente' },
+  { id: 'q11', text: 'Você acredita que trabalhar com pessoas que respeita é essencial?', pillar: 'ambiente' },
+  { id: 'q12', text: 'Ambientes de alta colaboração são mais importantes que ambientes altamente competitivos?', pillar: 'ambiente' },
+  { id: 'q13', text: 'A reputação da empresa como lugar para se trabalhar pesa em sua decisão?', pillar: 'ambiente' },
+  { id: 'q14', text: 'Você consegue manter alta performance mesmo em culturas que não se alinham totalmente com seus valores?', pillar: 'ambiente', isContrasting: true },
 
-interface StepProps {
-  onNext: (data: AssessmentData & { pillar_scores: any; archetype: string }) => void;
-  onBack: () => void;
-  isLoading: boolean;
-  data?: AssessmentData;
-}
+  // Propósito (Questions 15-21)
+  { id: 'q15', text: 'Você só se engaja plenamente se acreditar na missão da empresa?', pillar: 'proposito' },
+  { id: 'q16', text: 'A conexão entre valores pessoais e organizacionais é decisiva na sua permanência?', pillar: 'proposito' },
+  { id: 'q17', text: 'Você abriria mão de parte do salário por um trabalho com propósito verdadeiro?', pillar: 'proposito' },
+  { id: 'q18', text: 'É importante sentir que seu trabalho impacta positivamente pessoas ou sociedade?', pillar: 'proposito' },
+  { id: 'q19', text: 'Você se vê como parte de algo maior quando escolhe uma empresa?', pillar: 'proposito' },
+  { id: 'q20', text: 'Você consegue entregar resultados mesmo quando não acredita totalmente no propósito da empresa?', pillar: 'proposito', isContrasting: true },
+  { id: 'q21', text: 'Trabalhar em algo que você acredita é mais importante do que estabilidade?', pillar: 'proposito' },
 
-// Questions based on MATCH RAVYZ methodology
-const QUESTIONS = [
-  // Compensation Pillar (7 questions)
-  { key: "comp_1", pillar: "Compensation", text: "Salário competitivo é fundamental para minha satisfação no trabalho", icon: BarChart3 },
-  { key: "comp_2", pillar: "Compensation", text: "Priorizo benefícios financeiros em relação a outros aspectos do trabalho", icon: BarChart3 },
-  { key: "comp_3", pillar: "Compensation", text: "Valorizo participação nos lucros ou equity da empresa", icon: BarChart3 },
-  { key: "comp_4", pillar: "Compensation", text: "Bonificações por performance são importantes para minha motivação", icon: BarChart3 },
-  { key: "comp_5", pillar: "Compensation", text: "Prefiro transparência total sobre a estrutura salarial da empresa", icon: BarChart3 },
-  { key: "comp_6", pillar: "Compensation", text: "Estabilidade financeira é mais importante que crescimento rápido", icon: BarChart3 },
-  { key: "comp_7", pillar: "Compensation", text: "Aceito menor salário por benefícios não-monetários valiosos", icon: BarChart3 },
-
-  // Ambiente Pillar (8 questions)
-  { key: "env_1", pillar: "Ambiente", text: "Prefiro trabalhar em equipes colaborativas e unidas", icon: Heart },
-  { key: "env_2", pillar: "Ambiente", text: "Valorizo flexibilidade de horários e local de trabalho", icon: Heart },
-  { key: "env_3", pillar: "Ambiente", text: "Um ambiente descontraído e informal me motiva mais", icon: Heart },
-  { key: "env_4", pillar: "Ambiente", text: "Estrutura hierárquica clara é importante para meu trabalho", icon: Heart },
-  { key: "env_5", pillar: "Ambiente", text: "Comunicação aberta e feedback constante são essenciais", icon: Heart },
-  { key: "env_6", pillar: "Ambiente", text: "Prefiro ambientes de alta performance e competitividade", icon: Heart },
-  { key: "env_7", pillar: "Ambiente", text: "Diversidade e inclusão são valores fundamentais para mim", icon: Heart },
-  { key: "env_8", pillar: "Ambiente", text: "Trabalho remoto é mais produtivo que presencial para mim", icon: Heart },
-
-  // Propósito Pillar (8 questions)
-  { key: "purpose_1", pillar: "Propósito", text: "É importante que meu trabalho gere impacto social positivo", icon: Target },
-  { key: "purpose_2", pillar: "Propósito", text: "Preciso me sentir alinhado com a missão da empresa", icon: Target },
-  { key: "purpose_3", pillar: "Propósito", text: "Valorizo empresas com responsabilidade ambiental", icon: Target },
-  { key: "purpose_4", pillar: "Propósito", text: "Meu trabalho deve estar conectado aos meus valores pessoais", icon: Target },
-  { key: "purpose_5", pillar: "Propósito", text: "Prefiro empresas que contribuem para causas sociais", icon: Target },
-  { key: "purpose_6", pillar: "Propósito", text: "O significado do trabalho é mais importante que o salário", icon: Target },
-  { key: "purpose_7", pillar: "Propósito", text: "Busco empresas com cultura de inovação e transformação", icon: Target },
-  { key: "purpose_8", pillar: "Propósito", text: "É fundamental sentir que faço diferença no que faço", icon: Target },
-
-  // Crescimento Pillar (7 questions)
-  { key: "growth_1", pillar: "Crescimento", text: "Oportunidades de desenvolvimento são prioridade na minha carreira", icon: TrendingUp },
-  { key: "growth_2", pillar: "Crescimento", text: "Valorizo programas de mentoria e coaching", icon: TrendingUp },
-  { key: "growth_3", pillar: "Crescimento", text: "Prefiro empresas que investem em capacitação dos funcionários", icon: TrendingUp },
-  { key: "growth_4", pillar: "Crescimento", text: "Busco roles com clara progressão de carreira", icon: TrendingUp },
-  { key: "growth_5", pillar: "Crescimento", text: "Desafios técnicos complexos me motivam profissionalmente", icon: TrendingUp },
-  { key: "growth_6", pillar: "Crescimento", text: "Prefiro ambientes que promovem aprendizado contínuo", icon: TrendingUp },
-  { key: "growth_7", pillar: "Crescimento", text: "Aceito mais responsabilidades para acelerar meu crescimento", icon: TrendingUp },
+  // Crescimento (Questions 22-30)
+  { id: 'q22', text: 'Você busca ativamente ambientes que aceleram sua curva de aprendizado?', pillar: 'crescimento' },
+  { id: 'q23', text: 'A possibilidade de promoções rápidas é indispensável para você?', pillar: 'crescimento' },
+  { id: 'q24', text: 'Você valoriza empresas que investem em formação contínua (treinamentos, cursos)?', pillar: 'crescimento' },
+  { id: 'q25', text: 'O acesso a líderes mentores pesa na sua decisão de escolher uma vaga?', pillar: 'crescimento' },
+  { id: 'q26', text: 'Oportunidades de assumir novos desafios são essenciais para seu engajamento?', pillar: 'crescimento' },
+  { id: 'q27', text: 'Você se desmotiva quando percebe estagnação na sua curva de crescimento?', pillar: 'crescimento' },
+  { id: 'q28', text: 'Você se sente confortável em uma função estável, mesmo que o aprendizado seja menor?', pillar: 'crescimento', isContrasting: true },
+  { id: 'q29', text: 'Você valoriza mais experiências que ampliam suas competências do que benefícios imediatos?', pillar: 'crescimento' },
+  { id: 'q30', text: 'Você mede seu sucesso pela sua evolução pessoal e profissional?', pillar: 'crescimento' }
 ];
 
-const CandidateAssessmentStep: React.FC<StepProps> = ({ onNext, data, isLoading }) => {
-  const form = useForm<AssessmentData>({
-    resolver: zodResolver(assessmentSchema),
-    defaultValues: data || {},
+// Schema for form validation
+const candidateAssessmentSchema = z.object(
+  CANDIDATE_ASSESSMENT_QUESTIONS.reduce((acc, question) => {
+    acc[question.id] = z.number().min(1, 'Resposta obrigatória').max(5);
+    return acc;
+  }, {} as Record<string, z.ZodNumber>)
+);
+
+type CandidateAssessmentData = z.infer<typeof candidateAssessmentSchema>;
+
+interface CandidateAssessmentStepProps {
+  onNext: (data: any) => void;
+  onBack: () => void;
+  isLoading?: boolean;
+  data?: any;
+}
+
+export default function CandidateAssessmentStep({ 
+  onNext, 
+  onBack, 
+  isLoading = false, 
+  data 
+}: CandidateAssessmentStepProps) {
+  const form = useForm<CandidateAssessmentData>({
+    resolver: zodResolver(candidateAssessmentSchema),
+    defaultValues: data || {}
   });
 
-  const watchedValues = form.watch();
-  const answeredQuestions = Object.keys(watchedValues).filter(key => watchedValues[key as keyof AssessmentData] !== undefined).length;
-  const progress = (answeredQuestions / QUESTIONS.length) * 100;
-
-  const calculateScores = (responses: AssessmentData) => {
+  const handleSubmit = (formData: CandidateAssessmentData) => {
+    // Calculate pillar scores according to MATCH RAVYZ methodology
     const pillarScores = {
       compensation: 0,
       ambiente: 0,
       proposito: 0,
-      crescimento: 0,
+      crescimento: 0
     };
 
-    // Calculate average score for each pillar
-    const compScores = [responses.comp_1, responses.comp_2, responses.comp_3, responses.comp_4, responses.comp_5, responses.comp_6, responses.comp_7];
-    pillarScores.compensation = compScores.reduce((sum, score) => sum + score, 0) / compScores.length;
+    const pillarCounts = {
+      compensation: 0,
+      ambiente: 0,
+      proposito: 0,
+      crescimento: 0
+    };
 
-    const envScores = [responses.env_1, responses.env_2, responses.env_3, responses.env_4, responses.env_5, responses.env_6, responses.env_7, responses.env_8];
-    pillarScores.ambiente = envScores.reduce((sum, score) => sum + score, 0) / envScores.length;
+    // Sum scores for each pillar
+    CANDIDATE_ASSESSMENT_QUESTIONS.forEach(question => {
+      const score = formData[question.id as keyof CandidateAssessmentData];
+      const adjustedScore = question.isContrasting ? (6 - score) : score; // Invert contrasting questions
+      
+      pillarScores[question.pillar as keyof typeof pillarScores] += adjustedScore;
+      pillarCounts[question.pillar as keyof typeof pillarCounts]++;
+    });
 
-    const purposeScores = [responses.purpose_1, responses.purpose_2, responses.purpose_3, responses.purpose_4, responses.purpose_5, responses.purpose_6, responses.purpose_7, responses.purpose_8];
-    pillarScores.proposito = purposeScores.reduce((sum, score) => sum + score, 0) / purposeScores.length;
+    // Calculate averages for each pillar
+    Object.keys(pillarScores).forEach(pillar => {
+      pillarScores[pillar as keyof typeof pillarScores] = 
+        pillarScores[pillar as keyof typeof pillarScores] / pillarCounts[pillar as keyof typeof pillarCounts];
+    });
 
-    const growthScores = [responses.growth_1, responses.growth_2, responses.growth_3, responses.growth_4, responses.growth_5, responses.growth_6, responses.growth_7];
-    pillarScores.crescimento = growthScores.reduce((sum, score) => sum + score, 0) / growthScores.length;
-
-    return pillarScores;
-  };
-
-  const determineArchetype = (pillarScores: any) => {
-    const maxScore = Math.max(
-      pillarScores.compensation,
-      pillarScores.ambiente,
-      pillarScores.proposito,
-      pillarScores.crescimento
-    );
-
-    // Determine archetype based on highest scoring pillar
-    if (pillarScores.compensation === maxScore) {
-      return "Pragmático";
-    } else if (pillarScores.ambiente === maxScore) {
-      return "Colaborativo";
-    } else if (pillarScores.proposito === maxScore) {
-      return "Visionário";
-    } else {
-      return "Ambicioso";
-    }
-  };
-
-  const handleSubmit = (formData: AssessmentData) => {
-    const pillarScores = calculateScores(formData);
+    // Determine archetype based on dominant pillars
     const archetype = determineArchetype(pillarScores);
-    
+
+    // Validate consistency (compare direct vs contrasting questions)
+    const consistencyIssues = validateConsistency(formData);
+
     onNext({
-      ...formData,
+      responses: formData,
       pillar_scores: pillarScores,
       archetype,
+      consistency_issues: consistencyIssues
     });
   };
 
+  const determineArchetype = (scores: any) => {
+    // Get top 2 pillars
+    const sortedPillars = Object.entries(scores)
+      .sort(([,a], [,b]) => (b as number) - (a as number))
+      .slice(0, 2);
+
+    const [pillar1, pillar2] = sortedPillars.map(([pillar]) => pillar);
+
+    // Archetype mapping based on dominant pillars (from MATCH RAVYZ document)
+    const archetypeMappings: Record<string, string> = {
+      'crescimento_proposito': 'Protagonista',
+      'proposito_crescimento': 'Protagonista',
+      'ambiente_crescimento': 'Construtor',
+      'crescimento_ambiente': 'Construtor',
+      'proposito_ambiente': 'Visionário',
+      'ambiente_proposito': 'Idealista',
+      'compensation_ambiente': 'Guardião',
+      'ambiente_compensation': 'Guardião',
+      'compensation_crescimento': 'Pragmático',
+      'crescimento_compensation': 'Pragmático',
+      'crescimento_ambiente_alt': 'Mobilizador',
+      'proposito_crescimento_alt': 'Transformador'
+    };
+
+    const key = `${pillar1}_${pillar2}`;
+    return archetypeMappings[key] || 'Equilibrado';
+  };
+
+  const validateConsistency = (formData: CandidateAssessmentData) => {
+    const issues: string[] = [];
+    
+    // Check contrasting questions vs their direct counterparts
+    const contrastingChecks = [
+      { direct: ['q1', 'q4', 'q5'], contrasting: 'q6', pillar: 'compensation' },
+      { direct: ['q8', 'q10', 'q11'], contrasting: 'q14', pillar: 'ambiente' },
+      { direct: ['q15', 'q16', 'q17'], contrasting: 'q20', pillar: 'proposito' },
+      { direct: ['q22', 'q26', 'q27'], contrasting: 'q28', pillar: 'crescimento' }
+    ];
+
+    contrastingChecks.forEach(check => {
+      const directAvg = check.direct.reduce((sum, q) => 
+        sum + formData[q as keyof CandidateAssessmentData], 0) / check.direct.length;
+      const contrastingScore = 6 - formData[check.contrasting as keyof CandidateAssessmentData]; // Inverted
+      
+      if (Math.abs(directAvg - contrastingScore) > 2) {
+        issues.push(`Inconsistência detectada no pilar ${check.pillar}`);
+      }
+    });
+
+    return issues;
+  };
+
+  const watchedValues = form.watch();
+  const answeredQuestions = Object.values(watchedValues).filter(value => value !== undefined).length;
+  const progress = (answeredQuestions / CANDIDATE_ASSESSMENT_QUESTIONS.length) * 100;
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-xl font-semibold text-foreground">
-          Avaliação de Perfil Profissional
-        </h2>
-        <p className="text-muted-foreground">
-          Responda às questões abaixo para identificarmos seu perfil e preferências profissionais
-        </p>
-      </div>
-
-      {/* Progress */}
+    <div className="space-y-6">
       <Card>
-        <CardContent className="p-4">
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-muted-foreground">Progresso</span>
-            <span className="text-foreground font-medium">
-              {answeredQuestions} de {QUESTIONS.length} questões
-            </span>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </CardContent>
-      </Card>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          {QUESTIONS.map((question, index) => {
-            const IconComponent = question.icon;
-            return (
-              <Card key={question.key}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-start space-x-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
-                      <IconComponent className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="text-sm font-medium text-primary">{question.pillar}</span>
-                        <span className="text-sm text-muted-foreground">#{index + 1}</span>
+        <CardHeader>
+          <CardTitle>Assessment MATCH RAVYZ</CardTitle>
+          <CardDescription>
+            Responda as perguntas sobre suas preferências e motivações profissionais (escala de 1 a 5)
+          </CardDescription>
+          <Progress value={progress} className="w-full" />
+          <p className="text-sm text-muted-foreground">
+            {answeredQuestions} de {CANDIDATE_ASSESSMENT_QUESTIONS.length} perguntas respondidas
+          </p>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+              {CANDIDATE_ASSESSMENT_QUESTIONS.map((question, index) => (
+                <FormField
+                  key={question.id}
+                  control={form.control}
+                  name={question.id as keyof CandidateAssessmentData}
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-base font-medium">
+                        {index + 1}. {question.text}
+                        {question.isContrasting && (
+                          <span className="text-xs text-muted-foreground ml-2">(pergunta contrastante)</span>
+                        )}
+                      </FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={(value) => field.onChange(parseInt(value))}
+                          defaultValue={field.value?.toString()}
+                          className="flex space-x-2"
+                        >
+                          {[1, 2, 3, 4, 5].map((value) => (
+                            <div key={value} className="flex items-center space-x-2">
+                              <RadioGroupItem value={value.toString()} id={`${question.id}-${value}`} />
+                              <label 
+                                htmlFor={`${question.id}-${value}`}
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                              >
+                                {value}
+                              </label>
+                            </div>
+                          ))}
+                        </RadioGroup>
+                      </FormControl>
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>Discordo totalmente</span>
+                        <span>Concordo totalmente</span>
                       </div>
-                      <p className="text-foreground font-medium">{question.text}</p>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <FormField
-                    control={form.control}
-                    name={question.key as keyof AssessmentData}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={(value) => field.onChange(Number(value))}
-                            value={field.value?.toString()}
-                            className="flex space-x-6"
-                          >
-                            {[1, 2, 3, 4, 5].map((value) => (
-                              <div key={value} className="flex items-center space-x-2">
-                                <RadioGroupItem value={value.toString()} id={`${question.key}-${value}`} />
-                                <Label htmlFor={`${question.key}-${value}`} className="text-sm">
-                                  {value === 1 && "Discordo totalmente"}
-                                  {value === 2 && "Discordo"}
-                                  {value === 3 && "Neutro"}
-                                  {value === 4 && "Concordo"}
-                                  {value === 5 && "Concordo totalmente"}
-                                </Label>
-                              </div>
-                            ))}
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-            );
-          })}
-
-          {/* Submit Button */}
-          <div className="flex justify-end pt-4">
-            <Button 
-              type="submit" 
-              size="lg" 
-              disabled={isLoading || answeredQuestions < QUESTIONS.length}
-            >
-              {isLoading ? "Processando..." : "Finalizar Avaliação"}
-            </Button>
-          </div>
-        </form>
-      </Form>
-
-      {/* Instructions */}
-      <Card className="bg-muted/30">
-        <CardContent className="p-4">
-          <h4 className="font-medium text-foreground mb-2">💡 Como responder:</h4>
-          <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Seja honesto em suas respostas</li>
-            <li>• Pense na sua situação ideal de trabalho</li>
-            <li>• Não há respostas certas ou erradas</li>
-            <li>• Use a escala de 1 a 5 para expressar o quanto concorda com cada afirmação</li>
-          </ul>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ))}
+              
+              {/* Pillar Indicators */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted rounded-lg">
+                <div className="text-center">
+                  <div className="font-semibold text-sm">Compensation</div>
+                  <div className="text-xs text-muted-foreground">Perguntas 1-7</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold text-sm">Ambiente</div>
+                  <div className="text-xs text-muted-foreground">Perguntas 8-14</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold text-sm">Propósito</div>
+                  <div className="text-xs text-muted-foreground">Perguntas 15-21</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold text-sm">Crescimento</div>
+                  <div className="text-xs text-muted-foreground">Perguntas 22-30</div>
+                </div>
+              </div>
+              
+              <div className="flex gap-4 pt-6">
+                <Button type="button" variant="outline" onClick={onBack} className="flex-1">
+                  Voltar
+                </Button>
+                <Button type="submit" disabled={isLoading} className="flex-1">
+                  {isLoading ? 'Processando...' : 'Finalizar Assessment'}
+                </Button>
+              </div>
+            </form>
+          </Form>
         </CardContent>
       </Card>
     </div>
   );
-};
-
-export default CandidateAssessmentStep;
+}
