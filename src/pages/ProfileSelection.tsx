@@ -33,7 +33,7 @@ const ProfileSelection = () => {
 
       // Redirect based on profile type
       if (selectedProfile === 'candidate') {
-        navigate('/onboarding?step=fill-method');
+        navigate('/onboarding/candidate');
       } else {
         navigate('/company/profile');
       }

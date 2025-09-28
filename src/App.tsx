@@ -38,6 +38,11 @@ const App = () => (
                
                  <OnboardingFlow />
             } />
+            <Route path="/onboarding/candidate" element={
+              <ProtectedRoute>
+                <OnboardingFlow />
+              </ProtectedRoute>
+            } />
             <Route path="/company/profile" element={
               <ProtectedRoute>
                 <CompanyProfile />
