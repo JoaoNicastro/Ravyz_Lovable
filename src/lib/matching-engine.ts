@@ -80,41 +80,39 @@ export class MatchingEngine {
   
   /**
    * MATCH RAVYZ: Calculate pillar compatibility between candidate and job
+   * Uses exact formula: Compatibility = 100% - (|candidate_score - job_score| * 20)
    */
   private calculatePillarCompatibility(candidatePillars: Record<string, number>, jobPillars: Record<string, number>): PillarBreakdown {
     const pillarBreakdown: PillarBreakdown = {};
     
-    // Direct pillar mappings for candidate vs job (both using same pillar structure now)
-    const candidatePillarKeys = ['compensation', 'ambiente', 'proposito', 'crescimento'];
-    const jobPillarKeys = ['autonomy', 'leadership', 'teamwork', 'risk', 'ambition'];
-    
-    // Map candidate pillars to job pillars for comparison
+    // Updated pillar mappings based on MATCH RAVYZ methodology
     const pillarMappings = [
-      { candidate: 'compensation', job: 'ambition' }, // Compensation expectation vs job ambition requirement
-      { candidate: 'ambiente', job: 'teamwork' }, // Environment preference vs teamwork needs
-      { candidate: 'proposito', job: 'leadership' }, // Purpose alignment vs leadership opportunities  
-      { candidate: 'crescimento', job: 'autonomy' }, // Growth desire vs autonomy offered
+      { candidate: 'compensation', job: 'ambition' }, // Financial motivation vs career growth expectations
+      { candidate: 'ambiente', job: 'teamwork' }, // Culture/environment fit vs collaboration needs
+      { candidate: 'proposito', job: 'leadership' }, // Purpose alignment vs leadership opportunities
+      { candidate: 'crescimento', job: 'autonomy' }, // Growth desire vs independence offered
     ];
 
-    // Calculate compatibility for mapped pillars
+    // Calculate compatibility for each pillar mapping
     pillarMappings.forEach(({ candidate: candidatePillar, job: jobPillar }) => {
       const candidateScore = candidatePillars[candidatePillar] || 0;
       const jobScore = jobPillars[jobPillar] || 0;
       
-      // Calculate absolute difference (normalized 1-5)
+      // Calculate absolute difference (normalized 1-5 scale)
       const difference = Math.abs(candidateScore - jobScore);
       
-      // Compatibility = 100% - (difference * 20) - exact formula as requested
+      // Apply MATCH RAVYZ formula: Compatibility = 100% - (difference * 20)
       const compatibility = Math.max(0, 100 - (difference * 20));
       
       pillarBreakdown[candidatePillar as keyof PillarBreakdown] = compatibility;
     });
 
-    // Handle job risk pillar separately (no direct candidate equivalent)
+    // Handle job risk pillar separately - compare against candidate risk tolerance
     if (jobPillars['risk'] !== undefined) {
+      // Use average of candidate's other pillars as proxy for risk tolerance
+      const candidateRiskTolerance = candidatePillars['crescimento'] || 3; // Growth correlates with risk tolerance
       const jobRiskScore = jobPillars['risk'] || 0;
-      const neutralScore = 3; // Middle of 1-5 scale for candidate comfort with risk
-      const difference = Math.abs(jobRiskScore - neutralScore);
+      const difference = Math.abs(candidateRiskTolerance - jobRiskScore);
       const compatibility = Math.max(0, 100 - (difference * 20));
       
       pillarBreakdown['risk' as keyof PillarBreakdown] = compatibility;
@@ -125,27 +123,29 @@ export class MatchingEngine {
 
   /**
    * MATCH RAVYZ: Calculate archetype compatibility boost
+   * Exact match = +10%, close match = +5%
    */
   private calculateArchetypeBoost(candidateArchetype: string, jobArchetype: string): number {
-    // Exact match = +10% boost
+    // Exact archetype match = +10% boost
     if (candidateArchetype === jobArchetype) {
       return 10;
     }
 
-    // Define archetype proximities for +5% boost (based on MATCH RAVYZ methodology)
+    // Define archetype proximities for +5% boost (updated based on MATCH RAVYZ methodology)
     const archetypeProximities: Record<string, string[]> = {
-      'Protagonista': ['Transformador', 'Visionário', 'Construtor'],
-      'Construtor': ['Protagonista', 'Mobilizador', 'Guardião'],
-      'Visionário': ['Protagonista', 'Idealista', 'Transformador'],
-      'Mobilizador': ['Construtor', 'Colaborador', 'Transformador'],
-      'Guardião': ['Construtor', 'Colaborador', 'Pragmático'],
-      'Explorador': ['Transformador', 'Visionário'],
-      'Colaborador': ['Mobilizador', 'Guardião', 'Idealista'],
-      'Equilibrado': ['Construtor', 'Colaborador', 'Pragmático'],
-      'Estrategista': ['Visionário', 'Protagonista', 'Transformador'],
-      'Transformador': ['Protagonista', 'Explorador', 'Estrategista'],
+      'Protagonista': ['Transformador', 'Visionário', 'Estrategista'],
+      'Construtor': ['Mobilizador', 'Guardião', 'Colaborador'],
+      'Visionário': ['Protagonista', 'Idealista', 'Estrategista'],
+      'Mobilizador': ['Construtor', 'Colaborador', 'Explorador'],
+      'Guardião': ['Construtor', 'Pragmático', 'Equilibrado'],
+      'Explorador': ['Transformador', 'Estrategista', 'Mobilizador'],
+      'Colaborador': ['Mobilizador', 'Idealista', 'Construtor'],
+      'Equilibrado': ['Guardião', 'Pragmático', 'Construtor'],
+      'Estrategista': ['Visionário', 'Protagonista', 'Explorador'],
+      'Transformador': ['Protagonista', 'Explorador', 'Visionário'],
       'Idealista': ['Visionário', 'Colaborador'],
-      'Pragmático': ['Guardião', 'Equilibrado']
+      'Pragmático': ['Guardião', 'Equilibrado'],
+      'Proativo': ['Explorador', 'Transformador', 'Protagonista']
     };
 
     const proximities = archetypeProximities[candidateArchetype] || [];
@@ -154,7 +154,7 @@ export class MatchingEngine {
       return 5;
     }
 
-    return 0;
+    return 0; // No compatibility boost
   }
 
   /**

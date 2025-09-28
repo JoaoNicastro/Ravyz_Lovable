@@ -236,20 +236,20 @@ const OnboardingFlow = () => {
 
           // Save candidate assessment responses with scores and archetype
           if (candidateAssessmentData) {
-            const { pillar_scores, archetype, ...responses } = candidateAssessmentData;
+            const { pillar_scores, archetype, consistency_warnings, ...responses } = candidateAssessmentData;
             
             const { error: candidateAssessmentError } = await supabase
               .from('questionnaire_responses')
               .upsert({
                 candidate_id: candidateProfile.id,
-                category: 'cultural' as const,
+                category: 'candidate' as const,
                 responses: responses,
                 calculated_score: Object.values(pillar_scores).map(Number).reduce((sum, score) => sum + score, 0) / 4,
               });
 
             if (candidateAssessmentError) throw candidateAssessmentError;
 
-            // Update candidate profile with scores and archetype
+            // Update candidate profile with pillar scores and archetype
             const { error: profileUpdateError } = await supabase
               .from('candidate_profiles')
               .update({
