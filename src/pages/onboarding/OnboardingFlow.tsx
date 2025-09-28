@@ -242,9 +242,9 @@ const OnboardingFlow = () => {
               .from('questionnaire_responses')
               .upsert({
                 candidate_id: candidateProfile.id,
-                category: 'candidate' as const,
+                category: 'cultural' as const,
                 responses: responses,
-                calculated_score: Object.values(pillar_scores).reduce((sum: number, score: any) => sum + score, 0) / 4,
+                calculated_score: Object.values(pillar_scores).map(Number).reduce((sum, score) => sum + score, 0) / 4,
               });
 
             if (candidateAssessmentError) throw candidateAssessmentError;
@@ -253,7 +253,7 @@ const OnboardingFlow = () => {
             const { error: profileUpdateError } = await supabase
               .from('candidate_profiles')
               .update({
-                pillar_scores: pillar_scores,
+                pillar_scores: pillar_scores as any,
                 archetype: archetype,
               })
               .eq('id', candidateProfile.id);

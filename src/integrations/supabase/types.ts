@@ -108,12 +108,14 @@ export type Database = {
       }
       candidate_profiles: {
         Row: {
+          archetype: string | null
           avatar_url: string | null
           created_at: string | null
           headline: string | null
           id: string
           linkedin_data: Json | null
           location: string | null
+          pillar_scores: Json | null
           preferences: Json | null
           resume_score: number | null
           skills_vector: Json | null
@@ -123,12 +125,14 @@ export type Database = {
           years_experience: number | null
         }
         Insert: {
+          archetype?: string | null
           avatar_url?: string | null
           created_at?: string | null
           headline?: string | null
           id?: string
           linkedin_data?: Json | null
           location?: string | null
+          pillar_scores?: Json | null
           preferences?: Json | null
           resume_score?: number | null
           skills_vector?: Json | null
@@ -138,12 +142,14 @@ export type Database = {
           years_experience?: number | null
         }
         Update: {
+          archetype?: string | null
           avatar_url?: string | null
           created_at?: string | null
           headline?: string | null
           id?: string
           linkedin_data?: Json | null
           location?: string | null
+          pillar_scores?: Json | null
           preferences?: Json | null
           resume_score?: number | null
           skills_vector?: Json | null
@@ -214,12 +220,14 @@ export type Database = {
       }
       jobs: {
         Row: {
+          archetype: string | null
           company_id: string | null
           created_at: string | null
           description: string | null
           expires_at: string | null
           id: string
           location: string | null
+          pillar_scores: Json | null
           priority_score: number | null
           requirements: Json | null
           salary_max: number | null
@@ -231,12 +239,14 @@ export type Database = {
           work_model: Database["public"]["Enums"]["work_model"] | null
         }
         Insert: {
+          archetype?: string | null
           company_id?: string | null
           created_at?: string | null
           description?: string | null
           expires_at?: string | null
           id?: string
           location?: string | null
+          pillar_scores?: Json | null
           priority_score?: number | null
           requirements?: Json | null
           salary_max?: number | null
@@ -248,12 +258,14 @@ export type Database = {
           work_model?: Database["public"]["Enums"]["work_model"] | null
         }
         Update: {
+          archetype?: string | null
           company_id?: string | null
           created_at?: string | null
           description?: string | null
           expires_at?: string | null
           id?: string
           location?: string | null
+          pillar_scores?: Json | null
           priority_score?: number | null
           requirements?: Json | null
           salary_max?: number | null

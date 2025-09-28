@@ -37,6 +37,12 @@ const STEPS: StepData[] = [
     description: "Crie sua primeira oportunidade",
     component: CompanyJobDefinitionStep,
   },
+  {
+    id: "company-assessment",
+    title: "Assessment da Vaga",
+    description: "Defina o perfil comportamental da vaga",
+    component: React.lazy(() => import("@/components/onboarding/steps/CompanyAssessmentStep")),
+  },
 ];
 
 const CompanyOnboardingFlow: React.FC = () => {
@@ -97,6 +103,7 @@ const CompanyOnboardingFlow: React.FC = () => {
 
       const companyData = allStepData["company-registration"];
       const jobData = allStepData["job-definition"];
+      const assessmentData = allStepData["company-assessment"];
 
       // First, create or update company profile
       const { data: existingProfile } = await supabase
@@ -144,8 +151,8 @@ const CompanyOnboardingFlow: React.FC = () => {
         companyProfile = data;
       }
 
-      // Create the first job
-      const { error: jobError } = await supabase
+      // Create the first job with assessment data
+      const { data: newJob, error: jobError } = await supabase
         .from('jobs')
         .insert({
           company_id: companyProfile.id,
@@ -157,9 +164,27 @@ const CompanyOnboardingFlow: React.FC = () => {
           salary_min: jobData.salary_min,
           salary_max: jobData.salary_max,
           status: 'active',
-        });
+          pillar_scores: assessmentData?.pillar_scores || {},
+          archetype: assessmentData?.archetype || 'Equilibrado',
+        })
+        .select()
+        .single();
 
       if (jobError) throw jobError;
+
+      // Save assessment responses if available
+      if (assessmentData?.responses) {
+        const { error: assessmentError } = await supabase
+          .from('questionnaire_responses')
+          .insert({
+            candidate_id: null, // For job assessments, we don't have candidate_id
+            category: 'professional' as const, // Using existing enum value
+            responses: assessmentData.responses,
+            calculated_score: Object.values(assessmentData.pillar_scores).map(Number).reduce((sum: number, score: number) => sum + score, 0) / 5,
+          });
+
+        if (assessmentError) console.warn("Erro ao salvar assessment:", assessmentError);
+      }
 
       toast.success("Onboarding concluído com sucesso!");
       navigate("/dashboard/company");
