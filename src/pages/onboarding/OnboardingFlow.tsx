@@ -11,6 +11,7 @@ import FillMethodStep from "@/components/onboarding/steps/FillMethodStep";
 import CandidateRegistrationStep from "@/components/onboarding/steps/CandidateRegistrationStep";
 import CandidateValidationStep from "@/components/onboarding/steps/CandidateValidationStep";
 import ProfessionalAssessmentStep from "@/components/onboarding/steps/ProfessionalAssessmentStep";
+import CandidateAssessmentStep from "@/components/onboarding/steps/CandidateAssessmentStep";
 import DreamJobStep from "@/components/onboarding/steps/DreamJobStep";
 
 interface StepData {
@@ -51,6 +52,12 @@ const STEPS: StepData[] = [
     title: "Avaliação Profissional",
     description: "Conte sobre sua experiência profissional",
     component: ProfessionalAssessmentStep,
+  },
+  {
+    id: "candidate-assessment",
+    title: "Avaliação de Perfil",
+    description: "Questionário para identificar seu perfil profissional",
+    component: CandidateAssessmentStep,
   },
   {
     id: "dream-job",
@@ -135,6 +142,7 @@ const OnboardingFlow = () => {
       const registrationData = allData['registration'];
       const validationData = allData['validation'];
       const assessmentData = allData['assessment'];
+      const candidateAssessmentData = allData['candidate-assessment'];
       const dreamJobData = allData['dream-job'];
 
       // Create or update candidate profile
@@ -189,7 +197,7 @@ const OnboardingFlow = () => {
       }
 
       // Save questionnaire responses
-      if (validationData || assessmentData) {
+      if (validationData || assessmentData || candidateAssessmentData) {
         // First get the candidate profile to get the candidate_id
         const { data: candidateProfile } = await supabase
           .from('candidate_profiles')
@@ -198,11 +206,6 @@ const OnboardingFlow = () => {
           .single();
 
         if (candidateProfile) {
-          const responses = {
-            ...validationData,
-            ...assessmentData
-          };
-
           // Save cultural responses
           if (validationData) {
             const { error: culturalError } = await supabase
@@ -229,6 +232,33 @@ const OnboardingFlow = () => {
               });
 
             if (professionalError) throw professionalError;
+          }
+
+          // Save candidate assessment responses with scores and archetype
+          if (candidateAssessmentData) {
+            const { pillar_scores, archetype, ...responses } = candidateAssessmentData;
+            
+            const { error: candidateAssessmentError } = await supabase
+              .from('questionnaire_responses')
+              .upsert({
+                candidate_id: candidateProfile.id,
+                category: 'candidate' as const,
+                responses: responses,
+                calculated_score: Object.values(pillar_scores).reduce((sum: number, score: any) => sum + score, 0) / 4,
+              });
+
+            if (candidateAssessmentError) throw candidateAssessmentError;
+
+            // Update candidate profile with scores and archetype
+            const { error: profileUpdateError } = await supabase
+              .from('candidate_profiles')
+              .update({
+                pillar_scores: pillar_scores,
+                archetype: archetype,
+              })
+              .eq('id', candidateProfile.id);
+
+            if (profileUpdateError) throw profileUpdateError;
           }
         }
       }
