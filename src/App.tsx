@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import ProfileSelection from "./pages/ProfileSelection";
 import OnboardingFlow from "./pages/onboarding/OnboardingFlow";
 import CompanyProfile from "./pages/company/CompanyProfile";
+import CompanyOnboardingFlow from "./pages/onboarding/CompanyOnboardingFlow";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -46,6 +47,11 @@ const App = () => (
             <Route path="/company/profile" element={
               <ProtectedRoute>
                 <CompanyProfile />
+              </ProtectedRoute>
+            } />
+            <Route path="/company/onboarding" element={
+              <ProtectedRoute>
+                <CompanyOnboardingFlow />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
