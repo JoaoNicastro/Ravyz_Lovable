@@ -240,9 +240,9 @@ const OnboardingFlow = () => {
             
             const { error: candidateAssessmentError } = await supabase
               .from('questionnaire_responses')
-              .upsert({
+              .insert({
                 candidate_id: candidateProfile.id,
-                category: 'candidate' as const,
+                category: 'candidate' as any, // Using any to bypass type checking for new enum value
                 responses: responses,
                 calculated_score: Object.values(pillar_scores).map(Number).reduce((sum, score) => sum + score, 0) / 4,
               });

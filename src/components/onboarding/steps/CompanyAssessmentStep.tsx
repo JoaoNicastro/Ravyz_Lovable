@@ -1,60 +1,62 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Progress } from '@/components/ui/progress';
+import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Form } from "@/components/ui/form";
+import { Badge } from "@/components/ui/badge";
 
-// Job assessment questions (30 questions across 5 pillars)
+// Company Assessment questions based on MATCH RAVYZ methodology (30 questions)
 const JOB_ASSESSMENT_QUESTIONS = [
-  // Autonomia (6 questions)
-  { id: 'autonomy_1', text: 'Esta vaga permite tomada de decisões independentes?', pillar: 'autonomy' },
-  { id: 'autonomy_2', text: 'O colaborador pode definir seus próprios métodos de trabalho?', pillar: 'autonomy' },
-  { id: 'autonomy_3', text: 'Há flexibilidade para gerenciar o próprio tempo?', pillar: 'autonomy' },
-  { id: 'autonomy_4', text: 'A supervisão é mais orientativa do que controladora?', pillar: 'autonomy' },
-  { id: 'autonomy_5', text: 'O colaborador pode priorizar suas próprias tarefas?', pillar: 'autonomy' },
-  { id: 'autonomy_6', text: 'Há liberdade para inovar e experimentar?', pillar: 'autonomy' },
+  // Autonomia / Mão na Massa (Q1-Q6)
+  { id: "q1", text: "Esta pessoa terá liberdade para tomar decisões sem precisar de aprovação constante?", pillar: "autonomy" },
+  { id: "q2", text: "Você espera que ela resolva problemas por conta própria ou siga instruções à risca?", pillar: "autonomy" },
+  { id: "q3", text: "Se essa pessoa identificar um erro seu, ela deve te alertar, mesmo que te incomode?", pillar: "autonomy" },
+  { id: "q4", text: "Essa função exige alguém que crie soluções do zero ou apenas execute processos já definidos?", pillar: "autonomy" },
+  { id: "q5", text: "Até que ponto você está disposto a delegar responsabilidades críticas para essa posição?", pillar: "autonomy" },
+  { id: "q6", text: "Você quer alguém que seja proativo em mudar processos ou apenas que execute o que já existe?", pillar: "autonomy" },
 
-  // Liderança (6 questions)
-  { id: 'leadership_1', text: 'Esta vaga envolve liderar equipes?', pillar: 'leadership' },
-  { id: 'leadership_2', text: 'O papel inclui mentoria de outros profissionais?', pillar: 'leadership' },
-  { id: 'leadership_3', text: 'Há responsabilidade por resultados da equipe?', pillar: 'leadership' },
-  { id: 'leadership_4', text: 'A posição requer tomada de decisões estratégicas?', pillar: 'leadership' },
-  { id: 'leadership_5', text: 'O colaborador representa a empresa externamente?', pillar: 'leadership' },
-  { id: 'leadership_6', text: 'Há autoridade para delegar responsabilidades?', pillar: 'leadership' },
+  // Liderança / Sucessão (Q7-Q12)
+  { id: "q7", text: "Você quer que essa pessoa seja um potencial sucessor seu no futuro?", pillar: "leadership" },
+  { id: "q8", text: "Ela terá liberdade para discordar de você em decisões estratégicas?", pillar: "leadership" },
+  { id: "q9", text: "Você prefere alguém que questione você ou que siga suas orientações fielmente?", pillar: "leadership" },
+  { id: "q10", text: "Em situações de crise, essa pessoa deve assumir a liderança ou apenas executar ordens?", pillar: "leadership" },
+  { id: "q11", text: "Você se sentiria confortável em contratar alguém mais capaz que você em certas áreas?", pillar: "leadership" },
+  { id: "q12", text: "Essa pessoa terá exposição direta à alta liderança da empresa?", pillar: "leadership" },
 
-  // Trabalho em Grupo (6 questions)
-  { id: 'teamwork_1', text: 'O trabalho é predominantemente colaborativo?', pillar: 'teamwork' },
-  { id: 'teamwork_2', text: 'Há necessidade de coordenação constante com outros?', pillar: 'teamwork' },
-  { id: 'teamwork_3', text: 'Os projetos dependem de múltiplas pessoas?', pillar: 'teamwork' },
-  { id: 'teamwork_4', text: 'A comunicação interpessoal é fundamental?', pillar: 'teamwork' },
-  { id: 'teamwork_5', text: 'O sucesso depende da sinergia da equipe?', pillar: 'teamwork' },
-  { id: 'teamwork_6', text: 'Há reuniões frequentes de alinhamento?', pillar: 'teamwork' },
+  // Trabalho em Grupo / Colaboração (Q13-Q18)
+  { id: "q13", text: "O perfil ideal deve gerar harmonia no time ou ser capaz de lidar com conflitos para entregar resultados?", pillar: "teamwork" },
+  { id: "q14", text: "Você prefere alguém especialista que atua sozinho ou alguém integrador que trabalha bem com o grupo?", pillar: "teamwork" },
+  { id: "q15", text: "A performance dessa pessoa será medida mais pelo resultado individual ou coletivo?", pillar: "teamwork" },
+  { id: "q16", text: "Você quer alguém que inspire e mobilize o time ou apenas entregue seus próprios resultados?", pillar: "teamwork" },
+  { id: "q17", text: "Você toleraria um colaborador que gera atrito, mas traz grandes resultados?", pillar: "teamwork" },
+  { id: "q18", text: "Esse papel exige alguém diplomático ou alguém direto e objetivo?", pillar: "teamwork" },
 
-  // Risco (6 questions)
-  { id: 'risk_1', text: 'A vaga envolve decisões de alto impacto?', pillar: 'risk' },
-  { id: 'risk_2', text: 'Há tolerância para experimentação e falhas?', pillar: 'risk' },
-  { id: 'risk_3', text: 'O ambiente de trabalho é dinâmico e incerto?', pillar: 'risk' },
-  { id: 'risk_4', text: 'São necessárias decisões rápidas sob pressão?', pillar: 'risk' },
-  { id: 'risk_5', text: 'A inovação é valorizada sobre a estabilidade?', pillar: 'risk' },
-  { id: 'risk_6', text: 'Há responsabilidade por investimentos ou recursos significativos?', pillar: 'risk' },
+  // Risco / Estilo de Trabalho (Q19-Q24)
+  { id: "q19", text: "Essa vaga precisa de alguém que inove e assuma riscos ou que preserve a estabilidade?", pillar: "risk" },
+  { id: "q20", text: "Você quer alguém que questione o status quo ou que mantenha o que já funciona?", pillar: "risk" },
+  { id: "q21", text: "O ritmo esperado da função é estável ou intenso e de alta pressão?", pillar: "risk" },
+  { id: "q22", text: "A pessoa deve tomar decisões ousadas mesmo com risco ou sempre minimizar erros?", pillar: "risk" },
+  { id: "q23", text: "Você prefere alguém prudente e conservador ou ousado e visionário?", pillar: "risk" },
+  { id: "q24", text: "O sucesso dessa função é medido mais por segurança/estabilidade ou por crescimento rápido?", pillar: "risk" },
 
-  // Ambição (6 questions)
-  { id: 'ambition_1', text: 'A vaga oferece oportunidades de crescimento rápido?', pillar: 'ambition' },
-  { id: 'ambition_2', text: 'Há perspectivas claras de promoção?', pillar: 'ambition' },
-  { id: 'ambition_3', text: 'O papel permite desenvolver novas competências?', pillar: 'ambition' },
-  { id: 'ambition_4', text: 'Há acesso a projetos desafiadores?', pillar: 'ambition' },
-  { id: 'ambition_5', text: 'A empresa investe no desenvolvimento profissional?', pillar: 'ambition' },
-  { id: 'ambition_6', text: 'Há possibilidade de liderança futura?', pillar: 'ambition' }
+  // Ambição / Projeção (Q25-Q30)
+  { id: "q25", text: "Essa função é de longo prazo ou uma cadeira de passagem para algo maior?", pillar: "ambition" },
+  { id: "q26", text: "Você quer alguém que cresça e brilhe na função ou alguém que permaneça discreto?", pillar: "ambition" },
+  { id: "q27", text: "Você contrataria alguém que possa, no futuro, assumir seu cargo?", pillar: "ambition" },
+  { id: "q28", text: "O candidato ideal deve ser sucessor em potencial ou alguém de apoio confiável?", pillar: "ambition" },
+  { id: "q29", text: "Esta função é para acelerar a carreira do ocupante ou oferecer estabilidade de longo prazo?", pillar: "ambition" },
+  { id: "q30", text: "Você se sentiria confortável se essa pessoa se tornasse mais influente que você na empresa?", pillar: "ambition" },
 ];
 
-// Schema for form validation
+// Create schema dynamically from questions
 const companyAssessmentSchema = z.object(
   JOB_ASSESSMENT_QUESTIONS.reduce((acc, question) => {
-    acc[question.id] = z.number().min(1, 'Resposta obrigatória').max(5);
+    acc[question.id] = z.number().min(1).max(5);
     return acc;
   }, {} as Record<string, z.ZodNumber>)
 );
@@ -68,133 +70,164 @@ interface CompanyAssessmentStepProps {
   data?: any;
 }
 
-export default function CompanyAssessmentStep({ 
-  onNext, 
-  onBack, 
-  isLoading = false, 
-  data 
-}: CompanyAssessmentStepProps) {
+const CompanyAssessmentStep: React.FC<CompanyAssessmentStepProps> = ({
+  onNext,
+  onBack,
+  isLoading = false,
+  data,
+}) => {
   const form = useForm<CompanyAssessmentData>({
     resolver: zodResolver(companyAssessmentSchema),
-    defaultValues: data || {}
+    defaultValues: data || {},
   });
 
   const handleSubmit = (formData: CompanyAssessmentData) => {
-    // Calculate pillar scores
+    // Calculate pillar scores (average per pillar)
     const pillarScores = {
       autonomy: 0,
       leadership: 0,
       teamwork: 0,
       risk: 0,
-      ambition: 0
+      ambition: 0,
     };
 
-    // Sum scores for each pillar
-    JOB_ASSESSMENT_QUESTIONS.forEach(question => {
-      const score = formData[question.id as keyof CompanyAssessmentData];
-      pillarScores[question.pillar as keyof typeof pillarScores] += score;
+    const pillarCounts = {
+      autonomy: 0,
+      leadership: 0,
+      teamwork: 0,
+      risk: 0,
+      ambition: 0,
+    };
+
+    // Calculate averages per pillar
+    JOB_ASSESSMENT_QUESTIONS.forEach((question) => {
+      const score = formData[question.id];
+      const pillar = question.pillar as keyof typeof pillarScores;
+      
+      pillarScores[pillar] += score;
+      pillarCounts[pillar]++;
     });
 
-    // Calculate averages (6 questions per pillar)
-    Object.keys(pillarScores).forEach(pillar => {
-      pillarScores[pillar as keyof typeof pillarScores] = 
-        pillarScores[pillar as keyof typeof pillarScores] / 6;
+    // Final averages
+    Object.keys(pillarScores).forEach((pillar) => {
+      const key = pillar as keyof typeof pillarScores;
+      pillarScores[key] = pillarScores[key] / pillarCounts[key];
     });
 
-    // Determine archetype based on highest scores
-    const archetype = determineJobArchetype(pillarScores);
+    // Determine job archetype based on top 2 pillars
+    const sortedPillars = Object.entries(pillarScores)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 2);
 
-    onNext({
+    const archetype = determineJobArchetype(sortedPillars[0][0], sortedPillars[1][0]);
+
+    const result = {
       responses: formData,
       pillar_scores: pillarScores,
-      archetype
-    });
+      archetype,
+    };
+
+    onNext(result);
   };
 
-  const determineJobArchetype = (scores: any) => {
-    const { autonomy, leadership, teamwork, risk, ambition } = scores;
+  // Determine job archetype based on top 2 pillars according to MATCH RAVYZ methodology
+  const determineJobArchetype = (pillar1: string, pillar2: string): string => {
+    const pairs: Record<string, string> = {
+      "autonomy-leadership": "Protagonista",
+      "teamwork-autonomy": "Mobilizador",
+      "risk-ambition": "Transformador",
+      "leadership-ambition": "Visionário",
+      "autonomy-teamwork": "Construtor",
+      "teamwork-risk": "Explorador",
+      "autonomy-risk": "Proativo",
+      "leadership-teamwork": "Idealista",
+      "risk-leadership": "Estrategista",
+      "ambition-teamwork": "Colaborador",
+      "autonomy-ambition": "Guardião",
+    };
+
+    const key1 = `${pillar1}-${pillar2}`;
+    const key2 = `${pillar2}-${pillar1}`;
     
-    if (leadership >= 4 && ambition >= 4) return 'Líder Estratégico';
-    if (autonomy >= 4 && risk >= 4) return 'Inovador';
-    if (teamwork >= 4 && leadership >= 3.5) return 'Facilitador';
-    if (ambition >= 4 && autonomy >= 3.5) return 'Escalador';
-    if (teamwork >= 4 && autonomy <= 3) return 'Colaborador';
-    if (risk <= 2.5 && autonomy <= 3) return 'Executor';
-    
-    return 'Equilibrado';
+    return pairs[key1] || pairs[key2] || "Equilibrado";
   };
 
-  const watchedValues = form.watch();
-  const answeredQuestions = Object.values(watchedValues).filter(value => value !== undefined).length;
-  const progress = (answeredQuestions / JOB_ASSESSMENT_QUESTIONS.length) * 100;
+  const progress = Object.keys(form.getValues()).length / JOB_ASSESSMENT_QUESTIONS.length * 100;
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Assessment da Vaga</CardTitle>
-          <CardDescription>
-            Responda as perguntas sobre as características desta vaga (escala de 1 a 5)
-          </CardDescription>
-          <Progress value={progress} className="w-full" />
-          <p className="text-sm text-muted-foreground">
-            {answeredQuestions} de {JOB_ASSESSMENT_QUESTIONS.length} perguntas respondidas
-          </p>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-              {JOB_ASSESSMENT_QUESTIONS.map((question, index) => (
-                <FormField
-                  key={question.id}
-                  control={form.control}
-                  name={question.id as keyof CompanyAssessmentData}
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel className="text-base font-medium">
-                        {index + 1}. {question.text}
-                      </FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={(value) => field.onChange(parseInt(value))}
-                          defaultValue={field.value?.toString()}
-                          className="flex space-x-2"
-                        >
-                          {[1, 2, 3, 4, 5].map((value) => (
-                            <div key={value} className="flex items-center space-x-2">
-                              <RadioGroupItem value={value.toString()} id={`${question.id}-${value}`} />
-                              <label 
-                                htmlFor={`${question.id}-${value}`}
-                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                              >
-                                {value}
-                              </label>
-                            </div>
-                          ))}
-                        </RadioGroup>
-                      </FormControl>
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>Discordo totalmente</span>
-                        <span>Concordo totalmente</span>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ))}
-              
-              <div className="flex gap-4 pt-6">
-                <Button type="button" variant="outline" onClick={onBack} className="flex-1">
-                  Voltar
-                </Button>
-                <Button type="submit" disabled={isLoading} className="flex-1">
-                  {isLoading ? 'Processando...' : 'Finalizar Assessment'}
-                </Button>
+    <Card>
+      <CardHeader>
+        <CardTitle>Assessment da Vaga</CardTitle>
+        <p className="text-muted-foreground">
+          Defina o perfil comportamental ideal para esta vaga usando a escala de 1 (baixo) a 5 (alto)
+        </p>
+        <Progress value={progress} className="h-2" />
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
+            {JOB_ASSESSMENT_QUESTIONS.map((question, index) => (
+              <FormField
+                key={question.id}
+                control={form.control}
+                name={question.id as keyof CompanyAssessmentData}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base">
+                      <span className="font-semibold">{index + 1}.</span> {question.text}
+                    </FormLabel>
+                    <RadioGroup
+                      onValueChange={(value) => field.onChange(parseInt(value))}
+                      value={field.value?.toString()}
+                      className="flex justify-between"
+                    >
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <div key={value} className="flex items-center space-x-2">
+                          <RadioGroupItem value={value.toString()} id={`${question.id}-${value}`} />
+                          <label
+                            htmlFor={`${question.id}-${value}`}
+                            className="text-sm cursor-pointer"
+                          >
+                            {value}
+                          </label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Baixo</span>
+                      <span>Alto</span>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            ))}
+
+            {/* Pillar indicators */}
+            <div className="mt-8 p-4 bg-muted rounded-lg">
+              <h3 className="font-semibold mb-2">Pilares da Vaga:</h3>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="secondary">Autonomia (Liberdade de Decisão)</Badge>
+                <Badge variant="secondary">Liderança (Potencial de Sucessão)</Badge>
+                <Badge variant="secondary">Trabalho em Grupo (Colaboração)</Badge>
+                <Badge variant="secondary">Risco (Inovação vs Estabilidade)</Badge>
+                <Badge variant="secondary">Ambição (Projeção de Carreira)</Badge>
               </div>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-    </div>
+            </div>
+
+            <div className="flex justify-between">
+              <Button type="button" variant="outline" onClick={onBack}>
+                Voltar
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Processando..." : "Finalizar Assessment"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
   );
-}
+};
+
+export default CompanyAssessmentStep;

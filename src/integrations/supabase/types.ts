@@ -673,7 +673,12 @@ export type Database = {
         | "interview_scheduled"
       job_status: "active" | "paused" | "closed"
       profile_type: "candidate" | "company"
-      questionnaire_category: "cultural" | "professional" | "technical"
+      questionnaire_category:
+        | "cultural"
+        | "professional"
+        | "technical"
+        | "candidate"
+        | "job"
       work_model: "remote" | "hybrid" | "onsite"
     }
     CompositeTypes: {
@@ -811,7 +816,13 @@ export const Constants = {
       ],
       job_status: ["active", "paused", "closed"],
       profile_type: ["candidate", "company"],
-      questionnaire_category: ["cultural", "professional", "technical"],
+      questionnaire_category: [
+        "cultural",
+        "professional",
+        "technical",
+        "candidate",
+        "job",
+      ],
       work_model: ["remote", "hybrid", "onsite"],
     },
   },
