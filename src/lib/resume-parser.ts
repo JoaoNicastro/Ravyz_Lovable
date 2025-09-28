@@ -1,22 +1,9 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Configure PDF.js worker with fallbacks
+// Configure PDF.js worker with CDN fallback
 if (typeof window !== 'undefined') {
-  try {
-    // Try to use the bundled worker first
-    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-      'pdfjs-dist/build/pdf.worker.min.js',
-      import.meta.url
-    ).toString();
-  } catch (error) {
-    try {
-      // Fallback to CDN
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
-    } catch (fallbackError) {
-      // Last resort - disable worker (will be slower but should work)
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
-    }
-  }
+  // Use CDN worker which is more reliable in Lovable environment
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
 }
 
 export interface ParsedResumeData {
