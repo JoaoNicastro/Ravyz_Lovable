@@ -1,11 +1,12 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form } from "@/components/ui/form";
 import { ReusableFormField } from "./FormField";
-import { Mail, Lock, User } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido").min(1, "Email é obrigatório"),
@@ -29,6 +30,7 @@ interface AuthFormProps {
 
 export function AuthForm({ mode, onSubmit, isLoading }: AuthFormProps) {
   const schema = mode === "login" ? loginSchema : registerSchema;
+  const [showPassword, setShowPassword] = useState(false);
   
   const form = useForm({
     resolver: zodResolver(schema),
@@ -75,7 +77,19 @@ export function AuthForm({ mode, onSubmit, isLoading }: AuthFormProps) {
           {(field) => (
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input {...field} type="password" placeholder="••••••••" className="pl-10" />
+              <Input 
+                {...field} 
+                type={showPassword ? "text" : "password"} 
+                placeholder="••••••••" 
+                className="pl-10 pr-10" 
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
           )}
         </ReusableFormField>
