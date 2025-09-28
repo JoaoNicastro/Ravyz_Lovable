@@ -1,8 +1,22 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Configure PDF.js worker
+// Configure PDF.js worker with fallbacks
 if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  try {
+    // Try to use the bundled worker first
+    pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+      'pdfjs-dist/build/pdf.worker.min.js',
+      import.meta.url
+    ).toString();
+  } catch (error) {
+    try {
+      // Fallback to CDN
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
+    } catch (fallbackError) {
+      // Last resort - disable worker (will be slower but should work)
+      pdfjsLib.GlobalWorkerOptions.workerSrc = '';
+    }
+  }
 }
 
 export interface ParsedResumeData {
@@ -31,8 +45,14 @@ const datePatterns = [
 
 export async function extractTextFromPDF(file: File): Promise<string> {
   try {
+    console.log('Starting PDF text extraction for file:', file.name, 'Size:', file.size);
+    
     const arrayBuffer = await file.arrayBuffer();
+    console.log('Successfully converted file to arrayBuffer');
+    
     const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+    console.log('PDF document loaded, pages:', pdf.numPages);
+    
     let fullText = '';
 
     for (let i = 1; i <= pdf.numPages; i++) {
@@ -42,12 +62,15 @@ export async function extractTextFromPDF(file: File): Promise<string> {
         .map((item: any) => item.str)
         .join(' ');
       fullText += pageText + ' ';
+      console.log(`Extracted text from page ${i}, length:`, pageText.length);
     }
 
+    console.log('Total extracted text length:', fullText.length);
     return fullText;
   } catch (error) {
-    console.error('Error extracting text from PDF:', error);
-    throw new Error('Failed to extract text from PDF');
+    console.error('Detailed error in extractTextFromPDF:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack available');
+    throw new Error(`Failed to extract text from PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -114,11 +137,15 @@ export function extractPersonalInfo(text: string): ParsedResumeData {
 
 export async function parseResume(file: File): Promise<ParsedResumeData> {
   try {
+    console.log('Starting resume parsing for:', file.name);
     const text = await extractTextFromPDF(file);
+    console.log('Text extraction successful, parsing personal info...');
     const personalInfo = extractPersonalInfo(text);
+    console.log('Parsed personal info:', personalInfo);
     return personalInfo;
   } catch (error) {
-    console.error('Error parsing resume:', error);
-    throw new Error('Failed to parse resume');
+    console.error('Detailed error in parseResume:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack available');
+    throw new Error(`Failed to parse resume: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
