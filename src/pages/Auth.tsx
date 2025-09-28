@@ -9,7 +9,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthForm } from "@/components/forms/AuthForm";
 import heroImage from "@/assets/hero-recruitment.jpg";
-import ravyzLogo from "@/assets/ravyz-logo.jpg";
+import ravyzLogo from "@/assets/ravyz-logo.png";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();

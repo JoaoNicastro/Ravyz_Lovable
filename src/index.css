@@ -3,12 +3,13 @@
 @tailwind utilities;
 
 /* RAVYZ Design System - Professional Recruitment Platform
+Using RAVYZ brand colors: Orange (#F28C2E), Blue (#4A5FC1), Green (#2AA765)
 All colors MUST be HSL for consistency and theming.
 */
 
 @layer base {
   :root {
-    /* Core brand colors - Professional purple gradient theme */
+    /* Core brand colors - RAVYZ Orange, Blue, Green theme */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
@@ -18,25 +19,25 @@ All colors MUST be HSL for consistency and theming.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary brand - RAVYZ Cyan */
-    --primary: 185 100% 45%;
+    /* Primary brand - RAVYZ Orange */
+    --primary: 29 87% 57%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 185 100% 40%;
-    --primary-light: 185 100% 95%;
+    --primary-hover: 29 73% 40%;
+    --primary-light: 29 87% 85%;
 
-    /* Secondary - Complementary blue */
-    --secondary: 210 100% 96%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - RAVYZ Blue */
+    --secondary: 227 52% 84%;
+    --secondary-foreground: 227 52% 33%;
 
-    /* Success green */
-    --success: 142 76% 36%;
+    /* Success - RAVYZ Green */
+    --success: 151 61% 40%;
     --success-foreground: 0 0% 100%;
-    --success-light: 142 50% 95%;
+    --success-light: 151 61% 80%;
 
-    /* Warning amber */
-    --warning: 38 92% 50%;
+    /* Warning - RAVYZ Orange */
+    --warning: 29 87% 57%;
     --warning-foreground: 0 0% 100%;
-    --warning-light: 38 50% 95%;
+    --warning-light: 29 87% 85%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
@@ -49,21 +50,21 @@ All colors MUST be HSL for consistency and theming.
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 185 100% 45%;
+    --ring: 29 87% 57%;
 
     --radius: 0.75rem;
 
     /* RAVYZ brand gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(185 100% 45%), hsl(185 100% 65%));
-    --gradient-secondary: linear-gradient(135deg, hsl(210 100% 96%), hsl(185 100% 95%));
-    --gradient-hero: linear-gradient(135deg, hsl(185 100% 45%) 0%, hsl(185 100% 65%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(185 20% 98%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(29 87% 57%), hsl(227 52% 53%));
+    --gradient-secondary: linear-gradient(135deg, hsl(29 87% 85%), hsl(227 52% 84%));
+    --gradient-hero: linear-gradient(135deg, hsl(29 87% 57%) 0%, hsl(227 52% 53%) 50%, hsl(151 61% 40%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(29 87% 95%) 100%);
 
     /* RAVYZ brand shadows */
-    --shadow-sm: 0 1px 3px 0 hsl(185 100% 45% / 0.1);
-    --shadow-md: 0 4px 12px -2px hsl(185 100% 45% / 0.15);
-    --shadow-lg: 0 10px 25px -5px hsl(185 100% 45% / 0.25);
-    --shadow-glow: 0 0 30px hsl(185 100% 45% / 0.3);
+    --shadow-sm: 0 1px 3px 0 hsl(29 87% 57% / 0.1);
+    --shadow-md: 0 4px 12px -2px hsl(29 87% 57% / 0.15);
+    --shadow-lg: 0 10px 25px -5px hsl(29 87% 57% / 0.25);
+    --shadow-glow: 0 0 30px hsl(29 87% 57% / 0.3);
 
     /* Animation values */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -89,22 +90,22 @@ All colors MUST be HSL for consistency and theming.
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    /* Dark mode primary - RAVYZ Cyan */
-    --primary: 185 100% 65%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --primary-hover: 185 100% 60%;
-    --primary-light: 185 50% 15%;
+    /* Dark mode primary - RAVYZ Orange */
+    --primary: 29 73% 40%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 29 87% 57%;
+    --primary-light: 29 30% 15%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 227 52% 33%;
     --secondary-foreground: 210 40% 98%;
 
-    --success: 142 76% 45%;
+    --success: 151 61% 27%;
     --success-foreground: 0 0% 100%;
-    --success-light: 142 50% 15%;
+    --success-light: 151 30% 15%;
 
-    --warning: 38 92% 60%;
-    --warning-foreground: 222.2 84% 4.9%;
-    --warning-light: 38 50% 15%;
+    --warning: 29 73% 40%;
+    --warning-foreground: 0 0% 100%;
+    --warning-light: 29 30% 15%;
 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
@@ -117,18 +118,18 @@ All colors MUST be HSL for consistency and theming.
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 185 100% 65%;
+    --ring: 29 73% 40%;
 
     /* Dark mode RAVYZ gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(185 100% 65%), hsl(185 100% 75%));
-    --gradient-secondary: linear-gradient(135deg, hsl(217.2 32.6% 17.5%), hsl(185 50% 15%));
-    --gradient-hero: linear-gradient(135deg, hsl(185 100% 65%) 0%, hsl(185 100% 75%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(29 73% 40%), hsl(227 52% 33%));
+    --gradient-secondary: linear-gradient(135deg, hsl(217.2 32.6% 17.5%), hsl(29 30% 15%));
+    --gradient-hero: linear-gradient(135deg, hsl(29 73% 40%) 0%, hsl(227 52% 33%) 50%, hsl(151 61% 27%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(222.2 84% 4.9%) 0%, hsl(217.2 32.6% 17.5%) 100%);
 
     --shadow-sm: 0 1px 3px 0 hsl(0 0% 0% / 0.3);
     --shadow-md: 0 4px 12px -2px hsl(0 0% 0% / 0.4);
     --shadow-lg: 0 10px 25px -5px hsl(0 0% 0% / 0.5);
-    --shadow-glow: 0 0 30px hsl(185 100% 65% / 0.4);
+    --shadow-glow: 0 0 30px hsl(29 73% 40% / 0.4);
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
