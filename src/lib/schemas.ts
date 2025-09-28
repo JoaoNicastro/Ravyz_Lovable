@@ -102,6 +102,35 @@ export const CompanyJobResponseSchema = z.object({
 });
 
 // Matching schemas
+// MATCH RAVYZ Pillar Breakdown Schema
+export const PillarBreakdownSchema = z.object({
+  autonomy: z.number().optional(),
+  leadership: z.number().optional(),
+  teamwork: z.number().optional(),
+  risk: z.number().optional(),
+  ambition: z.number().optional(),
+  compensation: z.number().optional(),
+  ambiente: z.number().optional(),
+  proposito: z.number().optional(),
+  crescimento: z.number().optional(),
+});
+
+// MATCH RAVYZ Matching Result Schema
+export const MatchRavyzResultSchema = z.object({
+  candidateId: z.string(),
+  jobId: z.string(),
+  compatibility_score: z.number().min(0).max(100),
+  candidate_archetype: z.string(),
+  job_archetype: z.string(),
+  pilar_breakdown: PillarBreakdownSchema,
+  archetype_boost: z.number().default(0),
+  explanation: z.string(),
+  isDemoMatch: z.boolean().default(false),
+  calculatedAt: z.date(),
+  expiresAt: z.date(),
+});
+
+// Legacy schemas for backward compatibility
 export const MatchingFactorsSchema = z.object({
   skills: z.object({
     score: z.number(),
@@ -177,6 +206,8 @@ export type CandidateCulturalResponse = z.infer<typeof CandidateCulturalResponse
 export type CandidateProfessionalResponse = z.infer<typeof CandidateProfessionalResponseSchema>;
 export type CandidateDreamJobResponse = z.infer<typeof CandidateDreamJobResponseSchema>;
 export type CompanyJobResponse = z.infer<typeof CompanyJobResponseSchema>;
+export type PillarBreakdown = z.infer<typeof PillarBreakdownSchema>;
+export type MatchRavyzResult = z.infer<typeof MatchRavyzResultSchema>;
 export type MatchingFactors = z.infer<typeof MatchingFactorsSchema>;
 export type ScoreBreakdown = z.infer<typeof ScoreBreakdownSchema>;
 export type MatchingResult = z.infer<typeof MatchingResultSchema>;
