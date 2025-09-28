@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,6 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Upload, FileText, Loader2 } from "lucide-react";
+import { parseResume, type ParsedResumeData } from "@/lib/resume-parser";
+import { toast } from "sonner";
 
 const basicInfoSchema = z.object({
   full_name: z.string().min(1, "Nome é obrigatório"),
@@ -26,6 +29,8 @@ interface StepProps {
 }
 
 const BasicInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data }) => {
+  const [isParsingResume, setIsParsingResume] = useState(false);
+  
   const form = useForm<BasicInfoData>({
     resolver: zodResolver(basicInfoSchema),
     defaultValues: data || { full_name: "", date_of_birth: undefined, email: undefined, phone: undefined },
@@ -35,12 +40,108 @@ const BasicInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data })
     onNext(values);
   };
 
+  const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (file.type !== 'application/pdf') {
+      toast.error('Por favor, selecione apenas arquivos PDF');
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Arquivo muito grande. Máximo 10MB permitido');
+      return;
+    }
+
+    setIsParsingResume(true);
+    
+    try {
+      const parsedData = await parseResume(file);
+      
+      // Fill form with parsed data
+      if (parsedData.full_name) {
+        form.setValue('full_name', parsedData.full_name);
+      }
+      if (parsedData.email) {
+        form.setValue('email', parsedData.email);
+      }
+      if (parsedData.phone) {
+        form.setValue('phone', parsedData.phone);
+      }
+      if (parsedData.date_of_birth) {
+        // Convert date to YYYY-MM-DD format for HTML date input
+        const date = new Date(parsedData.date_of_birth);
+        if (!isNaN(date.getTime())) {
+          const formattedDate = date.toISOString().split('T')[0];
+          form.setValue('date_of_birth', formattedDate);
+        }
+      }
+
+      toast.success('Currículo analisado com sucesso! Dados preenchidos automaticamente.');
+    } catch (error) {
+      console.error('Error parsing resume:', error);
+      toast.error('Erro ao analisar o currículo. Tente novamente.');
+    } finally {
+      setIsParsingResume(false);
+      // Clear the input
+      event.target.value = '';
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-xl font-semibold text-foreground">Informações para candidatura</h2>
   <p className="text-muted-foreground">Forneça alguns dados normalmente solicitados em candidaturas: nome, data de nascimento, e-mail e telefone.</p>
       </div>
+
+      {/* Resume Upload Section */}
+      <Card className="border-dashed">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Upload className="h-5 w-5" />
+            Upload de Currículo (Opcional)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Faça upload do seu currículo em PDF para preencher automaticamente os dados abaixo
+            </p>
+            
+            <div className="flex items-center gap-4">
+              <Label htmlFor="resume-upload" className="cursor-pointer">
+                <Button variant="outline" asChild disabled={isParsingResume}>
+                  <span className="flex items-center gap-2">
+                    {isParsingResume ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <FileText className="h-4 w-4" />
+                    )}
+                    {isParsingResume ? 'Analisando...' : 'Selecionar PDF'}
+                  </span>
+                </Button>
+              </Label>
+              
+              <Input
+                id="resume-upload"
+                type="file"
+                accept=".pdf"
+                onChange={handleResumeUpload}
+                className="hidden"
+                disabled={isParsingResume}
+              />
+              
+              <span className="text-xs text-muted-foreground">
+                Máximo 10MB • Apenas PDF
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
