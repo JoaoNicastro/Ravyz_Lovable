@@ -139,9 +139,11 @@ const Auth = () => {
                   />
 
                   <div className="text-center">
-                    <Button variant="link" className="text-sm text-muted-foreground">
-                      Esqueceu sua senha?
-                    </Button>
+                    <Link to="/forgot-password">
+                      <Button variant="link" className="text-sm text-muted-foreground">
+                        Esqueceu sua senha?
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
