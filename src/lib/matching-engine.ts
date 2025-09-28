@@ -78,11 +78,149 @@ export interface JobData {
 
 export class MatchingEngine {
   
+  // Define standard pillar order for vectorization
+  private readonly CANDIDATE_PILLAR_ORDER = ['compensation', 'ambiente', 'proposito', 'crescimento'];
+  private readonly JOB_PILLAR_ORDER = ['ambition', 'teamwork', 'leadership', 'autonomy', 'risk'];
+
   /**
-   * MATCH RAVYZ: Calculate pillar compatibility between candidate and job
-   * Uses exact formula: Compatibility = 100% - (|candidate_score - job_score| * 20)
+   * Convert pillar scores to normalized vector
    */
-  private calculatePillarCompatibility(candidatePillars: Record<string, number>, jobPillars: Record<string, number>): PillarBreakdown {
+  private candidatePillarsToVector(pillars: Record<string, number>): number[] {
+    return this.CANDIDATE_PILLAR_ORDER.map(pillar => pillars[pillar] || 3); // Default neutral score
+  }
+
+  private jobPillarsToVector(pillars: Record<string, number>): number[] {
+    return this.JOB_PILLAR_ORDER.map(pillar => pillars[pillar] || 3); // Default neutral score
+  }
+
+  /**
+   * Calculate vector magnitude (L2 norm)
+   */
+  private vectorMagnitude(vector: number[]): number {
+    return Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
+  }
+
+  /**
+   * Calculate dot product of two vectors
+   */
+  private dotProduct(vectorA: number[], vectorB: number[]): number {
+    return vectorA.reduce((sum, val, i) => sum + val * vectorB[i], 0);
+  }
+
+  /**
+   * Calculate cosine similarity between two vectors
+   * Returns value between 0 and 1 (higher = more similar)
+   */
+  private cosineSimilarity(vectorA: number[], vectorB: number[]): number {
+    const dotProd = this.dotProduct(vectorA, vectorB);
+    const magnitudeA = this.vectorMagnitude(vectorA);
+    const magnitudeB = this.vectorMagnitude(vectorB);
+    
+    if (magnitudeA === 0 || magnitudeB === 0) return 0;
+    
+    return dotProd / (magnitudeA * magnitudeB);
+  }
+
+  /**
+   * Calculate compatibility matrix for multiple candidates vs multiple jobs
+   */
+  public calculateCompatibilityMatrix(
+    candidates: CandidateRavyzData[], 
+    jobs: JobRavyzData[]
+  ): Array<Array<{
+    candidate_id: string;
+    job_id: string;
+    compatibility_score: number;
+    candidate_archetype: string;
+    job_archetype: string;
+    pillar_breakdown: PillarBreakdown;
+    base_similarity: number;
+    archetype_boost: number;
+  }>> {
+    const results: Array<Array<any>> = [];
+
+    // Convert all candidates to vectors
+    const candidateVectors = candidates.map(c => ({
+      id: c.id,
+      vector: this.candidatePillarsToVector(c.pillar_scores || {}),
+      archetype: c.archetype,
+      pillars: c.pillar_scores || {}
+    }));
+
+    // Convert all jobs to vectors  
+    const jobVectors = jobs.map(j => ({
+      id: j.id,
+      vector: this.jobPillarsToVector(j.pillar_scores || {}),
+      archetype: j.archetype,
+      pillars: j.pillar_scores || {}
+    }));
+
+    // Calculate matrix: for each candidate, calculate similarity with all jobs
+    candidateVectors.forEach(candidate => {
+      const candidateResults: any[] = [];
+      
+      jobVectors.forEach(job => {
+        // Calculate cosine similarity
+        const similarity = this.cosineSimilarity(candidate.vector, job.vector);
+        
+        // Convert similarity (0-1) to percentage (0-100)
+        const baseScore = similarity * 100;
+        
+        // Calculate archetype boost
+        const archetypeBoost = this.calculateArchetypeBoost(candidate.archetype, job.archetype);
+        
+        // Apply boost (never exceed 100)
+        const finalScore = Math.min(100, baseScore + archetypeBoost);
+        
+        // Calculate detailed pillar breakdown for display
+        const pillarBreakdown = this.calculatePillarBreakdown(candidate.pillars, job.pillars);
+        
+        candidateResults.push({
+          candidate_id: candidate.id,
+          job_id: job.id,
+          compatibility_score: Math.round(finalScore),
+          candidate_archetype: candidate.archetype,
+          job_archetype: job.archetype,
+          pillar_breakdown: pillarBreakdown,
+          base_similarity: Math.round(baseScore),
+          archetype_boost: archetypeBoost
+        });
+      });
+      
+      results.push(candidateResults);
+    });
+
+    return results;
+  }
+
+  /**
+   * Calculate all matches for given candidates and jobs, return flat array sorted by score
+   */
+  public calculateAllMatches(
+    candidates: CandidateRavyzData[], 
+    jobs: JobRavyzData[]
+  ): Array<{
+    candidate_id: string;
+    job_id: string;
+    compatibility_score: number;
+    candidate_archetype: string;
+    job_archetype: string;
+    pillar_breakdown: PillarBreakdown;
+    base_similarity: number;
+    archetype_boost: number;
+  }> {
+    const matrix = this.calculateCompatibilityMatrix(candidates, jobs);
+    
+    // Flatten matrix and sort by compatibility score
+    return matrix
+      .flat()
+      .sort((a, b) => b.compatibility_score - a.compatibility_score);
+  }
+
+  /**
+   * Legacy pillar breakdown calculation for detailed display
+   */
+  private calculatePillarBreakdown(candidatePillars: Record<string, number>, jobPillars: Record<string, number>): PillarBreakdown {
     const pillarBreakdown: PillarBreakdown = {};
     
     // Updated pillar mappings based on MATCH RAVYZ methodology
@@ -209,34 +347,38 @@ export class MatchingEngine {
   }
 
   /**
-   * MATCH RAVYZ: Main matching function
+   * MATCH RAVYZ: Single match calculation using cosine similarity
    */
-  public async calculateRavyzMatch(candidate: CandidateRavyzData, job: JobRavyzData): Promise<{
+  public async calculateRavyzMatchSingle(candidate: CandidateRavyzData, job: JobRavyzData): Promise<{
+    candidate_id: string;
+    job_id: string;
     compatibility_score: number;
     candidate_archetype: string;
     job_archetype: string;
-    pilar_breakdown: PillarBreakdown;
+    pillar_breakdown: PillarBreakdown;
+    base_similarity: number;
     archetype_boost: number;
     explanation: string;
   }> {
-    // Calculate pillar compatibility
-    const pillarBreakdown = this.calculatePillarCompatibility(
+    // Convert to vectors and calculate cosine similarity
+    const candidateVector = this.candidatePillarsToVector(candidate.pillar_scores || {});
+    const jobVector = this.jobPillarsToVector(job.pillar_scores || {});
+    
+    const similarity = this.cosineSimilarity(candidateVector, jobVector);
+    const baseScore = similarity * 100;
+    
+    // Calculate archetype boost
+    const archetypeBoost = this.calculateArchetypeBoost(candidate.archetype, job.archetype);
+    
+    // Apply boost (never exceed 100)
+    const finalScore = Math.min(100, baseScore + archetypeBoost);
+    
+    // Calculate detailed pillar breakdown for display
+    const pillarBreakdown = this.calculatePillarBreakdown(
       candidate.pillar_scores || {},
       job.pillar_scores || {}
     );
-
-    // Calculate base compatibility score (average of pillar compatibilities)
-    const pillarScores = Object.values(pillarBreakdown).filter(score => score !== undefined) as number[];
-    const baseScore = pillarScores.length > 0 
-      ? pillarScores.reduce((sum, score) => sum + score, 0) / pillarScores.length 
-      : 50; // Default neutral score if no pillars
-
-    // Calculate archetype boost
-    const archetypeBoost = this.calculateArchetypeBoost(candidate.archetype, job.archetype);
-
-    // Apply archetype boost to final score
-    const finalScore = Math.min(100, baseScore + archetypeBoost);
-
+    
     // Generate explanation
     const explanation = this.generateRavyzExplanation(
       candidate.archetype,
@@ -247,12 +389,38 @@ export class MatchingEngine {
     );
 
     return {
+      candidate_id: candidate.id,
+      job_id: job.id,
       compatibility_score: Math.round(finalScore),
       candidate_archetype: candidate.archetype,
       job_archetype: job.archetype,
-      pilar_breakdown: pillarBreakdown,
+      pillar_breakdown: pillarBreakdown,
+      base_similarity: Math.round(baseScore),
       archetype_boost: archetypeBoost,
       explanation
+    };
+  }
+
+  /**
+   * MATCH RAVYZ: Main matching function (legacy compatibility)
+   */
+  public async calculateRavyzMatch(candidate: CandidateRavyzData, job: JobRavyzData): Promise<{
+    compatibility_score: number;
+    candidate_archetype: string;
+    job_archetype: string;
+    pilar_breakdown: PillarBreakdown;
+    archetype_boost: number;
+    explanation: string;
+  }> {
+    const result = await this.calculateRavyzMatchSingle(candidate, job);
+    
+    return {
+      compatibility_score: result.compatibility_score,
+      candidate_archetype: result.candidate_archetype,
+      job_archetype: result.job_archetype,
+      pilar_breakdown: result.pillar_breakdown,
+      archetype_boost: result.archetype_boost,
+      explanation: result.explanation
     };
   }
 

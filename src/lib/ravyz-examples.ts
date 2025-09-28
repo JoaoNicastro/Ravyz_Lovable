@@ -33,7 +33,7 @@ const exampleJob: JobRavyzData = {
 /**
  * Complete MATCH RAVYZ workflow example
  */
-export async function runCompleteMatchingExample() {
+async function runCompleteMatchingExample() {
   const matchingEngine = new MatchingEngine();
 
   try {
@@ -66,7 +66,7 @@ export async function runCompleteMatchingExample() {
 /**
  * Step-by-step matching calculation example
  */
-export async function stepByStepMatchingExample() {
+async function stepByStepMatchingExample() {
   const matchingEngine = new MatchingEngine();
 
   console.log('📊 Step-by-step MATCH RAVYZ calculation:');
@@ -97,64 +97,103 @@ export async function stepByStepMatchingExample() {
 }
 
 /**
- * Batch matching example - multiple candidates against one job
+ * Example: Batch matching between multiple candidates and jobs using matrix calculation
  */
-export async function batchMatchingExample() {
+async function batchMatchingExample() {
   const matchingEngine = new MatchingEngine();
   
+  // Example: Multiple candidates and multiple jobs
   const candidates: CandidateRavyzData[] = [
     {
-      id: 'cand-1',
-      pillar_scores: { compensation: 4.0, ambiente: 3.5, proposito: 4.2, crescimento: 3.8 },
+      id: 'candidate-1',
+      pillar_scores: { compensation: 4.2, ambiente: 3.8, proposito: 4.0, crescimento: 4.5 },
       archetype: 'Protagonista'
     },
     {
-      id: 'cand-2',
-      pillar_scores: { compensation: 2.8, ambiente: 4.5, proposito: 4.8, crescimento: 3.2 },
-      archetype: 'Idealista'
+      id: 'candidate-2', 
+      pillar_scores: { compensation: 3.1, ambiente: 4.3, proposito: 2.8, crescimento: 3.9 },
+      archetype: 'Construtor'
     },
     {
-      id: 'cand-3',
-      pillar_scores: { compensation: 4.5, ambiente: 3.0, proposito: 3.2, crescimento: 4.0 },
-      archetype: 'Pragmático'
+      id: 'candidate-3',
+      pillar_scores: { compensation: 3.7, ambiente: 2.9, proposito: 4.2, crescimento: 3.4 },
+      archetype: 'Visionário'
     }
   ];
 
-  const job: JobRavyzData = {
-    id: 'job-batch',
-    pillar_scores: { autonomy: 4.2, leadership: 4.0, teamwork: 3.8, risk: 3.5, ambition: 4.1 },
-    archetype: 'Protagonista'
-  };
+  const jobs: JobRavyzData[] = [
+    {
+      id: 'job-senior-dev',
+      pillar_scores: { autonomy: 4.1, leadership: 3.8, teamwork: 4.0, risk: 3.2, ambition: 4.3 },
+      archetype: 'Protagonista'
+    },
+    {
+      id: 'job-tech-lead',
+      pillar_scores: { autonomy: 3.5, leadership: 4.5, teamwork: 3.8, risk: 3.8, ambition: 4.0 },
+      archetype: 'Mobilizador'
+    }
+  ];
 
-  console.log('🔄 Running batch matching...');
+  console.log('📊 Calculating compatibility matrix for all candidates vs all jobs...');
   
-  const results = [];
-  
-  for (const candidate of candidates) {
-    const matchResult = await matchingEngine.calculateRavyzMatch(candidate, job);
-    results.push({
-      candidateId: candidate.id,
-      archetype: candidate.archetype,
-      score: matchResult.compatibility_score,
-      explanation: matchResult.explanation
-    });
-  }
+  // Calculate full compatibility matrix
+  const allMatches = matchingEngine.calculateAllMatches(candidates, jobs);
 
-  // Sort by compatibility score
-  results.sort((a, b) => b.score - a.score);
-  
-  console.log('📈 Batch matching results (sorted by score):');
-  results.forEach((result, index) => {
-    console.log(`${index + 1}. ${result.candidateId} (${result.archetype}): ${result.score}%`);
+  console.log('\n🏆 TOP MATCHES (sorted by compatibility):');
+  allMatches.slice(0, 5).forEach((match, index) => {
+    console.log(`${index + 1}. ${match.candidate_id} → ${match.job_id}: ${match.compatibility_score}%`);
+    console.log(`   Base Similarity: ${match.base_similarity}% + Archetype Boost: ${match.archetype_boost}%`);
+    console.log(`   Archetypes: ${match.candidate_archetype} vs ${match.job_archetype}`);
   });
 
-  return results;
+  return allMatches;
+}
+
+/**
+ * Example: Matrix calculation for large-scale matching
+ */
+function matrixCalculationExample() {
+  const matchingEngine = new MatchingEngine();
+  
+  console.log('\n🧮 === MATRIX CALCULATION EXAMPLE ===');
+  
+  const candidates: CandidateRavyzData[] = [
+    { id: 'c1', pillar_scores: { compensation: 4.0, ambiente: 3.5, proposito: 4.2, crescimento: 3.8 }, archetype: 'Protagonista' },
+    { id: 'c2', pillar_scores: { compensation: 3.2, ambiente: 4.1, proposito: 2.9, crescimento: 4.3 }, archetype: 'Construtor' },
+    { id: 'c3', pillar_scores: { compensation: 3.8, ambiente: 3.0, proposito: 4.5, crescimento: 3.4 }, archetype: 'Visionário' }
+  ];
+
+  const jobs: JobRavyzData[] = [
+    { id: 'j1', pillar_scores: { autonomy: 4.0, leadership: 3.8, teamwork: 4.1, risk: 3.3, ambition: 4.2 }, archetype: 'Protagonista' },
+    { id: 'j2', pillar_scores: { autonomy: 3.4, leadership: 4.2, teamwork: 3.9, risk: 3.7, ambition: 3.8 }, archetype: 'Mobilizador' }
+  ];
+
+  console.log('🔢 Calculating 3x2 compatibility matrix...');
+  
+  // Get full matrix (candidates x jobs)
+  const matrix = matchingEngine.calculateCompatibilityMatrix(candidates, jobs);
+  
+  console.log('\n📋 COMPATIBILITY MATRIX:');
+  console.log('       j1     j2');
+  matrix.forEach((candidateResults, i) => {
+    const scores = candidateResults.map(r => `${r.compatibility_score}%`).join('   ');
+    console.log(`${candidates[i].id}:   ${scores}`);
+  });
+
+  console.log('\n🎯 Matrix Details:');
+  matrix.forEach((candidateResults, i) => {
+    candidateResults.forEach((result) => {
+      console.log(`${result.candidate_id}→${result.job_id}: ${result.base_similarity}% + ${result.archetype_boost}% = ${result.compatibility_score}%`);
+    });
+  });
+
+  return matrix;
 }
 
 /**
  * Analysis example - understanding match components
  */
-export function analyzeMatchComponents() {
+function analyzeMatchComponents() {
   console.log('🔍 MATCH RAVYZ Components Analysis:');
   
   console.log('\n📋 Candidate Pillars:');
@@ -182,8 +221,13 @@ export function analyzeMatchComponents() {
   console.log('- Examples: Protagonista ↔ Transformador, Guardião ↔ Pragmático');
 }
 
-// Export for use in other files
-export {
+// Export all functions and examples
+export { 
+  runCompleteMatchingExample, 
+  stepByStepMatchingExample, 
+  batchMatchingExample, 
+  matrixCalculationExample,
+  analyzeMatchComponents,
   exampleCandidate,
   exampleJob
 };
