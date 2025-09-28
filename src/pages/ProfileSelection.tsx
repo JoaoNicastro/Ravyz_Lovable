@@ -6,46 +6,85 @@ import { User, Building, ArrowRight, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ProfileSelection = () => {
   const [selectedProfile, setSelectedProfile] = useState<'candidate' | 'company' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
 
   const handleProfileSelect = async () => {
-    if (!selectedProfile) return;
+    if (!selectedProfile) {
+      console.log("❌ Nenhum perfil selecionado");
+      return;
+    }
+    
+    // 1. Verificar se o usuário está autenticado
+    if (authLoading) {
+      console.log("⏳ Aguardando verificação de autenticação...");
+      return;
+    }
+    
+    if (!user) {
+      console.log("❌ Usuário não autenticado, redirecionando para /auth");
+      toast.error("Você precisa estar logado para continuar");
+      navigate('/auth');
+      return;
+    }
+
+    console.log("✅ Usuário autenticado:", user.id);
+    console.log("🎯 Perfil selecionado:", selectedProfile);
     
     setIsLoading(true);
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não encontrado");
-
-      // Update active_profile in users table
+      // 2. Salvar escolha no banco
+      console.log("💾 Salvando active_profile no banco...");
       const { error } = await supabase
         .from('users')
         .update({ 
           active_profile: selectedProfile,
-          profiles: [selectedProfile] // Add to profiles array
+          profiles: [selectedProfile]
         })
-        .eq('id', user.user.id);
+        .eq('id', user.id);
 
-      if (error) throw error;
-
-      // Redirect based on profile type
-      if (selectedProfile === 'candidate') {
-        navigate('/onboarding/candidate');
-      } else {
-        navigate('/company/onboarding');
+      if (error) {
+        console.error("❌ Erro na query Supabase:", error);
+        throw error;
       }
+
+      console.log("✅ Active profile salvo:", selectedProfile);
+      
+      // 3. Redirecionamento confiável
+      const targetRoute = selectedProfile === 'candidate' 
+        ? '/onboarding/candidate' 
+        : '/company/onboarding';
+      
+      console.log("🔄 Redirecionando para:", targetRoute);
       
       toast.success(`Perfil ${selectedProfile === 'candidate' ? 'candidato' : 'empresa'} selecionado!`);
+      
+      // Use window.location para garantir redirecionamento
+      setTimeout(() => {
+        navigate(targetRoute);
+      }, 500);
+      
     } catch (error) {
-      console.error('Error selecting profile:', error);
-      toast.error("Erro ao selecionar perfil");
+      console.error('❌ Erro ao selecionar perfil:', error);
+      toast.error("Erro ao selecionar perfil. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Loading state enquanto verifica autenticação
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
@@ -149,11 +188,20 @@ const ProfileSelection = () => {
           <Button 
             size="lg" 
             onClick={handleProfileSelect}
-            disabled={!selectedProfile || isLoading}
+            disabled={!selectedProfile || isLoading || authLoading}
             className="px-8"
           >
-            {isLoading ? "Configurando..." : "Continuar"}
-            <ArrowRight className="ml-2 h-4 w-4" />
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                Configurando...
+              </>
+            ) : (
+              <>
+                Continuar
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </>
+            )}
           </Button>
         </div>
 
