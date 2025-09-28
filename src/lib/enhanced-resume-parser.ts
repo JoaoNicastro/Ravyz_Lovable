@@ -1,0 +1,270 @@
+import * as pdfjsLib from 'pdfjs-dist';
+
+export interface ParsedResumeData {
+  full_name?: string;
+  email?: string;
+  phone?: string;
+  date_of_birth?: string;
+}
+
+// Configure PDF.js worker
+if (typeof window !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
+}
+
+export interface TextItem {
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fontName: string;
+  hasEOL: boolean;
+}
+
+export interface TextScore {
+  text: string;
+  score: number;
+  match: boolean;
+}
+
+type FeatureSet = [
+  (item: TextItem) => boolean | RegExpMatchArray | null,
+  number, // Score
+  boolean? // Return matching text only
+];
+
+// Enhanced pattern matching functions
+const matchEmail = (item: TextItem) => item.text.match(/\S+@\S+\.\S+/);
+const matchPhone = (item: TextItem) => 
+  item.text.match(/(?:\+55\s?)?\(?(?:11|21|31|41|51|61|71|81|85|91)\)?\s?\d{4,5}[-\s]?\d{4}/);
+const matchName = (item: TextItem) => item.text.match(/^[A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ][a-záéíóúàèìòùâêîôûãõç]+\s+[A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ][a-záéíóúàèìòùâêîôûãõç]+/);
+const matchBirthDate = (item: TextItem) => 
+  item.text.match(/(?:(?:0[1-9]|[12][0-9]|3[01])\/(?:0[1-9]|1[0-2])\/(?:19|20)\d{2})|(?:(?:0[1-9]|[12][0-9]|3[01])-(?:0[1-9]|1[0-2])-(?:19|20)\d{2})/);
+
+// Feature checking functions
+const isBold = (item: TextItem) => item.fontName.toLowerCase().includes('bold');
+const hasAt = (item: TextItem) => item.text.includes('@');
+const hasNumber = (item: TextItem) => /\d/.test(item.text);
+const hasParenthesis = (item: TextItem) => /\(|\)/.test(item.text);
+const isUpperCase = (item: TextItem) => item.text === item.text.toUpperCase() && /[A-Z]/.test(item.text);
+const hasOnlyLettersAndSpaces = (item: TextItem) => /^[A-Za-záéíóúàèìòùâêîôûãõçÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ\s\.]+$/.test(item.text);
+
+// Feature sets for different data types
+const NAME_FEATURE_SETS: FeatureSet[] = [
+  [matchName, 4, true],
+  [hasOnlyLettersAndSpaces, 3],
+  [isBold, 2],
+  [isUpperCase, 2],
+  // Negative features
+  [hasAt, -4], // Email
+  [hasNumber, -3], // Phone/Date
+  [hasParenthesis, -3], // Phone
+];
+
+const EMAIL_FEATURE_SETS: FeatureSet[] = [
+  [matchEmail, 4, true],
+  [hasAt, 3],
+  // Negative features
+  [isBold, -1],
+  [hasParenthesis, -4],
+];
+
+const PHONE_FEATURE_SETS: FeatureSet[] = [
+  [matchPhone, 4, true],
+  [hasNumber, 2],
+  [hasParenthesis, 1],
+  // Negative features
+  [hasAt, -4],
+  [(item: TextItem) => hasOnlyLettersAndSpaces(item), -3],
+];
+
+const BIRTH_DATE_FEATURE_SETS: FeatureSet[] = [
+  [matchBirthDate, 4, true],
+  [hasNumber, 2],
+  [(item: TextItem) => item.text.includes('/') || item.text.includes('-'), 1],
+  // Negative features
+  [hasAt, -4],
+  [hasParenthesis, -2],
+];
+
+async function readPdfEnhanced(file: File): Promise<TextItem[]> {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdfDoc = await pdfjsLib.getDocument(arrayBuffer).promise;
+  let textItems: TextItem[] = [];
+
+  for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+    const page = await pdfDoc.getPage(pageNum);
+    const textContent = await page.getTextContent();
+    
+    // Wait for font data to be loaded
+    await page.getOperatorList();
+    const commonObjs = page.commonObjs;
+
+    const pageTextItems = textContent.items.map((item: any) => {
+      const {
+        str: text,
+        transform,
+        fontName: pdfFontName,
+        hasEOL,
+        width,
+        height,
+      } = item;
+
+      // Extract position from transform matrix
+      const x = transform[4];
+      const y = transform[5];
+
+      // Get original font name
+      let fontName = pdfFontName;
+      try {
+        const fontObj = commonObjs.get(pdfFontName);
+        if (fontObj && fontObj.name) {
+          fontName = fontObj.name;
+        }
+      } catch (e) {
+        // Use fallback font name
+      }
+
+      // Clean up text
+      const cleanText = text.replace(/-­‐/g, '-').trim();
+
+      return {
+        text: cleanText,
+        x,
+        y,
+        width: width || 0,
+        height: height || 0,
+        fontName,
+        hasEOL: hasEOL || false,
+      };
+    });
+
+    textItems.push(...pageTextItems);
+  }
+
+  // Filter out empty items
+  return textItems.filter(item => item.text.length > 0);
+}
+
+function getTextWithHighestFeatureScore(
+  textItems: TextItem[],
+  featureSets: FeatureSet[]
+): [string, TextScore[]] {
+  const textScores: TextScore[] = textItems.map(item => {
+    let score = 0;
+    let matchedText = item.text;
+    let hasMatch = false;
+
+    for (const [featureFunc, featureScore, returnMatchingTextOnly] of featureSets) {
+      const result = featureFunc(item);
+      
+      if (result) {
+        score += featureScore;
+        
+        if (returnMatchingTextOnly && Array.isArray(result) && result[0]) {
+          matchedText = result[0];
+          hasMatch = true;
+        } else if (result === true) {
+          hasMatch = true;
+        }
+      }
+    }
+
+    return {
+      text: matchedText,
+      score,
+      match: hasMatch,
+    };
+  });
+
+  // Sort by score (highest first)
+  textScores.sort((a, b) => b.score - a.score);
+  
+  // Return the highest scoring text that has a positive score
+  const bestMatch = textScores.find(item => item.score > 0 && item.text.trim().length > 0);
+  
+  return [bestMatch?.text || '', textScores];
+}
+
+function formatDateForInput(dateStr: string): string {
+  if (!dateStr) return '';
+  
+  // Try to parse Brazilian date formats
+  const patterns = [
+    /(\d{1,2})\/(\d{1,2})\/(\d{4})/,  // DD/MM/YYYY
+    /(\d{1,2})-(\d{1,2})-(\d{4})/,   // DD-MM-YYYY
+  ];
+
+  for (const pattern of patterns) {
+    const match = dateStr.match(pattern);
+    if (match) {
+      const [, day, month, year] = match;
+      // Convert to YYYY-MM-DD format for HTML date input
+      return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    }
+  }
+
+  return '';
+}
+
+function cleanPhoneNumber(phone: string): string {
+  if (!phone) return '';
+  
+  // Remove common phone formatting and keep only numbers and basic formatting
+  return phone
+    .replace(/[^\d\(\)\-\s\+]/g, '') // Keep only numbers, parentheses, hyphens, spaces, and plus
+    .replace(/^\+55\s?/, '') // Remove Brazil country code
+    .trim();
+}
+
+export async function parseResumeEnhanced(file: File): Promise<ParsedResumeData> {
+  try {
+    console.log('Starting enhanced resume parsing for:', file.name);
+    
+    // Step 1: Extract text items with positioning
+    const textItems = await readPdfEnhanced(file);
+    console.log('Extracted text items:', textItems.length);
+
+    if (textItems.length === 0) {
+      throw new Error('No text could be extracted from the PDF');
+    }
+
+    // Step 2: Extract structured information using feature scoring
+    const [name] = getTextWithHighestFeatureScore(textItems, NAME_FEATURE_SETS);
+    const [email] = getTextWithHighestFeatureScore(textItems, EMAIL_FEATURE_SETS);
+    const [phone] = getTextWithHighestFeatureScore(textItems, PHONE_FEATURE_SETS);
+    const [birthDate] = getTextWithHighestFeatureScore(textItems, BIRTH_DATE_FEATURE_SETS);
+
+    console.log('Extracted data:', { name, email, phone, birthDate });
+
+    // Step 3: Format and validate the extracted data
+    const result: ParsedResumeData = {};
+
+    if (name && name.length > 1) {
+      result.full_name = name.trim();
+    }
+
+    if (email && matchEmail({ text: email } as TextItem)) {
+      result.email = email.toLowerCase().trim();
+    }
+
+    if (phone && phone.length > 8) {
+      result.phone = cleanPhoneNumber(phone);
+    }
+
+    if (birthDate) {
+      const formattedDate = formatDateForInput(birthDate);
+      if (formattedDate) {
+        result.date_of_birth = formattedDate;
+      }
+    }
+
+    console.log('Final parsed result:', result);
+    return result;
+
+  } catch (error) {
+    console.error('Enhanced resume parsing failed:', error);
+    throw new Error(`Failed to parse resume: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}

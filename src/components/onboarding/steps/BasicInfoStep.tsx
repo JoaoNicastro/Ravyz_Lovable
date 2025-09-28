@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, FileText, Loader2 } from "lucide-react";
-import { parseResume, type ParsedResumeData } from "@/lib/resume-parser";
+import { parseResumeEnhanced, type ParsedResumeData } from "@/lib/enhanced-resume-parser";
 import { toast } from "sonner";
 
 const basicInfoSchema = z.object({
@@ -59,7 +59,7 @@ const BasicInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data })
     setIsParsingResume(true);
     
     try {
-      const parsedData = await parseResume(file);
+      const parsedData = await parseResumeEnhanced(file);
       
       // Fill form with parsed data
       if (parsedData.full_name) {
@@ -72,15 +72,10 @@ const BasicInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data })
         form.setValue('phone', parsedData.phone);
       }
       if (parsedData.date_of_birth) {
-        // Convert date to YYYY-MM-DD format for HTML date input
-        const date = new Date(parsedData.date_of_birth);
-        if (!isNaN(date.getTime())) {
-          const formattedDate = date.toISOString().split('T')[0];
-          form.setValue('date_of_birth', formattedDate);
-        }
+        form.setValue('date_of_birth', parsedData.date_of_birth);
       }
 
-      toast.success('Currículo analisado com sucesso! Dados preenchidos automaticamente.');
+      toast.success('Currículo analisado com sucesso! Dados preenchidos automaticamente com tecnologia avançada.');
     } catch (error) {
       console.error('Error parsing resume:', error);
       toast.error('Erro ao analisar o currículo. Tente novamente.');
@@ -109,7 +104,7 @@ const BasicInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data })
         <CardContent>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Faça upload do seu currículo em PDF para preencher automaticamente os dados abaixo
+              Faça upload do seu currículo em PDF para preenchimento automático inteligente dos dados
             </p>
             
             <div className="flex items-center gap-4">
@@ -121,7 +116,7 @@ const BasicInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data })
                     ) : (
                       <FileText className="h-4 w-4" />
                     )}
-                    {isParsingResume ? 'Analisando...' : 'Selecionar PDF'}
+                    {isParsingResume ? 'Analisando com IA...' : 'Selecionar PDF'}
                   </span>
                 </Button>
               </Label>
@@ -136,7 +131,7 @@ const BasicInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data })
               />
               
               <span className="text-xs text-muted-foreground">
-                Máximo 10MB • Apenas PDF
+                Máximo 10MB • Análise baseada em OpenResume
               </span>
             </div>
           </div>
