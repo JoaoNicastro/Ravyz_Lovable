@@ -31,45 +31,13 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/profile-selection" element={
-              <ProtectedRoute>
-                <ProfileSelection />
-              </ProtectedRoute>
-            } />
-            {/* <Route path="/onboarding" element={
-              <ProtectedRoute>
-                <OnboardingFlow />
-              </ProtectedRoute>
-            } /> */}
-             <Route path="/onboarding" element={
-               
-                 <OnboardingFlow />
-            } />
-            <Route path="/onboarding/candidate" element={
-              <ProtectedRoute>
-                <OnboardingFlow />
-              </ProtectedRoute>
-            } />
-            <Route path="/company/profile" element={
-              <ProtectedRoute>
-                <CompanyProfile />
-              </ProtectedRoute>
-            } />
-            <Route path="/company/onboarding" element={
-              <ProtectedRoute>
-                <CompanyOnboardingFlow />
-              </ProtectedRoute>
-            } />
-            <Route path="/dashboard/candidate" element={
-              <ProtectedRoute>
-                <CandidateDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/dashboard/company" element={
-              <ProtectedRoute>
-                <CompanyDashboard />
-              </ProtectedRoute>
-            } />
+            <Route path="/profile-selection" element={<ProfileSelection />} />
+            <Route path="/onboarding" element={<OnboardingFlow />} />
+            <Route path="/onboarding/candidate" element={<OnboardingFlow />} />
+            <Route path="/company/profile" element={<CompanyProfile />} />
+            <Route path="/company/onboarding" element={<CompanyOnboardingFlow />} />
+            <Route path="/dashboard/candidate" element={<CandidateDashboard />} />
+            <Route path="/dashboard/company" element={<CompanyDashboard />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
