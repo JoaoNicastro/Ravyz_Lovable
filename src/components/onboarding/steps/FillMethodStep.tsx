@@ -58,6 +58,12 @@ const FillMethodStep: React.FC<StepProps> = ({ onNext, data }) => {
   });
 
   const onSubmit = (formData: FillMethodData) => {
+    // If resume method is selected, navigate to resume upload
+    if (formData.method === 'resume') {
+      window.location.href = '/resume/analyze';
+      return;
+    }
+    
     onNext(formData);
   };
 
