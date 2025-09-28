@@ -12,26 +12,12 @@ import { Briefcase, MapPin, DollarSign, Monitor } from "lucide-react";
 
 const jobDefinitionSchema = z.object({
   title: z.string().min(1, "Título da vaga é obrigatório"),
-  description: z.string().min(50, "Descrição deve ter pelo menos 50 caracteres"),
-  location: z.string().min(1, "Localização é obrigatória"),
-  work_model: z.enum(["remote", "hybrid", "onsite"], {
-    required_error: "Modelo de trabalho é obrigatório",
+  description: z.string().min(1, "Descrição da vaga é obrigatória"),
+  location: z.string().optional(),
+  level: z.enum(["junior", "pleno", "senior"], {
+    required_error: "Nível é obrigatório",
   }),
-  salary_min: z.number().min(0, "Salário mínimo deve ser positivo").optional(),
-  salary_max: z.number().min(0, "Salário máximo deve ser positivo").optional(),
-  requirements: z.object({
-    skills: z.array(z.string()).optional(),
-    experience_years: z.number().min(0).optional(),
-    education: z.string().optional(),
-  }).optional(),
-}).refine((data) => {
-  if (data.salary_min && data.salary_max) {
-    return data.salary_max >= data.salary_min;
-  }
-  return true;
-}, {
-  message: "Salário máximo deve ser maior ou igual ao mínimo",
-  path: ["salary_max"],
+  salary: z.number().min(0, "Salário deve ser positivo").optional(),
 });
 
 type JobDefinitionData = z.infer<typeof jobDefinitionSchema>;
@@ -50,10 +36,8 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
       title: "",
       description: "",
       location: "",
-      work_model: "hybrid",
-      salary_min: undefined,
-      salary_max: undefined,
-      requirements: {},
+      level: "pleno",
+      salary: undefined,
     },
   });
 
@@ -123,7 +107,7 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
                 <FormItem>
                   <FormLabel className="flex items-center space-x-2">
                     <MapPin className="h-4 w-4" />
-                    <span>Localização *</span>
+                    <span>Localização</span>
                   </FormLabel>
                   <FormControl>
                     <Input 
@@ -136,26 +120,26 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
               )}
             />
 
-            {/* Work Model */}
+            {/* Level */}
             <FormField
               control={form.control}
-              name="work_model"
+              name="level"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="flex items-center space-x-2">
-                    <Monitor className="h-4 w-4" />
-                    <span>Modelo de Trabalho *</span>
+                    <Briefcase className="h-4 w-4" />
+                    <span>Nível *</span>
                   </FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o modelo" />
+                        <SelectValue placeholder="Selecione o nível" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="remote">Remoto</SelectItem>
-                      <SelectItem value="hybrid">Híbrido</SelectItem>
-                      <SelectItem value="onsite">Presencial</SelectItem>
+                      <SelectItem value="junior">Júnior</SelectItem>
+                      <SelectItem value="pleno">Pleno</SelectItem>
+                      <SelectItem value="senior">Sênior</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -164,51 +148,29 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
             />
           </div>
 
-          {/* Salary Range */}
+          {/* Salary */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <DollarSign className="h-4 w-4" />
-              <span className="text-sm font-medium">Faixa Salarial (opcional)</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="salary_min"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Salário Mínimo (R$)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number"
-                        placeholder="5000"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="salary_max"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Salário Máximo (R$)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number"
-                        placeholder="8000"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="salary"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center space-x-2">
+                    <DollarSign className="h-4 w-4" />
+                    <span>Salário (R$) - opcional</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number"
+                      placeholder="5000"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
           {/* Submit Button */}
