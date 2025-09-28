@@ -36,6 +36,7 @@ const STEPS: StepData[] = [
     description: "Escolha como deseja completar seu perfil",
     component: FillMethodStep,
   },
+  // application-info merged into basic-info; kept single basic-info step
   {
     id: "basic-info",
     title: "Informações para Candidatura",
