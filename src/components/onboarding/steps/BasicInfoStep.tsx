@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, FileText, Loader2 } from "lucide-react";
-import { parseResumeEnhanced, type ParsedResumeData } from "@/lib/enhanced-resume-parser";
+import { parseResume } from "simple-resume-parser";
 import { toast } from "sonner";
 
 const basicInfoSchema = z.object({
@@ -59,11 +59,11 @@ const BasicInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data })
     setIsParsingResume(true);
     
     try {
-      const parsedData = await parseResumeEnhanced(file);
+      const parsedData = await parseResume(file);
       
       // Fill form with parsed data
-      if (parsedData.full_name) {
-        form.setValue('full_name', parsedData.full_name);
+      if (parsedData.name) {
+        form.setValue('full_name', parsedData.name);
       }
       if (parsedData.email) {
         form.setValue('email', parsedData.email);
@@ -71,11 +71,22 @@ const BasicInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data })
       if (parsedData.phone) {
         form.setValue('phone', parsedData.phone);
       }
-      if (parsedData.date_of_birth) {
-        form.setValue('date_of_birth', parsedData.date_of_birth);
+      if (parsedData.dateOfBirth) {
+        // Convert date to YYYY-MM-DD format if needed
+        const dateStr = parsedData.dateOfBirth;
+        if (dateStr) {
+          // Try to parse and format the date
+          const date = new Date(dateStr);
+          if (!isNaN(date.getTime())) {
+            const formattedDate = date.toISOString().split('T')[0];
+            form.setValue('date_of_birth', formattedDate);
+          } else {
+            form.setValue('date_of_birth', dateStr);
+          }
+        }
       }
 
-      toast.success('Currículo analisado com sucesso! Dados preenchidos automaticamente com tecnologia avançada.');
+      toast.success('Currículo analisado com sucesso! Dados preenchidos automaticamente.');
     } catch (error) {
       console.error('Error parsing resume:', error);
       toast.error('Erro ao analisar o currículo. Tente novamente.');
@@ -131,7 +142,7 @@ const BasicInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data })
               />
               
               <span className="text-xs text-muted-foreground">
-                Máximo 10MB • Análise baseada em OpenResume
+                Máximo 10MB • Análise inteligente de currículo
               </span>
             </div>
           </div>
