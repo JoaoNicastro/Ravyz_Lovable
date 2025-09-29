@@ -35,7 +35,7 @@ const applicationInfoSchema = z.object({
     end_date: z.string().optional(),
   })).optional(),
   hard_skills: z.array(z.string()).optional(),
-  soft_skills: z.array(z.string()).optional(),
+  
   languages: z.array(z.object({
     name: z.string(),
     proficiency: z.string().optional(),
@@ -76,7 +76,6 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
       work_experience: [],
       education: [],
       hard_skills: [],
-      soft_skills: [],
       languages: [],
       certifications: [],
       projects: []
@@ -128,7 +127,6 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
       if (parsedData.work_experience) form.setValue('work_experience', parsedData.work_experience);
       if (parsedData.education) form.setValue('education', parsedData.education);
       if (parsedData.hard_skills) form.setValue('hard_skills', parsedData.hard_skills);
-      if (parsedData.soft_skills) form.setValue('soft_skills', parsedData.soft_skills);
       if (parsedData.languages) form.setValue('languages', parsedData.languages);
       if (parsedData.certifications) form.setValue('certifications', parsedData.certifications);
       if (parsedData.projects) form.setValue('projects', parsedData.projects);
@@ -146,7 +144,6 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
   const workExperience = form.watch('work_experience') || [];
   const education = form.watch('education') || [];
   const hardSkills = form.watch('hard_skills') || [];
-  const softSkills = form.watch('soft_skills') || [];
   const languages = form.watch('languages') || [];
   const certifications = form.watch('certifications') || [];
   const projects = form.watch('projects') || [];
@@ -155,7 +152,6 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
   const [newExperience, setNewExperience] = useState({ company: '', title: '', start_date: '', end_date: '', description: '', current: false });
   const [newEducation, setNewEducation] = useState({ institution: '', major: '', gpa: '', start_date: '', end_date: '' });
   const [newHardSkill, setNewHardSkill] = useState('');
-  const [newSoftSkill, setNewSoftSkill] = useState('');
   const [newLanguage, setNewLanguage] = useState({ name: '', proficiency: '' });
   const [newCertification, setNewCertification] = useState({ name: '', issuer: '', issue_date: '' });
   const [newProject, setNewProject] = useState({ name: '', description: '', link: '' });
@@ -200,18 +196,6 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
 
   const removeHardSkill = (idx: number) => {
     form.setValue('hard_skills', hardSkills.filter((_, i) => i !== idx));
-  };
-
-  const addSoftSkill = () => {
-    if (newSoftSkill.trim()) {
-      form.setValue('soft_skills', [...softSkills, newSoftSkill.trim()]);
-      setNewSoftSkill('');
-      toast.success('Habilidade comportamental adicionada');
-    }
-  };
-
-  const removeSoftSkill = (idx: number) => {
-    form.setValue('soft_skills', softSkills.filter((_, i) => i !== idx));
   };
 
   const addLanguage = () => {
@@ -595,31 +579,6 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
               )}
             </div>
 
-            {/* Soft Skills */}
-            <div>
-              <Label className="text-sm font-medium">Soft Skills (Comportamentais)</Label>
-              <div className="flex gap-2 mt-2">
-                <Input 
-                  placeholder="Ex: Liderança, Comunicação..."
-                  value={newSoftSkill}
-                  onChange={(e) => setNewSoftSkill(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSoftSkill())}
-                />
-                <Button type="button" onClick={addSoftSkill} size="sm">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-              {softSkills.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2 p-3 border rounded-lg bg-muted/30">
-                  {softSkills.map((skill, idx) => (
-                    <Badge key={idx} variant="outline" className="cursor-pointer" onClick={() => removeSoftSkill(idx)}>
-                      {skill}
-                      <X className="h-3 w-3 ml-1" />
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
           </CardContent>
         </Card>
 
