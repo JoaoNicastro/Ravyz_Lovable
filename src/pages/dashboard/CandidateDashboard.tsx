@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { MatchRadarChart } from '@/components/MatchRadarChart';
 import { Notifications } from '@/components/Notifications';
+import { UserDropdown } from '@/components/UserDropdown';
 import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign } from 'lucide-react';
 import ravyzLogo from '@/assets/ravyz-logo.png';
 
@@ -182,7 +183,10 @@ export default function CandidateDashboard() {
             </p>
           </div>
         </div>
-        <Notifications />
+        <div className="flex items-center gap-4">
+          <Notifications />
+          <UserDropdown />
+        </div>
       </div>
 
       {matches.length === 0 ? (
