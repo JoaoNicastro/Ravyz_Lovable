@@ -4,11 +4,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { MatchRadarChart } from '@/components/MatchRadarChart';
 import { Notifications } from '@/components/Notifications';
 import { UserDropdown } from '@/components/UserDropdown';
-import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText } from 'lucide-react';
 import ravyzLogo from '@/assets/ravyz-logo.png';
 
 interface MatchResult {
@@ -33,10 +34,28 @@ interface MatchResult {
   };
 }
 
+interface Application {
+  id: string;
+  applied_at: string;
+  status: string;
+  cover_letter?: string;
+  jobs: {
+    id: string;
+    title: string;
+    description: string;
+    location: string;
+    company_profiles: {
+      company_name: string;
+      logo_url?: string;
+    };
+  };
+}
+
 export default function CandidateDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [matches, setMatches] = useState<MatchResult[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [candidateProfile, setCandidateProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -94,6 +113,28 @@ export default function CandidateDashboard() {
       })) || [];
       
       setMatches(transformedMatches);
+
+      // Get applications
+      const { data: applicationsData, error: applicationsError } = await supabase
+        .from('applications')
+        .select(`
+          *,
+          jobs!inner (
+            id,
+            title,
+            description,
+            location,
+            company_profiles (
+              company_name,
+              logo_url
+            )
+          )
+        `)
+        .eq('candidate_id', profile.id)
+        .order('applied_at', { ascending: false });
+
+      if (applicationsError) throw applicationsError;
+      setApplications(applicationsData || []);
     } catch (error) {
       console.error('Error fetching candidate data:', error);
       toast({
@@ -152,6 +193,29 @@ export default function CandidateDashboard() {
     }
   };
 
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'accepted':
+        return 'default';
+      case 'rejected':
+        return 'destructive';
+      case 'reviewing':
+        return 'secondary';
+      default:
+        return 'outline';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      applied: 'Candidatura Enviada',
+      reviewing: 'Em Análise',
+      accepted: 'Aceito',
+      rejected: 'Rejeitado',
+    };
+    return labels[status] || status;
+  };
+
   const getMatchBadgeColor = (percentage: number) => {
     if (percentage >= 80) return "bg-green-500";
     if (percentage >= 60) return "bg-yellow-500";
@@ -189,128 +253,228 @@ export default function CandidateDashboard() {
         </div>
       </div>
 
-      {matches.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <h3 className="text-lg font-semibold mb-2">Nenhum match encontrado</h3>
-            <p className="text-muted-foreground">
-              Complete seu perfil para começar a receber matches!
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {matches.map((match) => (
-            <Card key={match.id} className="overflow-hidden">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="flex items-center gap-3">
-                      {match.job.company_profiles.logo_url && (
-                        <img 
-                          src={match.job.company_profiles.logo_url} 
-                          alt={match.job.company_profiles.company_name}
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
+      <Tabs defaultValue="dashboard" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="dashboard" className="flex items-center gap-2">
+            <LayoutDashboard className="w-4 h-4" />
+            Matches
+          </TabsTrigger>
+          <TabsTrigger value="candidaturas" className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            Candidaturas
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Matches Tab */}
+        <TabsContent value="dashboard" className="space-y-6 mt-6">
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Suas Oportunidades</h2>
+            {matches.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <h3 className="text-lg font-semibold mb-2">Nenhum match encontrado</h3>
+                  <p className="text-muted-foreground">
+                    Complete seu perfil para começar a receber matches!
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                {matches.map((match) => (
+                  <Card key={match.id} className="overflow-hidden">
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <CardTitle className="flex items-center gap-3">
+                            {match.job.company_profiles.logo_url && (
+                              <img 
+                                src={match.job.company_profiles.logo_url} 
+                                alt={match.job.company_profiles.company_name}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                            )}
+                            {match.job.title}
+                          </CardTitle>
+                          <CardDescription className="flex items-center gap-2 mt-1">
+                            <Building className="w-4 h-4" />
+                            {match.job.company_profiles.company_name}
+                            {match.job.location && (
+                              <>
+                                <MapPin className="w-4 h-4 ml-2" />
+                                {match.job.location}
+                              </>
+                            )}
+                          </CardDescription>
+                        </div>
+                        <Badge 
+                          className={`${getMatchBadgeColor(match.match_percentage)} text-white`}
+                        >
+                          {match.match_percentage}% Match
+                        </Badge>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="space-y-6">
+                      {/* Salary info */}
+                      {(match.job.salary_min || match.job.salary_max) && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <DollarSign className="w-4 h-4" />
+                          {match.job.salary_min && match.job.salary_max
+                            ? `R$ ${match.job.salary_min.toLocaleString()} - R$ ${match.job.salary_max.toLocaleString()}`
+                            : match.job.salary_min
+                            ? `A partir de R$ ${match.job.salary_min.toLocaleString()}`
+                            : `Até R$ ${match.job.salary_max.toLocaleString()}`
+                          }
+                        </div>
                       )}
-                      {match.job.title}
-                    </CardTitle>
-                    <CardDescription className="flex items-center gap-2 mt-1">
-                      <Building className="w-4 h-4" />
-                      {match.job.company_profiles.company_name}
-                      {match.job.location && (
-                        <>
-                          <MapPin className="w-4 h-4 ml-2" />
-                          {match.job.location}
-                        </>
+
+                      {/* Archetype comparison */}
+                      <div className="flex items-center gap-4 text-sm">
+                        <span className="font-medium">Arquétipos:</span>
+                        <Badge variant="outline">
+                          Você: {candidateProfile?.archetype || 'N/A'}
+                        </Badge>
+                        <Badge variant="outline">
+                          Vaga: {match.job.archetype || 'N/A'}
+                        </Badge>
+                      </div>
+
+                      {/* Radar Chart */}
+                      {candidateProfile?.pillar_scores && match.job.pillar_scores && (
+                        <div>
+                          <h4 className="font-medium mb-3">Comparação de Pilares</h4>
+                          <MatchRadarChart
+                            candidatePillars={candidateProfile.pillar_scores}
+                            jobPillars={match.job.pillar_scores}
+                          />
+                        </div>
                       )}
-                    </CardDescription>
-                  </div>
-                  <Badge 
-                    className={`${getMatchBadgeColor(match.match_percentage)} text-white`}
-                  >
-                    {match.match_percentage}% Match
-                  </Badge>
-                </div>
-              </CardHeader>
 
-              <CardContent className="space-y-6">
-                {/* Salary info */}
-                {(match.job.salary_min || match.job.salary_max) && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <DollarSign className="w-4 h-4" />
-                    {match.job.salary_min && match.job.salary_max
-                      ? `R$ ${match.job.salary_min.toLocaleString()} - R$ ${match.job.salary_max.toLocaleString()}`
-                      : match.job.salary_min
-                      ? `A partir de R$ ${match.job.salary_min.toLocaleString()}`
-                      : `Até R$ ${match.job.salary_max.toLocaleString()}`
-                    }
-                  </div>
-                )}
+                      {/* Job description */}
+                      {match.job.description && (
+                        <div>
+                          <h4 className="font-medium mb-2">Descrição da Vaga</h4>
+                          <p className="text-sm text-muted-foreground line-clamp-3">
+                            {match.job.description}
+                          </p>
+                        </div>
+                      )}
 
-                {/* Archetype comparison */}
-                <div className="flex items-center gap-4 text-sm">
-                  <span className="font-medium">Arquétipos:</span>
-                  <Badge variant="outline">
-                    Você: {candidateProfile?.archetype || 'N/A'}
-                  </Badge>
-                  <Badge variant="outline">
-                    Vaga: {match.job.archetype || 'N/A'}
-                  </Badge>
-                </div>
+                      {/* Action buttons */}
+                      <div className="flex gap-3 pt-4">
+                        {match.feedback_status ? (
+                          <Badge variant="secondary">
+                            {match.feedback_status === 'interested' ? '👍 Interessado' : '👎 Não Interessado'}
+                          </Badge>
+                        ) : (
+                          <>
+                            <Button
+                              onClick={() => handleFeedback(match.id, match.job.id, 'interested')}
+                              className="flex items-center gap-2"
+                            >
+                              <ThumbsUp className="w-4 h-4" />
+                              Interessado
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => handleFeedback(match.id, match.job.id, 'not_interested')}
+                              className="flex items-center gap-2"
+                            >
+                              <ThumbsDown className="w-4 h-4" />
+                              Não Interessado
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
 
-                {/* Radar Chart */}
-                {candidateProfile?.pillar_scores && match.job.pillar_scores && (
-                  <div>
-                    <h4 className="font-medium mb-3">Comparação de Pilares</h4>
-                    <MatchRadarChart
-                      candidatePillars={candidateProfile.pillar_scores}
-                      jobPillars={match.job.pillar_scores}
-                    />
-                  </div>
-                )}
+        {/* Candidaturas Tab */}
+        <TabsContent value="candidaturas" className="space-y-6 mt-6">
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Minhas Candidaturas</h2>
+            {applications.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <h3 className="text-lg font-semibold mb-2">Nenhuma candidatura enviada</h3>
+                  <p className="text-muted-foreground">
+                    Candidate-se às vagas que combinam com você!
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {applications.map((application) => (
+                  <Card key={application.id}>
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <CardTitle className="flex items-center gap-3">
+                            {application.jobs.company_profiles.logo_url && (
+                              <img 
+                                src={application.jobs.company_profiles.logo_url} 
+                                alt={application.jobs.company_profiles.company_name}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                            )}
+                            {application.jobs.title}
+                          </CardTitle>
+                          <CardDescription className="flex items-center gap-2 mt-1">
+                            <Building className="w-4 h-4" />
+                            {application.jobs.company_profiles.company_name}
+                            {application.jobs.location && (
+                              <>
+                                <MapPin className="w-4 h-4 ml-2" />
+                                {application.jobs.location}
+                              </>
+                            )}
+                          </CardDescription>
+                        </div>
+                        <Badge variant={getStatusBadgeVariant(application.status)}>
+                          {getStatusLabel(application.status)}
+                        </Badge>
+                      </div>
+                    </CardHeader>
 
-                {/* Job description */}
-                {match.job.description && (
-                  <div>
-                    <h4 className="font-medium mb-2">Descrição da Vaga</h4>
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {match.job.description}
-                    </p>
-                  </div>
-                )}
+                    <CardContent className="space-y-3">
+                      <div className="text-sm text-muted-foreground">
+                        Enviada em: {new Date(application.applied_at).toLocaleDateString('pt-BR', {
+                          day: '2-digit',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </div>
 
-                {/* Action buttons */}
-                <div className="flex gap-3 pt-4">
-                  {match.feedback_status ? (
-                    <Badge variant="secondary">
-                      {match.feedback_status === 'interested' ? '👍 Interessado' : '👎 Não Interessado'}
-                    </Badge>
-                  ) : (
-                    <>
-                      <Button
-                        onClick={() => handleFeedback(match.id, match.job.id, 'interested')}
-                        className="flex items-center gap-2"
-                      >
-                        <ThumbsUp className="w-4 h-4" />
-                        Interessado
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleFeedback(match.id, match.job.id, 'not_interested')}
-                        className="flex items-center gap-2"
-                      >
-                        <ThumbsDown className="w-4 h-4" />
-                        Não Interessado
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+                      {application.cover_letter && (
+                        <div>
+                          <h4 className="font-medium text-sm mb-1">Carta de Apresentação</h4>
+                          <p className="text-sm text-muted-foreground line-clamp-3">
+                            {application.cover_letter}
+                          </p>
+                        </div>
+                      )}
+
+                      {application.jobs.description && (
+                        <div>
+                          <h4 className="font-medium text-sm mb-1">Descrição da Vaga</h4>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {application.jobs.description}
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
