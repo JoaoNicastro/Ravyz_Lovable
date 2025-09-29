@@ -9,8 +9,12 @@ export interface ParsedResumeData {
 
 // Configure PDF.js worker
 if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore - path resolved by Vite
+  (pdfjsLib as any).GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).toString();
 }
+
+
 
 export interface TextItem {
   text: string;
