@@ -46,8 +46,14 @@ const matchPhone = (item: TextItem) =>
 const matchName = (item: TextItem) => item.text.match(/^[A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ][a-záéíóúàèìòùâêîôûãõç]+\s+[A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ][a-záéíóúàèìòùâêîôûãõç]+/);
 const matchBirthDate = (item: TextItem) => 
   item.text.match(/(?:(?:0[1-9]|[12][0-9]|3[01])\/(?:0[1-9]|1[0-2])\/(?:19|20)\d{2})|(?:(?:0[1-9]|[12][0-9]|3[01])-(?:0[1-9]|1[0-2])-(?:19|20)\d{2})/);
-const matchLocation = (item: TextItem) => 
-  item.text.match(/(?:São Paulo|Rio de Janeiro|Belo Horizonte|Salvador|Brasília|Fortaleza|Recife|Porto Alegre|Curitiba|Manaus|Belém|Goiânia|Campinas|São Luís|São Gonçalo|Maceió|Duque de Caxias|Natal|Teresina|Campo Grande|Nova Iguaçu|São Bernardo|Santos|João Pessoa|Jaboatão|Osasco|Uberlândia|Sorocaba|Contagem|Aracaju|Feira de Santana|Cuiabá|Joinville|Juiz de Fora|Londrina|Aparecida de Goiânia|Niterói|Porto Velho|Serra|Caxias do Sul|Vila Velha|Florianópolis|Diadema|Carapicuíba|Piracicaba|Olinda|Canoas|Bauru|São José dos Campos|Franca|Pelotas|Ribeirão Preto|Anápolis|Jundiaí|Maringá|São Paulo, SP|Rio de Janeiro, RJ|Belo Horizonte, MG|Salvador, BA|Brasília, DF|Fortaleza, CE|Recife, PE|Porto Alegre, RS|Curitiba, PR|Manaus, AM|Belém, PA|Goiânia, GO|Campinas, SP|São Luís, MA|SP|RJ|MG|BA|DF|CE|PE|RS|PR|AM|PA|GO|MA|AC|AL|AP|ES|MT|MS|PB|PI|RN|RO|RR|SC|SE|TO|Acre|Alagoas|Amapá|Amazonas|Bahia|Ceará|Distrito Federal|Espírito Santo|Goiás|Maranhão|Mato Grosso|Mato Grosso do Sul|Minas Gerais|Pará|Paraíba|Paraná|Pernambuco|Piauí|Rio de Janeiro|Rio Grande do Norte|Rio Grande do Sul|Rondônia|Roraima|Santa Catarina|São Paulo|Sergipe|Tocantins|Remoto|Remote)/i);
+const matchLocation = (item: TextItem) => {
+  // More flexible location matching
+  const cityStatePattern = /\b([A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ][a-záéíóúàèìòùâêîôûãõç\s]+)\s*,\s*(SP|RJ|MG|PR|RS|SC|BA|GO|PE|CE|PA|AM|RO|AC|DF|MS|MT|TO|MA|PI|AL|SE|PB|RN|ES)\b/i;
+  const cityPattern = /\b(?:São Paulo|Rio de Janeiro|Belo Horizonte|Salvador|Brasília|Fortaleza|Recife|Porto Alegre|Curitiba|Manaus|Belém|Goiânia|Campinas|Santos|Ribeirão Preto|Sorocaba|Osasco|Joinville|Uberlândia|Contagem|Londrina|Juiz de Fora|Niterói|São Bernardo|Nova Iguaçu|Duque de Caxias|João Pessoa|Jaboatão|Maceió|Natal|Teresina|Campo Grande|Feira de Santana|Cuiabá|Aparecida de Goiânia|Caxias do Sul|Florianópolis|Vila Velha|Serra|Cariacica|Vitória|Bauru|Piracicaba|Franca|São José dos Campos|Jundiaí|Guarulhos|Diadema|Mauá|Carapicuíba|Itaquaquecetuba|Suzano|Taboão da Serra|Barueri|Embu das Artes|Cotia|Franco da Rocha|Itapevi|Jandira|Santana de Parnaíba|Vargem Grande Paulista|São Caetano do Sul|Santo André|São Bernardo do Campo|Mogi das Cruzes|Remoto|Remote)\b/i;
+  const statePattern = /\b(?:SP|RJ|MG|PR|RS|SC|BA|GO|PE|CE|PA|AM|RO|AC|DF|MS|MT|TO|MA|PI|AL|SE|PB|RN|ES|São Paulo|Rio de Janeiro|Minas Gerais|Paraná|Rio Grande do Sul|Santa Catarina|Bahia|Goiás|Pernambuco|Ceará|Pará|Amazonas|Rondônia|Acre|Distrito Federal|Mato Grosso do Sul|Mato Grosso|Tocantins|Maranhão|Piauí|Alagoas|Sergipe|Paraíba|Rio Grande do Norte|Espírito Santo)\b/i;
+  
+  return cityStatePattern.exec(item.text) || cityPattern.exec(item.text) || statePattern.exec(item.text);
+};
 
 // Feature checking functions
 const isBold = (item: TextItem) => item.fontName.toLowerCase().includes('bold');
@@ -96,13 +102,15 @@ const BIRTH_DATE_FEATURE_SETS: FeatureSet[] = [
 ];
 
 const LOCATION_FEATURE_SETS: FeatureSet[] = [
-  [matchLocation, 4, true],
-  [(item: TextItem) => /cidade|city|localização|location|endereço|address|residência/i.test(item.text), 2],
-  [(item: TextItem) => /,\s*(SP|RJ|MG|PR|RS|SC|BA|GO|PE|CE|PA|AM|RO|AC|DF|MS|MT|TO|MA|PI|AL|SE|PB|RN|ES)/i.test(item.text), 3],
+  [matchLocation, 5, true],
+  [(item: TextItem) => /endereço|address|localização|location|residência|cidade|city|estado|state/i.test(item.text), 2],
+  [(item: TextItem) => /,\s*(SP|RJ|MG|PR|RS|SC|BA|GO|PE|CE|PA|AM|RO|AC|DF|MS|MT|TO|MA|PI|AL|SE|PB|RN|ES)\b/i.test(item.text), 3],
+  [(item: TextItem) => /\b(CEP|cep)\s*:?\s*\d{5}-?\d{3}/i.test(item.text), 1],
+  [(item: TextItem) => /\b\d{5}-?\d{3}\b/.test(item.text), 1], // CEP pattern
   // Negative features
-  [hasAt, -4],
-  [hasNumber, -1],
-  [hasParenthesis, -2],
+  [hasAt, -3],
+  [hasNumber, -0.5], // Less penalty for numbers since addresses can have numbers
+  [(item: TextItem) => /telefone|phone|email|nascimento|birth/i.test(item.text), -2],
 ];
 
 async function readPdfEnhanced(file: File): Promise<TextItem[]> {
@@ -255,6 +263,10 @@ export async function parseResumeEnhanced(file: File): Promise<ParsedResumeData>
     const [location] = getTextWithHighestFeatureScore(textItems, LOCATION_FEATURE_SETS);
 
     console.log('Extracted data:', { name, email, phone, birthDate, location });
+    console.log('Location extraction details:', textItems
+      .filter(item => matchLocation(item))
+      .map(item => ({ text: item.text, match: matchLocation(item) }))
+    );
 
     // Step 3: Format and validate the extracted data
     const result: ParsedResumeData = {};
