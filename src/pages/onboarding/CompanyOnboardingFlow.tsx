@@ -172,19 +172,6 @@ const CompanyOnboardingFlow: React.FC = () => {
 
       if (jobError) throw jobError;
 
-      // Save assessment responses if available
-      if (assessmentData?.responses) {
-        const { error: assessmentError } = await supabase
-          .from('questionnaire_responses')
-          .insert({
-            category: 'job' as any, // Using any to bypass type checking for new enum value
-            responses: assessmentData.responses,
-            calculated_score: Object.values(assessmentData.pillar_scores).map(Number).reduce((sum: number, score: number) => sum + score, 0) / 5,
-          });
-
-        if (assessmentError) console.warn("Erro ao salvar assessment:", assessmentError);
-      }
-
       toast.success("Onboarding concluído com sucesso!");
       navigate("/dashboard/company");
       
