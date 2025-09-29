@@ -283,7 +283,7 @@ const OnboardingFlow = () => {
       if (error) throw error;
 
       toast.success("Onboarding concluído com sucesso!");
-      navigate("/");
+      navigate("/dashboard/candidate");
     } catch (error) {
       console.error("Error completing onboarding:", error);
       toast.error("Erro ao finalizar onboarding");
