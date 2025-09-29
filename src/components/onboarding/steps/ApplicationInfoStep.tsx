@@ -16,7 +16,45 @@ const applicationInfoSchema = z.object({
   date_of_birth: z.string().optional(),
   email: z.string().email("Email inválido").optional(),
   phone: z.string().optional(),
-  skills: z.array(z.string()).optional(),
+  location: z.string().optional(),
+  professional_summary: z.string().optional(),
+  work_experience: z.array(z.object({
+    company: z.string(),
+    title: z.string(),
+    start_date: z.string().optional(),
+    end_date: z.string().optional(),
+    current: z.boolean().optional(),
+    description: z.string().optional(),
+  })).optional(),
+  education: z.array(z.object({
+    institution: z.string(),
+    degree: z.string(),
+    field: z.string().optional(),
+    start_date: z.string().optional(),
+    end_date: z.string().optional(),
+    status: z.enum(['completed', 'in_progress']).optional(),
+  })).optional(),
+  hard_skills: z.array(z.string()).optional(),
+  soft_skills: z.array(z.string()).optional(),
+  languages: z.array(z.object({
+    name: z.string(),
+    proficiency: z.string().optional(),
+  })).optional(),
+  certifications: z.array(z.object({
+    name: z.string(),
+    issuer: z.string().optional(),
+    issue_date: z.string().optional(),
+  })).optional(),
+  projects: z.array(z.object({
+    name: z.string(),
+    description: z.string().optional(),
+    link: z.string().optional(),
+  })).optional(),
+  years_of_experience: z.number().optional(),
+  seniority: z.string().optional(),
+  linkedin_url: z.string().optional(),
+  github_url: z.string().optional(),
+  portfolio_url: z.string().optional(),
 });
 
 type ApplicationInfoData = z.infer<typeof applicationInfoSchema>;
@@ -30,11 +68,19 @@ interface StepProps {
 
 const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = false, data }) => {
   const [isParsingResume, setIsParsingResume] = useState(false);
-  const [extractedSkills, setExtractedSkills] = useState<string[]>([]);
   
   const form = useForm<ApplicationInfoData>({
     resolver: zodResolver(applicationInfoSchema),
-    defaultValues: data || { full_name: "", date_of_birth: undefined, email: undefined, phone: undefined, skills: [] },
+    defaultValues: data || {
+      full_name: "",
+      work_experience: [],
+      education: [],
+      hard_skills: [],
+      soft_skills: [],
+      languages: [],
+      certifications: [],
+      projects: []
+    },
   });
 
   const submit = (values: ApplicationInfoData) => {
@@ -45,13 +91,11 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (file.type !== 'application/pdf') {
       toast.error('Por favor, selecione apenas arquivos PDF');
       return;
     }
 
-    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       toast.error('Arquivo muito grande. Máximo 10MB permitido');
       return;
@@ -62,144 +106,299 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
     try {
       const parsedData = await parseResumeEnhanced(file);
       
-      // Fill form with parsed data
-      if (parsedData.full_name) {
-        form.setValue('full_name', parsedData.full_name);
-      }
-      if (parsedData.email) {
-        form.setValue('email', parsedData.email);
-      }
-      if (parsedData.phone) {
-        form.setValue('phone', parsedData.phone);
-      }
+      // Fill form with all parsed data
+      if (parsedData.full_name) form.setValue('full_name', parsedData.full_name);
+      if (parsedData.email) form.setValue('email', parsedData.email);
+      if (parsedData.phone) form.setValue('phone', parsedData.phone);
+      if (parsedData.location) form.setValue('location', parsedData.location);
+      if (parsedData.professional_summary) form.setValue('professional_summary', parsedData.professional_summary);
+      if (parsedData.years_of_experience) form.setValue('years_of_experience', parsedData.years_of_experience);
+      if (parsedData.seniority) form.setValue('seniority', parsedData.seniority);
+      if (parsedData.linkedin_url) form.setValue('linkedin_url', parsedData.linkedin_url);
+      if (parsedData.github_url) form.setValue('github_url', parsedData.github_url);
+      if (parsedData.portfolio_url) form.setValue('portfolio_url', parsedData.portfolio_url);
+      
       if (parsedData.date_of_birth) {
-        // Convert date to YYYY-MM-DD format for HTML date input
         const date = new Date(parsedData.date_of_birth);
         if (!isNaN(date.getTime())) {
-          const formattedDate = date.toISOString().split('T')[0];
-          form.setValue('date_of_birth', formattedDate);
+          form.setValue('date_of_birth', date.toISOString().split('T')[0]);
         }
       }
-      if (parsedData.skills && parsedData.skills.length > 0) {
-        setExtractedSkills(parsedData.skills);
-        form.setValue('skills', parsedData.skills);
-      }
+      
+      if (parsedData.work_experience) form.setValue('work_experience', parsedData.work_experience);
+      if (parsedData.education) form.setValue('education', parsedData.education);
+      if (parsedData.hard_skills) form.setValue('hard_skills', parsedData.hard_skills);
+      if (parsedData.soft_skills) form.setValue('soft_skills', parsedData.soft_skills);
+      if (parsedData.languages) form.setValue('languages', parsedData.languages);
+      if (parsedData.certifications) form.setValue('certifications', parsedData.certifications);
+      if (parsedData.projects) form.setValue('projects', parsedData.projects);
 
-      toast.success('Currículo analisado com sucesso! Dados preenchidos automaticamente.');
+      toast.success('Currículo analisado com sucesso! Revise e complete os dados abaixo.');
     } catch (error) {
       console.error('Error parsing resume:', error);
       toast.error('Erro ao analisar o currículo. Tente novamente.');
     } finally {
       setIsParsingResume(false);
-      // Clear the input
       event.target.value = '';
     }
   };
 
+  const workExperience = form.watch('work_experience') || [];
+  const education = form.watch('education') || [];
+  const hardSkills = form.watch('hard_skills') || [];
+  const softSkills = form.watch('soft_skills') || [];
+  const languages = form.watch('languages') || [];
+  const certifications = form.watch('certifications') || [];
+  const projects = form.watch('projects') || [];
+
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 pb-8">
       <div className="text-center space-y-2">
-        <h2 className="text-xl font-semibold text-foreground">Informações para candidatura</h2>
-        <p className="text-muted-foreground">Forneça alguns dados normalmente solicitados em candidaturas: nome, data de nascimento, e-mail e telefone.</p>
+        <h2 className="text-2xl font-semibold">Informações para Candidatura</h2>
+        <p className="text-muted-foreground">Faça upload do seu currículo para preencher automaticamente os dados abaixo</p>
       </div>
 
-      {/* Resume Upload Section */}
-      <Card className="border-dashed">
+      {/* Resume Upload */}
+      <Card className="border-dashed border-2">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            Upload de Currículo (Opcional)
+            Upload de Currículo
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Faça upload do seu currículo em PDF para preencher automaticamente os dados abaixo
-            </p>
-            
-            <div className="flex items-center gap-4">
-              <Label htmlFor="resume-upload" className="cursor-pointer">
-                <Button variant="outline" asChild disabled={isParsingResume}>
-                  <span className="flex items-center gap-2">
-                    {isParsingResume ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <FileText className="h-4 w-4" />
-                    )}
-                    {isParsingResume ? 'Analisando...' : 'Selecionar PDF'}
-                  </span>
-                </Button>
-              </Label>
-              
-              <Input
-                id="resume-upload"
-                type="file"
-                accept=".pdf"
-                onChange={handleResumeUpload}
-                className="hidden"
-                disabled={isParsingResume}
-              />
-              
-              <span className="text-xs text-muted-foreground">
-                Máximo 10MB • Apenas PDF
-              </span>
-            </div>
+          <div className="flex items-center gap-4">
+            <Label htmlFor="resume-upload" className="cursor-pointer">
+              <Button variant="outline" asChild disabled={isParsingResume}>
+                <span className="flex items-center gap-2">
+                  {isParsingResume ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <FileText className="h-4 w-4" />
+                  )}
+                  {isParsingResume ? 'Analisando...' : 'Selecionar PDF'}
+                </span>
+              </Button>
+            </Label>
+            <Input
+              id="resume-upload"
+              type="file"
+              accept=".pdf"
+              onChange={handleResumeUpload}
+              className="hidden"
+              disabled={isParsingResume}
+            />
+            <span className="text-xs text-muted-foreground">Máximo 10MB • Apenas PDF</span>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Dados Pessoais</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={form.handleSubmit(submit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(submit)} className="space-y-6">
+        {/* Personal Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Dados Pessoais</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="full_name">Nome completo</Label>
-              <Input id="full_name" {...form.register('full_name')} placeholder="Seu nome completo" />
+              <Label htmlFor="full_name">Nome completo *</Label>
+              <Input id="full_name" {...form.register('full_name')} />
             </div>
-
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="email">E-mail</Label>
+                <Input id="email" type="email" {...form.register('email')} />
+              </div>
+              <div>
+                <Label htmlFor="phone">Telefone</Label>
+                <Input id="phone" {...form.register('phone')} />
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="date_of_birth">Data de nascimento</Label>
                 <Input id="date_of_birth" type="date" {...form.register('date_of_birth')} />
               </div>
-
               <div>
-                <Label htmlFor="email">E-mail</Label>
-                <Input id="email" type="email" {...form.register('email')} />
+                <Label htmlFor="location">Localização</Label>
+                <Input id="location" {...form.register('location')} placeholder="Cidade, Estado/País" />
               </div>
             </div>
+          </CardContent>
+        </Card>
 
-            <div>
-              <Label htmlFor="phone">Telefone</Label>
-              <Input id="phone" {...form.register('phone')} placeholder="(xx) xxxxx-xxxx" />
-            </div>
+        {/* Professional Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Resumo Profissional</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Label htmlFor="professional_summary">Sobre você</Label>
+            <Input id="professional_summary" {...form.register('professional_summary')} placeholder="Breve resumo da sua trajetória profissional" />
+          </CardContent>
+        </Card>
 
-            {extractedSkills.length > 0 && (
+        {/* Experience & Seniority */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Experiência</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Principais Habilidades (extraídas do currículo)</Label>
-                <div className="flex flex-wrap gap-2 mt-2 p-3 border rounded-md bg-muted/30">
-                  {extractedSkills.map((skill, index) => (
-                    <Badge 
-                      key={index}
-                      variant="secondary"
-                      className="text-sm"
-                    >
-                      {skill}
-                    </Badge>
-                  ))}
-                </div>
+                <Label htmlFor="years_of_experience">Anos de experiência</Label>
+                <Input id="years_of_experience" type="number" {...form.register('years_of_experience', { valueAsNumber: true })} />
+              </div>
+              <div>
+                <Label htmlFor="seniority">Nível</Label>
+                <Input id="seniority" {...form.register('seniority')} placeholder="Entry Level, Junior, Mid-Level, Senior" />
+              </div>
+            </div>
+            {workExperience.length > 0 && (
+              <div className="space-y-2">
+                <Label>Experiências profissionais extraídas</Label>
+                {workExperience.map((exp, idx) => (
+                  <div key={idx} className="p-3 border rounded-md bg-muted/30 space-y-1">
+                    <p className="font-medium">{exp.title} | {exp.company}</p>
+                    {exp.start_date && <p className="text-sm text-muted-foreground">{exp.start_date} - {exp.current ? 'Presente' : exp.end_date}</p>}
+                    {exp.description && <p className="text-sm">{exp.description}</p>}
+                  </div>
+                ))}
               </div>
             )}
+          </CardContent>
+        </Card>
 
-            <div className="flex justify-between pt-4">
-              <Button variant="outline" type="button" onClick={onBack} disabled={isLoading}>Voltar</Button>
-              <Button type="submit" disabled={form.formState.isSubmitting || isLoading}>Continuar</Button>
+        {/* Education */}
+        {education.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Formação Acadêmica</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {education.map((edu, idx) => (
+                <div key={idx} className="p-3 border rounded-md bg-muted/30">
+                  <p className="font-medium">{edu.degree} {edu.field && `em ${edu.field}`}</p>
+                  <p className="text-sm text-muted-foreground">{edu.institution}</p>
+                  {edu.start_date && <p className="text-sm text-muted-foreground">{edu.start_date} - {edu.status === 'in_progress' ? 'Em andamento' : edu.end_date}</p>}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Skills */}
+        {(hardSkills.length > 0 || softSkills.length > 0) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Habilidades</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {hardSkills.length > 0 && (
+                <div>
+                  <Label>Hard Skills (Técnicas)</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {hardSkills.map((skill, idx) => (
+                      <Badge key={idx} variant="secondary">{skill}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {softSkills.length > 0 && (
+                <div>
+                  <Label>Soft Skills (Comportamentais)</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {softSkills.map((skill, idx) => (
+                      <Badge key={idx} variant="outline">{skill}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Languages */}
+        {languages.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Idiomas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {languages.map((lang, idx) => (
+                  <div key={idx} className="p-2 border rounded-md">
+                    <p className="font-medium">{lang.name}</p>
+                    {lang.proficiency && <p className="text-sm text-muted-foreground">{lang.proficiency}</p>}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Certifications */}
+        {certifications.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Certificações</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {certifications.map((cert, idx) => (
+                <div key={idx} className="p-2 border rounded-md">
+                  <p className="font-medium">{cert.name}</p>
+                  {cert.issuer && <p className="text-sm text-muted-foreground">{cert.issuer}</p>}
+                  {cert.issue_date && <p className="text-xs text-muted-foreground">{cert.issue_date}</p>}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Projects */}
+        {projects.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Projetos</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {projects.map((proj, idx) => (
+                <div key={idx} className="p-3 border rounded-md bg-muted/30">
+                  <p className="font-medium">{proj.name}</p>
+                  {proj.description && <p className="text-sm">{proj.description}</p>}
+                  {proj.link && <a href={proj.link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">{proj.link}</a>}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Links */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Links Profissionais</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div>
+              <Label htmlFor="linkedin_url">LinkedIn</Label>
+              <Input id="linkedin_url" {...form.register('linkedin_url')} placeholder="https://linkedin.com/in/..." />
             </div>
-          </form>
-        </CardContent>
-      </Card>
+            <div>
+              <Label htmlFor="github_url">GitHub</Label>
+              <Input id="github_url" {...form.register('github_url')} placeholder="https://github.com/..." />
+            </div>
+            <div>
+              <Label htmlFor="portfolio_url">Portfolio / Site Pessoal</Label>
+              <Input id="portfolio_url" {...form.register('portfolio_url')} placeholder="https://..." />
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-between pt-4">
+          <Button variant="outline" type="button" onClick={onBack} disabled={isLoading}>Voltar</Button>
+          <Button type="submit" disabled={form.formState.isSubmitting || isLoading}>Continuar</Button>
+        </div>
+      </form>
     </div>
   );
 };

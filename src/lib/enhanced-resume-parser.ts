@@ -1,12 +1,63 @@
 import * as pdfjsLib from 'pdfjs-dist';
 
+export interface WorkExperience {
+  company: string;
+  title: string;
+  start_date?: string;
+  end_date?: string;
+  current?: boolean;
+  description?: string;
+  technologies?: string[];
+}
+
+export interface Education {
+  institution: string;
+  degree: string;
+  field?: string;
+  start_date?: string;
+  end_date?: string;
+  status?: 'completed' | 'in_progress';
+}
+
+export interface Language {
+  name: string;
+  proficiency?: string;
+}
+
+export interface Certification {
+  name: string;
+  issuer?: string;
+  issue_date?: string;
+  expiry_date?: string;
+}
+
+export interface Project {
+  name: string;
+  description?: string;
+  technologies?: string[];
+  link?: string;
+}
+
 export interface ParsedResumeData {
   full_name?: string;
   email?: string;
   phone?: string;
   date_of_birth?: string;
   location?: string;
-  skills?: string[];
+  professional_summary?: string;
+  work_experience?: WorkExperience[];
+  education?: Education[];
+  hard_skills?: string[];
+  soft_skills?: string[];
+  languages?: Language[];
+  certifications?: Certification[];
+  projects?: Project[];
+  years_of_experience?: number;
+  seniority?: string;
+  linkedin_url?: string;
+  github_url?: string;
+  portfolio_url?: string;
+  other_links?: string[];
 }
 
 // Configure PDF.js worker
@@ -247,148 +298,290 @@ function cleanPhoneNumber(phone: string): string {
     .trim();
 }
 
-function extractSkills(textItems: TextItem[]): string[] {
-  const skills: Set<string> = new Set();
+// Extract skills from resume text
+function extractSkills(textItems: TextItem[]): { hard: string[], soft: string[] } {
+  const hardSkills: Set<string> = new Set();
+  const softSkills: Set<string> = new Set();
   const fullText = textItems.map(item => item.text).join(' ').toLowerCase();
-  
-  console.log('Extracting skills from text preview:', fullText.substring(0, 500));
 
-  // Common tech skills and keywords
   const techSkills = [
-    'javascript', 'typescript', 'react', 'vue', 'angular', 'node.js', 'nodejs', 'python', 'java', 'c++', 'c#',
-    'html', 'css', 'sass', 'scss', 'tailwind', 'bootstrap', 'sql', 'mysql', 'postgresql', 'mongodb', 'firebase',
-    'git', 'docker', 'kubernetes', 'aws', 'azure', 'gcp', 'api', 'rest', 'restful', 'graphql', 'redis',
-    'express', 'nestjs', 'django', 'flask', 'spring', 'laravel', 'php', 'ruby', 'rails', 'golang', 'go',
-    'terraform', 'jenkins', 'ci/cd', 'agile', 'scrum', 'jira', 'figma', 'adobe', 'photoshop',
-    'illustrator', 'excel', 'powerpoint', 'word', 'office', 'leadership', 'management', 'communication',
-    'teamwork', 'problem solving', 'analytical', 'creative', 'strategic', 'planning', 'project management',
-    'marketing', 'sales', 'customer service', 'design', 'ux', 'ui', 'machine learning', 'ai', 'data science',
-    'analytics', 'tableau', 'power bi', 'r', 'matlab', 'stata', 'sas', 'linux', 'windows', 'macos',
-    'mobile', 'ios', 'android', 'react native', 'flutter', 'swift', 'kotlin', 'blockchain', 'web3',
-    'solidity', 'rust', 'testing', 'jest', 'cypress', 'selenium', 'junit', 'devops', 'monitoring',
-    'elasticsearch', 'kafka', 'rabbitmq', 'microservices', 'serverless', 'lambda', 'cloud', 'networking',
-    'security', 'penetration testing', 'ethical hacking', 'compliance', 'gdpr', 'finance', 'accounting',
-    'budgeting', 'forecasting', 'seo', 'sem', 'content', 'writing', 'copywriting', 'translation',
-    'next.js', 'nextjs', 'vue.js', 'nuxt', 'svelte', 'redux', 'mobx', 'webpack', 'vite', 'babel',
-    'postgres', 'sqlite', 'dynamodb', 'cassandra', 'redis', 'memcached', 'nginx', 'apache',
+    'javascript', 'typescript', 'python', 'java', 'c++', 'c#', 'ruby', 'php', 'swift', 'kotlin',
+    'react', 'angular', 'vue', 'node.js', 'express', 'django', 'flask', 'spring', 'laravel',
+    'sql', 'postgresql', 'mysql', 'mongodb', 'redis', 'elasticsearch',
+    'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'jenkins', 'git', 'ci/cd',
+    'html', 'css', 'sass', 'tailwind', 'bootstrap', 'webpack', 'vite',
+    'api', 'rest', 'graphql', 'microservices', 'agile', 'scrum',
+    'machine learning', 'ai', 'data science', 'tensorflow', 'pytorch',
+    'linux', 'bash', 'testing', 'jest', 'cypress', 'selenium',
+    'figma', 'photoshop', 'illustrator', 'ui/ux', 'design',
+    'excel', 'powerpoint', 'word', 'office', 'google workspace'
   ];
 
-  // Find skills section first
-  let skillsSection = '';
-  const skillsPatterns = [
-    /(?:skills|habilidades|competências|technical skills|soft skills)[\s:]+([^\n]{0,1000})/gi,
-    /(?:technologies|tecnologias)[\s:]+([^\n]{0,1000})/gi,
+  const softSkillsList = [
+    'communication', 'leadership', 'teamwork', 'problem solving', 'critical thinking',
+    'adaptability', 'creativity', 'time management', 'collaboration', 'analytical',
+    'organization', 'attention to detail', 'project management', 'mentoring',
+    'presentation', 'negotiation', 'conflict resolution', 'emotional intelligence'
   ];
 
-  for (const pattern of skillsPatterns) {
-    const matches = fullText.matchAll(pattern);
-    for (const match of matches) {
-      skillsSection += ' ' + match[1];
+  // Extract from full text
+  techSkills.forEach(skill => {
+    const pattern = new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    if (pattern.test(fullText)) {
+      hardSkills.add(skill.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '));
     }
-  }
+  });
+
+  softSkillsList.forEach(skill => {
+    const pattern = new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    if (pattern.test(fullText)) {
+      softSkills.add(skill.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '));
+    }
+  });
+
+  return {
+    hard: Array.from(hardSkills).slice(0, 30),
+    soft: Array.from(softSkills).slice(0, 15)
+  };
+}
+
+// Extract professional summary
+function extractSummary(textItems: TextItem[]): string | undefined {
+  const fullText = textItems.map(item => item.text).join('\n');
+  const summaryPattern = /(summary|profile|about|objective|overview)[:\s]*([^\n]+(?:\n(?![A-Z][A-Z\s]+:)[^\n]+)*)/i;
+  const match = fullText.match(summaryPattern);
+  return match ? match[2].trim().substring(0, 500) : undefined;
+}
+
+// Extract work experience
+function extractWorkExperience(textItems: TextItem[]): WorkExperience[] {
+  const experiences: WorkExperience[] = [];
+  const fullText = textItems.map(item => item.text).join('\n');
   
-  console.log('Skills section found:', skillsSection);
+  const expSection = fullText.match(/(experience|work history|employment)[:\s]*\n([\s\S]*?)(?=\n[A-Z][A-Z\s]+:|$)/i);
+  if (!expSection) return experiences;
 
-  // Extract from skills section with higher priority
-  if (skillsSection) {
-    techSkills.forEach(skill => {
-      const pattern = new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-      if (pattern.test(skillsSection)) {
-        const capitalizedSkill = skill.split(' ').map(word => 
-          word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ');
-        skills.add(capitalizedSkill);
+  const expText = expSection[2];
+  const jobBlocks = expText.split(/\n(?=[A-Z])/);
+
+  jobBlocks.forEach(block => {
+    const lines = block.split('\n').filter(l => l.trim());
+    if (lines.length < 2) return;
+
+    const titleCompany = lines[0];
+    const dateMatch = lines.find(l => /\d{4}/.test(l));
+    const description = lines.slice(1).join(' ').substring(0, 300);
+
+    experiences.push({
+      company: titleCompany.includes('|') ? titleCompany.split('|')[1]?.trim() || titleCompany : titleCompany,
+      title: titleCompany.includes('|') ? titleCompany.split('|')[0]?.trim() || titleCompany : titleCompany,
+      start_date: dateMatch?.match(/\d{4}/)?.[0],
+      end_date: dateMatch?.match(/\d{4}.*?(\d{4}|present|current)/i)?.[1],
+      current: /present|current/i.test(dateMatch || ''),
+      description: description || undefined,
+      technologies: []
+    });
+  });
+
+  return experiences.slice(0, 10);
+}
+
+// Extract education
+function extractEducation(textItems: TextItem[]): Education[] {
+  const education: Education[] = [];
+  const fullText = textItems.map(item => item.text).join('\n');
+  
+  const eduSection = fullText.match(/(education|academic|training)[:\s]*\n([\s\S]*?)(?=\n[A-Z][A-Z\s]+:|$)/i);
+  if (!eduSection) return education;
+
+  const eduText = eduSection[2];
+  const eduBlocks = eduText.split(/\n(?=[A-Z])/);
+
+  eduBlocks.forEach(block => {
+    const lines = block.split('\n').filter(l => l.trim());
+    if (lines.length < 1) return;
+
+    const degreeMatch = lines.find(l => /(bachelor|master|phd|diploma|degree)/i.test(l));
+    const dateMatch = lines.find(l => /\d{4}/.test(l));
+
+    education.push({
+      institution: lines[0].trim(),
+      degree: degreeMatch?.trim() || lines[0].trim(),
+      start_date: dateMatch?.match(/\d{4}/)?.[0],
+      end_date: dateMatch?.match(/\d{4}.*?(\d{4}|present|current)/i)?.[1],
+      status: /present|current|ongoing/i.test(dateMatch || '') ? 'in_progress' : 'completed'
+    });
+  });
+
+  return education.slice(0, 5);
+}
+
+// Extract languages
+function extractLanguages(textItems: TextItem[]): Language[] {
+  const languages: Language[] = [];
+  const fullText = textItems.map(item => item.text).join('\n').toLowerCase();
+  
+  const langPattern = /(languages|idiomas)[:\s]*([^\n]+(?:\n(?![A-Z][A-Z\s]+:)[^\n]+)*)/i;
+  const match = fullText.match(langPattern);
+  
+  if (match) {
+    const langText = match[2];
+    const commonLangs = ['english', 'spanish', 'portuguese', 'french', 'german', 'italian', 'chinese', 'japanese', 'russian', 'arabic'];
+    const profLevels = ['native', 'fluent', 'advanced', 'intermediate', 'basic', 'beginner'];
+    
+    commonLangs.forEach(lang => {
+      if (langText.includes(lang)) {
+        const profMatch = profLevels.find(p => langText.includes(p));
+        languages.push({
+          name: lang.charAt(0).toUpperCase() + lang.slice(1),
+          proficiency: profMatch?.charAt(0).toUpperCase() + profMatch?.slice(1)
+        });
       }
     });
   }
 
-  // If no skills found in dedicated section, scan full text
-  if (skills.size < 3) {
-    console.log('Scanning full text for skills since only found:', skills.size, 'skills');
-    techSkills.forEach(skill => {
-      const pattern = new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-      if (pattern.test(fullText)) {
-        const capitalizedSkill = skill.split(' ').map(word => 
-          word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ');
-        skills.add(capitalizedSkill);
-      }
-    });
-  }
+  return languages;
+}
 
-  console.log('Final extracted skills:', Array.from(skills));
-  return Array.from(skills).slice(0, 20); // Limit to 20 skills
+// Extract certifications
+function extractCertifications(textItems: TextItem[]): Certification[] {
+  const certs: Certification[] = [];
+  const fullText = textItems.map(item => item.text).join('\n');
+  
+  const certSection = fullText.match(/(certifications?|certificates?|licenses?)[:\s]*\n([\s\S]*?)(?=\n[A-Z][A-Z\s]+:|$)/i);
+  if (!certSection) return certs;
+
+  const certText = certSection[2];
+  const certLines = certText.split('\n').filter(l => l.trim());
+
+  certLines.forEach(line => {
+    const dateMatch = line.match(/\d{4}/);
+    certs.push({
+      name: line.replace(/\d{4}.*/, '').trim(),
+      issue_date: dateMatch?.[0]
+    });
+  });
+
+  return certs.slice(0, 10);
+}
+
+// Extract projects
+function extractProjects(textItems: TextItem[]): Project[] {
+  const projects: Project[] = [];
+  const fullText = textItems.map(item => item.text).join('\n');
+  
+  const projSection = fullText.match(/(projects?|portfolio)[:\s]*\n([\s\S]*?)(?=\n[A-Z][A-Z\s]+:|$)/i);
+  if (!projSection) return projects;
+
+  const projText = projSection[2];
+  const projBlocks = projText.split(/\n(?=[A-Z])/);
+
+  projBlocks.forEach(block => {
+    const lines = block.split('\n').filter(l => l.trim());
+    if (lines.length < 1) return;
+
+    const urlMatch = block.match(/(https?:\/\/[^\s]+)/);
+    projects.push({
+      name: lines[0].trim(),
+      description: lines.slice(1).join(' ').substring(0, 200),
+      link: urlMatch?.[1]
+    });
+  });
+
+  return projects.slice(0, 5);
+}
+
+// Extract links
+function extractLinks(textItems: TextItem[]): { linkedin?: string, github?: string, portfolio?: string, other: string[] } {
+  const fullText = textItems.map(item => item.text).join(' ');
+  
+  const linkedinMatch = fullText.match(/linkedin\.com\/in\/[\w-]+/i);
+  const githubMatch = fullText.match(/github\.com\/[\w-]+/i);
+  const portfolioMatch = fullText.match(/(portfolio|website)[:\s]*(https?:\/\/[^\s]+)/i);
+  
+  const allUrls = fullText.match(/https?:\/\/[^\s]+/g) || [];
+  const other = allUrls.filter(url => 
+    !url.includes('linkedin.com') && 
+    !url.includes('github.com') &&
+    url !== portfolioMatch?.[2]
+  );
+
+  return {
+    linkedin: linkedinMatch ? `https://${linkedinMatch[0]}` : undefined,
+    github: githubMatch ? `https://${githubMatch[0]}` : undefined,
+    portfolio: portfolioMatch?.[2],
+    other: other.slice(0, 3)
+  };
+}
+
+// Infer years of experience and seniority
+function inferExperience(experiences: WorkExperience[]): { years: number, seniority: string } {
+  if (experiences.length === 0) return { years: 0, seniority: 'Entry Level' };
+
+  let totalYears = 0;
+  experiences.forEach(exp => {
+    if (exp.start_date) {
+      const start = parseInt(exp.start_date);
+      const end = exp.current ? new Date().getFullYear() : (exp.end_date ? parseInt(exp.end_date) : start);
+      totalYears += Math.max(0, end - start);
+    }
+  });
+
+  let seniority = 'Entry Level';
+  if (totalYears >= 10) seniority = 'Senior';
+  else if (totalYears >= 5) seniority = 'Mid-Level';
+  else if (totalYears >= 2) seniority = 'Junior';
+
+  return { years: totalYears, seniority };
 }
 
 export async function parseResumeEnhanced(file: File): Promise<ParsedResumeData> {
-  try {
-    console.log('Starting enhanced resume parsing for:', file.name);
-    
-    // Step 1: Extract text items with positioning
-    const textItems = await readPdfEnhanced(file);
-    console.log('Extracted text items:', textItems.length);
+  console.log('Starting comprehensive resume parsing for:', file.name);
 
-    if (textItems.length === 0) {
-      throw new Error('No text could be extracted from the PDF');
-    }
+  // Read PDF and extract text with positioning
+  const textItems = await readPdfEnhanced(file);
+  console.log('Extracted text items:', textItems.length);
 
-    // Step 2: Extract structured information using feature scoring
-    const [name] = getTextWithHighestFeatureScore(textItems, NAME_FEATURE_SETS);
-    const [email] = getTextWithHighestFeatureScore(textItems, EMAIL_FEATURE_SETS);
-    const [phone] = getTextWithHighestFeatureScore(textItems, PHONE_FEATURE_SETS);
-    const [birthDate] = getTextWithHighestFeatureScore(textItems, BIRTH_DATE_FEATURE_SETS);
-    const [location] = getTextWithHighestFeatureScore(textItems, LOCATION_FEATURE_SETS);
+  // Extract basic info
+  const [name] = getTextWithHighestFeatureScore(textItems, NAME_FEATURE_SETS);
+  const [email] = getTextWithHighestFeatureScore(textItems, EMAIL_FEATURE_SETS);
+  const [phone] = getTextWithHighestFeatureScore(textItems, PHONE_FEATURE_SETS);
+  const [birthDate] = getTextWithHighestFeatureScore(textItems, BIRTH_DATE_FEATURE_SETS);
+  const [location] = getTextWithHighestFeatureScore(textItems, LOCATION_FEATURE_SETS);
 
-    console.log('Extracted data:', { name, email, phone, birthDate, location });
-    console.log('Location extraction details:', textItems
-      .filter(item => matchLocation(item))
-      .map(item => ({ text: item.text, match: matchLocation(item) }))
-    );
+  // Extract comprehensive data
+  const skills = extractSkills(textItems);
+  const summary = extractSummary(textItems);
+  const workExperience = extractWorkExperience(textItems);
+  const education = extractEducation(textItems);
+  const languages = extractLanguages(textItems);
+  const certifications = extractCertifications(textItems);
+  const projects = extractProjects(textItems);
+  const links = extractLinks(textItems);
+  const experience = inferExperience(workExperience);
 
-    // Step 3: Format and validate the extracted data
-    const result: ParsedResumeData = {};
+  const parsedData: ParsedResumeData = {
+    full_name: name || undefined,
+    email: email || undefined,
+    phone: phone ? cleanPhoneNumber(phone) : undefined,
+    date_of_birth: birthDate ? formatDateForInput(birthDate) : undefined,
+    location: location || undefined,
+    professional_summary: summary,
+    work_experience: workExperience.length > 0 ? workExperience : undefined,
+    education: education.length > 0 ? education : undefined,
+    hard_skills: skills.hard.length > 0 ? skills.hard : undefined,
+    soft_skills: skills.soft.length > 0 ? skills.soft : undefined,
+    languages: languages.length > 0 ? languages : undefined,
+    certifications: certifications.length > 0 ? certifications : undefined,
+    projects: projects.length > 0 ? projects : undefined,
+    years_of_experience: experience.years > 0 ? experience.years : undefined,
+    seniority: experience.seniority,
+    linkedin_url: links.linkedin,
+    github_url: links.github,
+    portfolio_url: links.portfolio,
+    other_links: links.other.length > 0 ? links.other : undefined,
+  };
 
-    if (name && name.length > 1) {
-      result.full_name = name.trim();
-    }
-
-    if (email && matchEmail({ text: email } as TextItem)) {
-      result.email = email.toLowerCase().trim();
-    }
-
-    if (phone && phone.length > 8) {
-      result.phone = cleanPhoneNumber(phone);
-    }
-
-    if (birthDate) {
-      const formattedDate = formatDateForInput(birthDate);
-      if (formattedDate) {
-        result.date_of_birth = formattedDate;
-      }
-    }
-
-    if (location && location.length >= 2) {
-      // Clean up common location extraction issues
-      let cleanLocation = location.trim();
-      if (cleanLocation.toLowerCase() === 'to' || cleanLocation.toLowerCase() === 'from') {
-        // Skip invalid single word matches that are likely prepositions
-        console.log('Skipping invalid location match:', cleanLocation);
-      } else {
-        result.location = cleanLocation;
-      }
-    }
-
-    // Extract skills
-    const extractedSkills = extractSkills(textItems);
-    if (extractedSkills.length > 0) {
-      result.skills = extractedSkills;
-    }
-
-    console.log('Final parsed result:', result);
-    return result;
-
-  } catch (error) {
-    console.error('Enhanced resume parsing failed:', error);
-    throw new Error(`Failed to parse resume: ${error instanceof Error ? error.message : 'Unknown error'}`);
-  }
+  console.log('Comprehensive parsed result:', parsedData);
+  return parsedData;
 }
