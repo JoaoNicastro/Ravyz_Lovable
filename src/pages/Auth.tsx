@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,9 +22,36 @@ const Auth = () => {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (user) {
-      navigate('/profile-selection', { replace: true });
-    }
+    const checkUserProfile = async () => {
+      if (user) {
+        try {
+          const { data: userData } = await supabase
+            .from('users')
+            .select('profiles')
+            .eq('id', user.id)
+            .single();
+
+          if (userData?.profiles && userData.profiles.length > 0) {
+            // User has a profile selected, redirect to appropriate dashboard
+            if (userData.profiles.includes('candidate')) {
+              navigate('/dashboard/candidate', { replace: true });
+            } else if (userData.profiles.includes('company')) {
+              navigate('/dashboard/company', { replace: true });
+            } else {
+              navigate('/profile-selection', { replace: true });
+            }
+          } else {
+            // No profile selected, go to profile selection
+            navigate('/profile-selection', { replace: true });
+          }
+        } catch (error) {
+          console.error('Error checking user profile:', error);
+          navigate('/profile-selection', { replace: true });
+        }
+      }
+    };
+
+    checkUserProfile();
   }, [user, navigate]);
 
   const handleAuthSubmit = async (data: any) => {
@@ -32,7 +60,7 @@ const Auth = () => {
       if (authMode === 'login') {
         const { error } = await signIn(data.email, data.password);
         if (!error) {
-          navigate('/profile-selection');
+          // The useEffect will handle the redirection after user state is updated
         }
       } else {
         const { error } = await signUp(data.email, data.password, data.name);
