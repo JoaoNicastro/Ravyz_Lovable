@@ -544,27 +544,71 @@ function extractEducation(textItems: TextItem[]): Education[] {
 // Extract languages
 function extractLanguages(textItems: TextItem[]): Language[] {
   const languages: Language[] = [];
-  const fullText = textItems.map(item => item.text).join('\n').toLowerCase();
+  const fullText = textItems.map(item => item.text).join('\n');
   
-  const langPattern = /(languages|idiomas)[:\s]*([^\n]+(?:\n(?![A-Z][A-Z\s]+:)[^\n]+)*)/i;
-  const match = fullText.match(langPattern);
+  // Find the Languages section - more flexible pattern
+  const langSectionMatch = fullText.match(/(?:languages?|idiomas?|línguas?)[:\s]*\n([\s\S]*?)(?=\n(?:experience|education|skills|projects|certifications?|awards?|references?)\s*[:\n]|$)/i);
   
-  if (match) {
-    const langText = match[2];
-    const commonLangs = ['english', 'spanish', 'portuguese', 'french', 'german', 'italian', 'chinese', 'japanese', 'russian', 'arabic'];
-    const profLevels = ['native', 'fluent', 'advanced', 'intermediate', 'basic', 'beginner'];
+  if (!langSectionMatch) {
+    console.log('No languages section found in resume');
+    return languages;
+  }
+  
+  const langText = langSectionMatch[1].toLowerCase();
+  console.log('Found languages section text:', langText);
+  
+  // Extended list of common languages
+  const commonLangs = [
+    'english', 'spanish', 'portuguese', 'french', 'german', 'italian', 
+    'chinese', 'mandarin', 'japanese', 'korean', 'russian', 'arabic',
+    'hindi', 'bengali', 'turkish', 'vietnamese', 'polish', 'ukrainian',
+    'dutch', 'greek', 'swedish', 'norwegian', 'danish', 'finnish',
+    'czech', 'hungarian', 'romanian', 'thai', 'indonesian', 'malay',
+    'hebrew', 'persian', 'urdu', 'azerbaijani', 'azeri', 'swahili',
+    'tagalog', 'portuguese brasileiro', 'brazilian portuguese', 'inglês', 'português', 'espanhol'
+  ];
+  
+  // Extended proficiency levels with Portuguese translations
+  const profLevels = [
+    'native', 'nativo', 'fluent', 'fluente', 'advanced', 'avançado',
+    'intermediate', 'intermediário', 'basic', 'básico', 'beginner', 'iniciante',
+    'proficient', 'proficiente', 'conversational', 'conversação',
+    'elementary', 'elementar', 'limited', 'limitado',
+    'c2', 'c1', 'b2', 'b1', 'a2', 'a1' // CEFR levels
+  ];
+  
+  // Try to find each language
+  commonLangs.forEach(lang => {
+    const langPattern = new RegExp(`\\b${lang.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
     
-    commonLangs.forEach(lang => {
-      if (langText.includes(lang)) {
-        const profMatch = profLevels.find(p => langText.includes(p));
+    if (langPattern.test(langText)) {
+      // Try to find proficiency level near this language
+      const langIndex = langText.search(langPattern);
+      const contextWindow = langText.substring(Math.max(0, langIndex - 20), Math.min(langText.length, langIndex + 100));
+      
+      let proficiency = '';
+      for (const level of profLevels) {
+        const levelPattern = new RegExp(`\\b${level.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        if (levelPattern.test(contextWindow)) {
+          proficiency = level.charAt(0).toUpperCase() + level.slice(1);
+          break;
+        }
+      }
+      
+      // Capitalize language name properly
+      const capitalizedLang = lang.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      
+      // Avoid duplicates
+      if (!languages.find(l => l.name.toLowerCase() === lang.toLowerCase())) {
         languages.push({
-          name: lang.charAt(0).toUpperCase() + lang.slice(1),
-          proficiency: profMatch?.charAt(0).toUpperCase() + profMatch?.slice(1)
+          name: capitalizedLang,
+          proficiency: proficiency || undefined
         });
       }
-    });
-  }
-
+    }
+  });
+  
+  console.log('Extracted languages:', languages.length);
   return languages;
 }
 
