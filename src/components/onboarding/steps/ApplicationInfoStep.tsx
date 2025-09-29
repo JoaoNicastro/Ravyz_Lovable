@@ -378,64 +378,77 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
             </div>
 
             {/* Manual Experience Entry */}
-            <div className="pt-4 border-t space-y-3">
-              <Label className="text-sm font-medium">Adicionar Experiência</Label>
-              <div className="space-y-3">
-                <Input 
-                  placeholder="Nome da Empresa *" 
-                  value={newExperience.company}
-                  onChange={(e) => setNewExperience({...newExperience, company: e.target.value})}
-                />
-                <Input 
-                  placeholder="Cargo *" 
-                  value={newExperience.title}
-                  onChange={(e) => setNewExperience({...newExperience, title: e.target.value})}
-                />
-                <div className="grid grid-cols-2 gap-3">
+            <div className="pt-4 border-t">
+              <Label className="text-sm font-medium mb-3 block">Adicionar Experiência</Label>
+              <Card className="p-4 bg-muted/30">
+                <div className="space-y-3">
                   <Input 
-                    type="date"
-                    placeholder="Data de início"
-                    value={newExperience.start_date}
-                    onChange={(e) => setNewExperience({...newExperience, start_date: e.target.value})}
+                    placeholder="Nome da Empresa *" 
+                    value={newExperience.company}
+                    onChange={(e) => setNewExperience({...newExperience, company: e.target.value})}
                   />
                   <Input 
-                    type="date"
-                    placeholder="Data de fim"
-                    value={newExperience.end_date}
-                    onChange={(e) => setNewExperience({...newExperience, end_date: e.target.value})}
-                    disabled={newExperience.current}
+                    placeholder="Cargo *" 
+                    value={newExperience.title}
+                    onChange={(e) => setNewExperience({...newExperience, title: e.target.value})}
                   />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="exp-start-date" className="text-xs text-muted-foreground">Data de início</Label>
+                      <Input 
+                        id="exp-start-date"
+                        type="date"
+                        value={newExperience.start_date}
+                        onChange={(e) => setNewExperience({...newExperience, start_date: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="exp-end-date" className="text-xs text-muted-foreground">Data de fim</Label>
+                      <Input 
+                        id="exp-end-date"
+                        type="date"
+                        value={newExperience.end_date}
+                        onChange={(e) => setNewExperience({...newExperience, end_date: e.target.value})}
+                        disabled={newExperience.current}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="current-job"
+                      checked={newExperience.current || false}
+                      onChange={(e) => setNewExperience({...newExperience, current: e.target.checked, end_date: e.target.checked ? '' : newExperience.end_date})}
+                      className="h-4 w-4 rounded border-input"
+                    />
+                    <Label htmlFor="current-job" className="text-sm font-normal cursor-pointer">
+                      Este é meu emprego atual
+                    </Label>
+                  </div>
+                  <div>
+                    <Label htmlFor="exp-description" className="text-xs text-muted-foreground">Descrição das responsabilidades e conquistas</Label>
+                    <Textarea 
+                      id="exp-description"
+                      placeholder="Descreva suas principais responsabilidades, conquistas e projetos..."
+                      value={newExperience.description}
+                      onChange={(e) => setNewExperience({...newExperience, description: e.target.value})}
+                      rows={3}
+                    />
+                  </div>
+                  <Button type="button" onClick={addExperience} size="sm" className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Experiência
+                  </Button>
                 </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="current-job"
-                    checked={newExperience.current || false}
-                    onChange={(e) => setNewExperience({...newExperience, current: e.target.checked, end_date: e.target.checked ? '' : newExperience.end_date})}
-                    className="h-4 w-4 rounded border-input"
-                  />
-                  <Label htmlFor="current-job" className="text-sm font-normal cursor-pointer">
-                    Este é meu emprego atual
-                  </Label>
-                </div>
-                <Textarea 
-                  placeholder="Descrição das responsabilidades e conquistas"
-                  value={newExperience.description}
-                  onChange={(e) => setNewExperience({...newExperience, description: e.target.value})}
-                  rows={3}
-                />
-              </div>
-              <Button type="button" onClick={addExperience} size="sm" className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Experiência
-              </Button>
+              </Card>
             </div>
+            
             {workExperience.length > 0 && (
               <div className="space-y-2 pt-4 border-t">
                 <Label className="text-sm font-medium">Suas Experiências:</Label>
                 <div className="space-y-3">
                   {workExperience.map((exp, idx) => (
-                    <div key={idx} className="p-3 border rounded-lg bg-muted/30 relative group">
+                    <Card key={idx} className="p-4 bg-muted/30 relative group">
                       <Button
                         type="button"
                         variant="ghost"
@@ -445,15 +458,21 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
                       >
                         <X className="h-4 w-4" />
                       </Button>
-                      <p className="font-medium">{exp.title}</p>
-                      <p className="text-sm text-muted-foreground">{exp.company}</p>
-                      {exp.start_date && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {exp.start_date} - {exp.current ? 'Emprego atual' : exp.end_date || 'Presente'}
-                        </p>
-                      )}
-                      {exp.description && <p className="text-sm mt-2">{exp.description}</p>}
-                    </div>
+                      <div className="space-y-2 pr-8">
+                        <div>
+                          <p className="font-semibold text-base">{exp.title}</p>
+                          <p className="text-sm text-muted-foreground">{exp.company}</p>
+                        </div>
+                        {exp.start_date && (
+                          <p className="text-xs text-muted-foreground">
+                            {exp.start_date} - {exp.current ? 'Emprego atual' : exp.end_date || 'Presente'}
+                          </p>
+                        )}
+                        {exp.description && (
+                          <p className="text-sm mt-2 leading-relaxed">{exp.description}</p>
+                        )}
+                      </div>
+                    </Card>
                   ))}
                 </div>
               </div>
