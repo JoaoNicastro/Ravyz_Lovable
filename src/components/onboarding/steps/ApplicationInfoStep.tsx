@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -83,11 +83,6 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
     },
   });
 
-  const { fields: expFields, append: appendExperience, remove: removeExperienceArray, replace: replaceExperience } = useFieldArray({
-    control: form.control,
-    name: 'work_experience',
-  });
-
   const submit = (values: ApplicationInfoData) => {
     onNext(values);
   };
@@ -130,7 +125,7 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
         }
       }
       
-      if (parsedData.work_experience) replaceExperience(parsedData.work_experience as any);
+      if (parsedData.work_experience) form.setValue('work_experience', parsedData.work_experience);
       if (parsedData.education) form.setValue('education', parsedData.education);
       if (parsedData.hard_skills) form.setValue('hard_skills', parsedData.hard_skills);
       if (parsedData.soft_skills) form.setValue('soft_skills', parsedData.soft_skills);
@@ -382,81 +377,106 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
               </div>
             </div>
 
-            {/* Experiences Editor */}
-            <div className="pt-4 border-t space-y-3">
-              <Label className="text-sm font-medium">Experiências</Label>
-              <div className="space-y-3">
-                {(expFields.length > 0 ? expFields : []).map((field, idx) => (
-                  <Card key={field.id} className="p-4 bg-muted/30 relative group">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                      onClick={() => removeExperienceArray(idx)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                    <div className="space-y-3 pr-8">
+            {/* Manual Experience Entry */}
+            <div className="pt-4 border-t">
+              <Label className="text-sm font-medium mb-3 block">Adicionar Experiência</Label>
+              <Card className="p-4 bg-muted/30">
+                <div className="space-y-3">
+                  <Input 
+                    placeholder="Nome da Empresa *" 
+                    value={newExperience.company}
+                    onChange={(e) => setNewExperience({...newExperience, company: e.target.value})}
+                  />
+                  <Input 
+                    placeholder="Cargo *" 
+                    value={newExperience.title}
+                    onChange={(e) => setNewExperience({...newExperience, title: e.target.value})}
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="exp-start-date" className="text-xs text-muted-foreground">Data de início</Label>
                       <Input 
-                        placeholder="Nome da Empresa *" 
-                        {...form.register(`work_experience.${idx}.company` as const)}
+                        id="exp-start-date"
+                        type="date"
+                        value={newExperience.start_date}
+                        onChange={(e) => setNewExperience({...newExperience, start_date: e.target.value})}
                       />
-                      <Input 
-                        placeholder="Cargo *" 
-                        {...form.register(`work_experience.${idx}.title` as const)}
-                      />
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label className="text-xs text-muted-foreground">Data de início</Label>
-                          <Input 
-                            type="date"
-                            {...form.register(`work_experience.${idx}.start_date` as const)}
-                          />
-                        </div>
-                        <div>
-                          <Label className="text-xs text-muted-foreground">Data de fim</Label>
-                          <Input 
-                            type="date"
-                            disabled={!!workExperience?.[idx]?.current}
-                            {...form.register(`work_experience.${idx}.end_date` as const)}
-                          />
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id={`current-${idx}`}
-                          checked={!!workExperience?.[idx]?.current}
-                          onChange={(e) => form.setValue(`work_experience.${idx}.current` as const, e.target.checked)}
-                          className="h-4 w-4 rounded border-input"
-                        />
-                        <Label htmlFor={`current-${idx}`} className="text-sm font-normal cursor-pointer">
-                          Este é meu emprego atual
-                        </Label>
-                      </div>
-                      <div>
-                        <Label className="text-xs text-muted-foreground">Descrição das responsabilidades e conquistas</Label>
-                        <Textarea 
-                          placeholder="Descreva suas principais responsabilidades, conquistas e projetos..."
-                          rows={3}
-                          {...form.register(`work_experience.${idx}.description` as const)}
-                        />
-                      </div>
                     </div>
-                  </Card>
-                ))}
-                <Button 
-                  type="button" 
-                  onClick={() => appendExperience({ company: '', title: '', start_date: '', end_date: '', current: false, description: '' })} 
-                  size="sm" 
-                  className="w-full"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Experiência
-                </Button>
-              </div>
+                    <div>
+                      <Label htmlFor="exp-end-date" className="text-xs text-muted-foreground">Data de fim</Label>
+                      <Input 
+                        id="exp-end-date"
+                        type="date"
+                        value={newExperience.end_date}
+                        onChange={(e) => setNewExperience({...newExperience, end_date: e.target.value})}
+                        disabled={newExperience.current}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="current-job"
+                      checked={newExperience.current || false}
+                      onChange={(e) => setNewExperience({...newExperience, current: e.target.checked, end_date: e.target.checked ? '' : newExperience.end_date})}
+                      className="h-4 w-4 rounded border-input"
+                    />
+                    <Label htmlFor="current-job" className="text-sm font-normal cursor-pointer">
+                      Este é meu emprego atual
+                    </Label>
+                  </div>
+                  <div>
+                    <Label htmlFor="exp-description" className="text-xs text-muted-foreground">Descrição das responsabilidades e conquistas</Label>
+                    <Textarea 
+                      id="exp-description"
+                      placeholder="Descreva suas principais responsabilidades, conquistas e projetos..."
+                      value={newExperience.description}
+                      onChange={(e) => setNewExperience({...newExperience, description: e.target.value})}
+                      rows={3}
+                    />
+                  </div>
+                  <Button type="button" onClick={addExperience} size="sm" className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Experiência
+                  </Button>
+                </div>
+              </Card>
             </div>
+            
+            {workExperience.length > 0 && (
+              <div className="space-y-2 pt-4 border-t">
+                <Label className="text-sm font-medium">Suas Experiências:</Label>
+                <div className="space-y-3">
+                  {workExperience.map((exp, idx) => (
+                    <Card key={idx} className="p-4 bg-muted/30 relative group">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        onClick={() => removeExperience(idx)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                      <div className="space-y-2 pr-8">
+                        <div>
+                          <p className="font-semibold text-base">{exp.title}</p>
+                          <p className="text-sm text-muted-foreground">{exp.company}</p>
+                        </div>
+                        {exp.start_date && (
+                          <p className="text-xs text-muted-foreground">
+                            {exp.start_date} - {exp.current ? 'Emprego atual' : exp.end_date || 'Presente'}
+                          </p>
+                        )}
+                        {exp.description && (
+                          <p className="text-sm mt-2 leading-relaxed">{exp.description}</p>
+                        )}
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
