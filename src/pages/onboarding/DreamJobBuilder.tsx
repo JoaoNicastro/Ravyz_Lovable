@@ -91,7 +91,7 @@ const DreamJobBuilder = () => {
       if (updateError) throw updateError;
 
       toast.success("Emprego dos sonhos configurado!");
-      navigate('/candidate');
+      navigate('/dashboard/candidate');
     } catch (error) {
       console.error('Error saving dream job:', error);
       toast.error("Erro ao salvar emprego dos sonhos");
