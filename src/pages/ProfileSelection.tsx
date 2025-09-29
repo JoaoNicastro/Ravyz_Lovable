@@ -39,19 +39,46 @@ const ProfileSelection = () => {
     
     setIsLoading(true);
     try {
-      // 2. Salvar escolha no banco
-      console.log("💾 Salvando active_profile no banco...");
-      const { error } = await supabase
+      // 2. Garantir que o registro do usuário existe
+      console.log("🔍 Verificando registro do usuário...");
+      const { data: existingUser, error: fetchError } = await supabase
         .from('users')
-        .update({ 
-          active_profile: selectedProfile,
-          profiles: [selectedProfile]
-        })
-        .eq('id', user.id);
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
 
-      if (error) {
-        console.error("❌ Erro na query Supabase:", error);
-        throw error;
+      // Se o usuário não existe, criar o registro
+      if (!existingUser && !fetchError) {
+        console.log("➕ Criando registro do usuário...");
+        const { error: insertError } = await supabase
+          .from('users')
+          .insert({ 
+            id: user.id, 
+            email: user.email!,
+            active_profile: selectedProfile,
+            profiles: [selectedProfile]
+          });
+
+        if (insertError) {
+          console.error("❌ Erro ao criar usuário:", insertError);
+          throw insertError;
+        }
+        console.log("✅ Usuário criado com sucesso");
+      } else {
+        // Usuário já existe, apenas atualizar
+        console.log("💾 Atualizando active_profile no banco...");
+        const { error } = await supabase
+          .from('users')
+          .update({ 
+            active_profile: selectedProfile,
+            profiles: [selectedProfile]
+          })
+          .eq('id', user.id);
+
+        if (error) {
+          console.error("❌ Erro na query Supabase:", error);
+          throw error;
+        }
       }
 
       console.log("✅ Active profile salvo:", selectedProfile);
