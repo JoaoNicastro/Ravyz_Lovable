@@ -110,14 +110,23 @@ export type Database = {
         Row: {
           archetype: string | null
           avatar_url: string | null
+          career_goals: string | null
           created_at: string | null
+          current_position: string | null
+          date_of_birth: string | null
+          email: string | null
+          full_name: string | null
           headline: string | null
           id: string
+          key_achievements: string | null
           linkedin_data: Json | null
           location: string | null
+          phone: string | null
           pillar_scores: Json | null
           preferences: Json | null
+          preferred_roles: Json | null
           resume_score: number | null
+          skills: Json | null
           skills_vector: Json | null
           updated_at: string | null
           user_id: string
@@ -127,14 +136,23 @@ export type Database = {
         Insert: {
           archetype?: string | null
           avatar_url?: string | null
+          career_goals?: string | null
           created_at?: string | null
+          current_position?: string | null
+          date_of_birth?: string | null
+          email?: string | null
+          full_name?: string | null
           headline?: string | null
           id?: string
+          key_achievements?: string | null
           linkedin_data?: Json | null
           location?: string | null
+          phone?: string | null
           pillar_scores?: Json | null
           preferences?: Json | null
+          preferred_roles?: Json | null
           resume_score?: number | null
+          skills?: Json | null
           skills_vector?: Json | null
           updated_at?: string | null
           user_id: string
@@ -144,14 +162,23 @@ export type Database = {
         Update: {
           archetype?: string | null
           avatar_url?: string | null
+          career_goals?: string | null
           created_at?: string | null
+          current_position?: string | null
+          date_of_birth?: string | null
+          email?: string | null
+          full_name?: string | null
           headline?: string | null
           id?: string
+          key_achievements?: string | null
           linkedin_data?: Json | null
           location?: string | null
+          phone?: string | null
           pillar_scores?: Json | null
           preferences?: Json | null
+          preferred_roles?: Json | null
           resume_score?: number | null
+          skills?: Json | null
           skills_vector?: Json | null
           updated_at?: string | null
           user_id?: string
