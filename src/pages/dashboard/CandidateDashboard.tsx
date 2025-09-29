@@ -180,6 +180,63 @@ export default function CandidateDashboard() {
     }
   };
 
+  const handleApply = async (jobId: string) => {
+    if (!candidateProfile) return;
+
+    try {
+      // Check if already applied
+      const existingApplication = applications.find(app => app.jobs.id === jobId);
+      if (existingApplication) {
+        toast({
+          title: "Já candidatado",
+          description: "Você já se candidatou para esta vaga",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Insert application
+      const { data: newApplication, error: applicationError } = await supabase
+        .from('applications')
+        .insert({
+          candidate_id: candidateProfile.id,
+          job_id: jobId,
+          status: 'applied'
+        })
+        .select(`
+          *,
+          jobs!inner (
+            id,
+            title,
+            description,
+            location,
+            company_profiles (
+              company_name,
+              logo_url
+            )
+          )
+        `)
+        .single();
+
+      if (applicationError) throw applicationError;
+
+      // Update local state
+      setApplications(prev => [newApplication, ...prev]);
+
+      toast({
+        title: "Candidatura enviada!",
+        description: "Sua candidatura foi registrada com sucesso",
+      });
+    } catch (error) {
+      console.error('Error applying to job:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível enviar sua candidatura",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleFeedback = async (matchId: string, jobId: string, feedback: 'interested' | 'not_interested') => {
     if (!candidateProfile) return;
 
@@ -253,6 +310,10 @@ export default function CandidateDashboard() {
     if (percentage >= 80) return "bg-green-500";
     if (percentage >= 60) return "bg-yellow-500";
     return "bg-red-500";
+  };
+
+  const isApplied = (jobId: string) => {
+    return applications.some(app => app.jobs.id === jobId);
   };
 
   if (loading) {
@@ -503,10 +564,19 @@ export default function CandidateDashboard() {
                       )}
 
                       <div className="flex gap-3 pt-2">
-                        <Button className="flex items-center gap-2">
-                          <ThumbsUp className="w-4 h-4" />
-                          Candidatar-se
-                        </Button>
+                        {isApplied(job.id) ? (
+                          <Badge variant="secondary" className="px-4 py-2">
+                            ✓ Candidatura Enviada
+                          </Badge>
+                        ) : (
+                          <Button 
+                            onClick={() => handleApply(job.id)}
+                            className="flex items-center gap-2"
+                          >
+                            <ThumbsUp className="w-4 h-4" />
+                            Candidatar-se
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
