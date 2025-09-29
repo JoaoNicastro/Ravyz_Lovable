@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { ArrowLeft, User, Building, Linkedin } from "lucide-react";
+import { ArrowLeft, Linkedin } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthForm } from "@/components/forms/AuthForm";
@@ -18,7 +16,6 @@ const Auth = () => {
     const tab = searchParams.get('tab');
     return tab === 'register' ? 'register' : 'login';
   });
-  const [selectedProfile, setSelectedProfile] = useState<"candidate" | "company" | null>(null);
   const navigate = useNavigate();
   const { user, signIn, signUp, signInWithLinkedIn } = useAuth();
 
@@ -38,9 +35,6 @@ const Auth = () => {
           navigate('/profile-selection');
         }
       } else {
-        if (!selectedProfile) {
-          throw new Error('Selecione seu tipo de perfil');
-        }
         const { error } = await signUp(data.email, data.password, data.name);
         // Note: signUp handles success/error messaging
       }
@@ -163,36 +157,6 @@ const Auth = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Profile Type Selection */}
-                  <div className="space-y-3">
-                    <Label>Eu sou:</Label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button 
-                        type="button"
-                        variant={selectedProfile === 'candidate' ? 'default' : 'outline'} 
-                        className="h-auto p-4 flex flex-col items-center space-y-2"
-                        onClick={() => setSelectedProfile('candidate')}
-                      >
-                        <User className="h-6 w-6 text-primary" />
-                        <span className="font-medium">Candidato</span>
-                        <Badge variant="secondary" className="text-xs">Buscar vagas</Badge>
-                      </Button>
-                      <Button 
-                        type="button"
-                        variant={selectedProfile === 'company' ? 'default' : 'outline'} 
-                        className="h-auto p-4 flex flex-col items-center space-y-2"
-                        onClick={() => setSelectedProfile('company')}
-                      >
-                        <Building className="h-6 w-6 text-primary" />
-                        <span className="font-medium">Empresa</span>
-                        <Badge variant="secondary" className="text-xs">Contratar</Badge>
-                      </Button>
-                    </div>
-                    {authMode === 'register' && !selectedProfile && (
-                      <p className="text-sm text-destructive">Selecione seu tipo de perfil</p>
-                    )}
-                  </div>
-
                   {/* LinkedIn Registration */}
                   <Button
                     variant="outline"
@@ -217,7 +181,7 @@ const Auth = () => {
                   <AuthForm 
                     mode="register" 
                     onSubmit={handleAuthSubmit} 
-                    isLoading={isLoading || !selectedProfile} 
+                    isLoading={isLoading} 
                   />
 
                   <p className="text-xs text-muted-foreground text-center">
