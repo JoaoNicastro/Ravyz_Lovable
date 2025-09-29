@@ -152,7 +152,7 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
   const projects = form.watch('projects') || [];
 
   // State for manual input fields
-  const [newExperience, setNewExperience] = useState({ company: '', title: '', start_date: '', end_date: '', description: '' });
+  const [newExperience, setNewExperience] = useState({ company: '', title: '', start_date: '', end_date: '', description: '', current: false });
   const [newEducation, setNewEducation] = useState({ institution: '', major: '', gpa: '', start_date: '', end_date: '' });
   const [newHardSkill, setNewHardSkill] = useState('');
   const [newSoftSkill, setNewSoftSkill] = useState('');
@@ -163,7 +163,7 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
   const addExperience = () => {
     if (newExperience.company && newExperience.title) {
       form.setValue('work_experience', [...workExperience, newExperience]);
-      setNewExperience({ company: '', title: '', start_date: '', end_date: '', description: '' });
+      setNewExperience({ company: '', title: '', start_date: '', end_date: '', description: '', current: false });
       toast.success('Experiência adicionada');
     } else {
       toast.error('Preencha empresa e cargo');
@@ -380,9 +380,9 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
             {/* Manual Experience Entry */}
             <div className="pt-4 border-t space-y-3">
               <Label className="text-sm font-medium">Adicionar Experiência</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-3">
                 <Input 
-                  placeholder="Empresa *" 
+                  placeholder="Nome da Empresa *" 
                   value={newExperience.company}
                   onChange={(e) => setNewExperience({...newExperience, company: e.target.value})}
                 />
@@ -391,25 +391,40 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
                   value={newExperience.title}
                   onChange={(e) => setNewExperience({...newExperience, title: e.target.value})}
                 />
-                <Input 
-                  type="date"
-                  placeholder="Data início"
-                  value={newExperience.start_date}
-                  onChange={(e) => setNewExperience({...newExperience, start_date: e.target.value})}
-                />
-                <Input 
-                  type="date"
-                  placeholder="Data fim"
-                  value={newExperience.end_date}
-                  onChange={(e) => setNewExperience({...newExperience, end_date: e.target.value})}
+                <div className="grid grid-cols-2 gap-3">
+                  <Input 
+                    type="date"
+                    placeholder="Data de início"
+                    value={newExperience.start_date}
+                    onChange={(e) => setNewExperience({...newExperience, start_date: e.target.value})}
+                  />
+                  <Input 
+                    type="date"
+                    placeholder="Data de fim"
+                    value={newExperience.end_date}
+                    onChange={(e) => setNewExperience({...newExperience, end_date: e.target.value})}
+                    disabled={newExperience.current}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="current-job"
+                    checked={newExperience.current || false}
+                    onChange={(e) => setNewExperience({...newExperience, current: e.target.checked, end_date: e.target.checked ? '' : newExperience.end_date})}
+                    className="h-4 w-4 rounded border-input"
+                  />
+                  <Label htmlFor="current-job" className="text-sm font-normal cursor-pointer">
+                    Este é meu emprego atual
+                  </Label>
+                </div>
+                <Textarea 
+                  placeholder="Descrição das responsabilidades e conquistas"
+                  value={newExperience.description}
+                  onChange={(e) => setNewExperience({...newExperience, description: e.target.value})}
+                  rows={3}
                 />
               </div>
-              <Textarea 
-                placeholder="Descrição das responsabilidades"
-                value={newExperience.description}
-                onChange={(e) => setNewExperience({...newExperience, description: e.target.value})}
-                rows={2}
-              />
               <Button type="button" onClick={addExperience} size="sm" className="w-full">
                 <Plus className="h-4 w-4 mr-2" />
                 Adicionar Experiência
@@ -434,7 +449,7 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
                       <p className="text-sm text-muted-foreground">{exp.company}</p>
                       {exp.start_date && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          {exp.start_date} - {exp.current ? 'Presente' : exp.end_date || 'Presente'}
+                          {exp.start_date} - {exp.current ? 'Emprego atual' : exp.end_date || 'Presente'}
                         </p>
                       )}
                       {exp.description && <p className="text-sm mt-2">{exp.description}</p>}
