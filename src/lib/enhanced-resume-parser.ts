@@ -250,6 +250,8 @@ function cleanPhoneNumber(phone: string): string {
 function extractSkills(textItems: TextItem[]): string[] {
   const skills: Set<string> = new Set();
   const fullText = textItems.map(item => item.text).join(' ').toLowerCase();
+  
+  console.log('Extracting skills from text preview:', fullText.substring(0, 500));
 
   // Common tech skills and keywords
   const techSkills = [
@@ -284,6 +286,8 @@ function extractSkills(textItems: TextItem[]): string[] {
       skillsSection += ' ' + match[1];
     }
   }
+  
+  console.log('Skills section found:', skillsSection);
 
   // Extract from skills section with higher priority
   if (skillsSection) {
@@ -300,6 +304,7 @@ function extractSkills(textItems: TextItem[]): string[] {
 
   // If no skills found in dedicated section, scan full text
   if (skills.size < 3) {
+    console.log('Scanning full text for skills since only found:', skills.size, 'skills');
     techSkills.forEach(skill => {
       const pattern = new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
       if (pattern.test(fullText)) {
@@ -311,6 +316,7 @@ function extractSkills(textItems: TextItem[]): string[] {
     });
   }
 
+  console.log('Final extracted skills:', Array.from(skills));
   return Array.from(skills).slice(0, 20); // Limit to 20 skills
 }
 
