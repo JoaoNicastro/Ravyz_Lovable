@@ -29,11 +29,10 @@ const applicationInfoSchema = z.object({
   })).optional(),
   education: z.array(z.object({
     institution: z.string(),
-    degree: z.string(),
-    field: z.string().optional(),
+    major: z.string(),
+    gpa: z.string().optional(),
     start_date: z.string().optional(),
     end_date: z.string().optional(),
-    status: z.enum(['completed', 'in_progress']).optional(),
   })).optional(),
   hard_skills: z.array(z.string()).optional(),
   soft_skills: z.array(z.string()).optional(),
@@ -154,7 +153,7 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
 
   // State for manual input fields
   const [newExperience, setNewExperience] = useState({ company: '', title: '', start_date: '', end_date: '', description: '' });
-  const [newEducation, setNewEducation] = useState({ institution: '', degree: '', field: '', start_date: '', end_date: '' });
+  const [newEducation, setNewEducation] = useState({ institution: '', major: '', gpa: '', start_date: '', end_date: '' });
   const [newHardSkill, setNewHardSkill] = useState('');
   const [newSoftSkill, setNewSoftSkill] = useState('');
   const [newLanguage, setNewLanguage] = useState({ name: '', proficiency: '' });
@@ -177,12 +176,12 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
   };
 
   const addEducation = () => {
-    if (newEducation.institution && newEducation.degree) {
-      form.setValue('education', [...education, { ...newEducation, status: 'completed' as const }]);
-      setNewEducation({ institution: '', degree: '', field: '', start_date: '', end_date: '' });
+    if (newEducation.institution && newEducation.major) {
+      form.setValue('education', [...education, newEducation]);
+      setNewEducation({ institution: '', major: '', gpa: '', start_date: '', end_date: '' });
       toast.success('Formação adicionada');
     } else {
-      toast.error('Preencha instituição e grau');
+      toast.error('Preencha instituição e curso');
     }
   };
 
@@ -456,32 +455,32 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
             {/* Manual Education Entry */}
             <div className="space-y-3">
               <Label className="text-sm font-medium">Adicionar Formação</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 <Input 
                   placeholder="Instituição *" 
                   value={newEducation.institution}
                   onChange={(e) => setNewEducation({...newEducation, institution: e.target.value})}
                 />
                 <Input 
-                  placeholder="Grau/Curso *" 
-                  value={newEducation.degree}
-                  onChange={(e) => setNewEducation({...newEducation, degree: e.target.value})}
+                  placeholder="Curso *" 
+                  value={newEducation.major}
+                  onChange={(e) => setNewEducation({...newEducation, major: e.target.value})}
                 />
                 <Input 
-                  placeholder="Área de estudo" 
-                  value={newEducation.field}
-                  onChange={(e) => setNewEducation({...newEducation, field: e.target.value})}
+                  placeholder="GPA (opcional)" 
+                  value={newEducation.gpa}
+                  onChange={(e) => setNewEducation({...newEducation, gpa: e.target.value})}
                 />
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <Input 
                     type="date"
-                    placeholder="Início"
+                    placeholder="Data de início"
                     value={newEducation.start_date}
                     onChange={(e) => setNewEducation({...newEducation, start_date: e.target.value})}
                   />
                   <Input 
                     type="date"
-                    placeholder="Fim"
+                    placeholder="Data de fim"
                     value={newEducation.end_date}
                     onChange={(e) => setNewEducation({...newEducation, end_date: e.target.value})}
                   />
@@ -507,12 +506,12 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
                     >
                       <X className="h-4 w-4" />
                     </Button>
-                    <p className="font-medium">{edu.degree}</p>
-                    {edu.field && <p className="text-sm text-muted-foreground">{edu.field}</p>}
+                    <p className="font-medium">{edu.major}</p>
                     <p className="text-sm text-muted-foreground">{edu.institution}</p>
+                    {edu.gpa && <p className="text-sm text-muted-foreground">GPA: {edu.gpa}</p>}
                     {edu.start_date && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        {edu.start_date} - {edu.status === 'in_progress' ? 'Em andamento' : edu.end_date || 'Concluído'}
+                        {edu.start_date} - {edu.end_date || 'Presente'}
                       </p>
                     )}
                   </div>
