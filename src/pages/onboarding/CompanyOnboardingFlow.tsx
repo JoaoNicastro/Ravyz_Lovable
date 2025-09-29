@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import CompanyRegistrationStep from "@/components/onboarding/steps/CompanyRegistrationStep";
 import CompanyJobDefinitionStep from "@/components/onboarding/steps/CompanyJobDefinitionStep";
+import CompanyAssessmentStep from "@/components/onboarding/steps/CompanyAssessmentStep";
 import ravyzLogo from "@/assets/ravyz-logo.png";
 
 interface StepData {
@@ -40,7 +41,7 @@ const STEPS: StepData[] = [
     id: "company-assessment",
     title: "Assessment da Vaga",
     description: "Defina o perfil comportamental da vaga",
-    component: React.lazy(() => import("@/components/onboarding/steps/CompanyAssessmentStep")),
+    component: CompanyAssessmentStep,
   },
 ];
 
