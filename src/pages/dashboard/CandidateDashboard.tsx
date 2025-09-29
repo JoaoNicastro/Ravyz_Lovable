@@ -40,6 +40,10 @@ export default function CandidateDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     fetchCandidateData();
   }, [user]);
 

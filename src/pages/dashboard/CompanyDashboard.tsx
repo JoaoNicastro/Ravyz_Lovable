@@ -41,6 +41,10 @@ export default function CompanyDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     fetchCompanyData();
   }, [user]);
 
