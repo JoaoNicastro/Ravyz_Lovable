@@ -155,15 +155,15 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
     <div className="max-w-4xl mx-auto space-y-6 pb-8">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-semibold">Informações para Candidatura</h2>
-        <p className="text-muted-foreground">Faça upload do seu currículo para preencher automaticamente os dados abaixo</p>
+        <p className="text-muted-foreground">Faça upload do seu currículo para preencher automaticamente ou preencha manualmente os campos abaixo</p>
       </div>
 
       {/* Resume Upload */}
-      <Card className="border-dashed border-2">
+      <Card className="border-dashed border-2 bg-muted/20">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <Upload className="h-5 w-5" />
-            Upload de Currículo
+            Upload de Currículo (Opcional)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -202,16 +202,16 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="full_name">Nome completo *</Label>
-              <Input id="full_name" {...form.register('full_name')} />
+              <Input id="full_name" {...form.register('full_name')} placeholder="Seu nome completo" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="email">E-mail</Label>
-                <Input id="email" type="email" {...form.register('email')} />
+                <Input id="email" type="email" {...form.register('email')} placeholder="seu@email.com" />
               </div>
               <div>
                 <Label htmlFor="phone">Telefone</Label>
-                <Input id="phone" {...form.register('phone')} />
+                <Input id="phone" {...form.register('phone')} placeholder="(11) 99999-9999" />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -233,145 +233,202 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
             <CardTitle>Resumo Profissional</CardTitle>
           </CardHeader>
           <CardContent>
-            <Label htmlFor="professional_summary">Sobre você</Label>
-            <Input id="professional_summary" {...form.register('professional_summary')} placeholder="Breve resumo da sua trajetória profissional" />
+            <Label htmlFor="professional_summary">Sobre você (breve resumo)</Label>
+            <Input 
+              id="professional_summary" 
+              {...form.register('professional_summary')} 
+              placeholder="Ex: Desenvolvedor Full Stack com 5 anos de experiência..." 
+              className="mt-2"
+            />
           </CardContent>
         </Card>
 
         {/* Experience & Seniority */}
         <Card>
           <CardHeader>
-            <CardTitle>Experiência</CardTitle>
+            <CardTitle>Experiência Profissional</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="years_of_experience">Anos de experiência</Label>
-                <Input id="years_of_experience" type="number" {...form.register('years_of_experience', { valueAsNumber: true })} />
+                <Input 
+                  id="years_of_experience" 
+                  type="number" 
+                  {...form.register('years_of_experience', { valueAsNumber: true })} 
+                  placeholder="Ex: 5"
+                />
               </div>
               <div>
                 <Label htmlFor="seniority">Nível</Label>
-                <Input id="seniority" {...form.register('seniority')} placeholder="Entry Level, Junior, Mid-Level, Senior" />
+                <Input 
+                  id="seniority" 
+                  {...form.register('seniority')} 
+                  placeholder="Ex: Junior, Pleno, Sênior"
+                />
               </div>
             </div>
             {workExperience.length > 0 && (
-              <div className="space-y-2">
-                <Label>Experiências profissionais extraídas</Label>
-                {workExperience.map((exp, idx) => (
-                  <div key={idx} className="p-3 border rounded-md bg-muted/30 space-y-1">
-                    <p className="font-medium">{exp.title} | {exp.company}</p>
-                    {exp.start_date && <p className="text-sm text-muted-foreground">{exp.start_date} - {exp.current ? 'Presente' : exp.end_date}</p>}
-                    {exp.description && <p className="text-sm">{exp.description}</p>}
-                  </div>
-                ))}
+              <div className="space-y-2 pt-4 border-t">
+                <Label className="text-sm font-medium">Experiências extraídas do currículo:</Label>
+                <div className="space-y-3">
+                  {workExperience.map((exp, idx) => (
+                    <div key={idx} className="p-3 border rounded-lg bg-muted/30">
+                      <p className="font-medium">{exp.title}</p>
+                      <p className="text-sm text-muted-foreground">{exp.company}</p>
+                      {exp.start_date && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {exp.start_date} - {exp.current ? 'Presente' : exp.end_date || 'Presente'}
+                        </p>
+                      )}
+                      {exp.description && <p className="text-sm mt-2">{exp.description}</p>}
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </CardContent>
         </Card>
 
         {/* Education */}
-        {education.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Formação Acadêmica</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {education.map((edu, idx) => (
-                <div key={idx} className="p-3 border rounded-md bg-muted/30">
-                  <p className="font-medium">{edu.degree} {edu.field && `em ${edu.field}`}</p>
-                  <p className="text-sm text-muted-foreground">{edu.institution}</p>
-                  {edu.start_date && <p className="text-sm text-muted-foreground">{edu.start_date} - {edu.status === 'in_progress' ? 'Em andamento' : edu.end_date}</p>}
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Skills */}
-        {(hardSkills.length > 0 || softSkills.length > 0) && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Habilidades</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {hardSkills.length > 0 && (
-                <div>
-                  <Label>Hard Skills (Técnicas)</Label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {hardSkills.map((skill, idx) => (
-                      <Badge key={idx} variant="secondary">{skill}</Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {softSkills.length > 0 && (
-                <div>
-                  <Label>Soft Skills (Comportamentais)</Label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {softSkills.map((skill, idx) => (
-                      <Badge key={idx} variant="outline">{skill}</Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Languages */}
-        {languages.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Idiomas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {languages.map((lang, idx) => (
-                  <div key={idx} className="p-2 border rounded-md">
-                    <p className="font-medium">{lang.name}</p>
-                    {lang.proficiency && <p className="text-sm text-muted-foreground">{lang.proficiency}</p>}
+        <Card>
+          <CardHeader>
+            <CardTitle>Formação Acadêmica</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {education.length > 0 ? (
+              <div className="space-y-3">
+                {education.map((edu, idx) => (
+                  <div key={idx} className="p-3 border rounded-lg bg-muted/30">
+                    <p className="font-medium">{edu.degree}</p>
+                    {edu.field && <p className="text-sm text-muted-foreground">{edu.field}</p>}
+                    <p className="text-sm text-muted-foreground">{edu.institution}</p>
+                    {edu.start_date && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {edu.start_date} - {edu.status === 'in_progress' ? 'Em andamento' : edu.end_date || 'Concluído'}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        )}
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhuma formação extraída. Faça upload do currículo para preencher automaticamente.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Skills */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Habilidades</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {hardSkills.length > 0 ? (
+              <div>
+                <Label className="text-sm font-medium">Hard Skills (Técnicas)</Label>
+                <div className="flex flex-wrap gap-2 mt-2 p-3 border rounded-lg bg-muted/30">
+                  {hardSkills.map((skill, idx) => (
+                    <Badge key={idx} variant="secondary">{skill}</Badge>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <Label className="text-sm font-medium">Hard Skills (Técnicas)</Label>
+                <p className="text-sm text-muted-foreground mt-2">Nenhuma habilidade técnica extraída. Faça upload do currículo.</p>
+              </div>
+            )}
+            {softSkills.length > 0 ? (
+              <div>
+                <Label className="text-sm font-medium">Soft Skills (Comportamentais)</Label>
+                <div className="flex flex-wrap gap-2 mt-2 p-3 border rounded-lg bg-muted/30">
+                  {softSkills.map((skill, idx) => (
+                    <Badge key={idx} variant="outline">{skill}</Badge>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <Label className="text-sm font-medium">Soft Skills (Comportamentais)</Label>
+                <p className="text-sm text-muted-foreground mt-2">Nenhuma habilidade comportamental extraída. Faça upload do currículo.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Languages */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Idiomas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {languages.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {languages.map((lang, idx) => (
+                  <div key={idx} className="p-3 border rounded-lg bg-muted/30">
+                    <p className="font-medium text-sm">{lang.name}</p>
+                    {lang.proficiency && <p className="text-xs text-muted-foreground">{lang.proficiency}</p>}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum idioma extraído. Faça upload do currículo para preencher automaticamente.</p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Certifications */}
-        {certifications.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Certificações</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {certifications.map((cert, idx) => (
-                <div key={idx} className="p-2 border rounded-md">
-                  <p className="font-medium">{cert.name}</p>
-                  {cert.issuer && <p className="text-sm text-muted-foreground">{cert.issuer}</p>}
-                  {cert.issue_date && <p className="text-xs text-muted-foreground">{cert.issue_date}</p>}
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Certificações</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {certifications.length > 0 ? (
+              <div className="space-y-2">
+                {certifications.map((cert, idx) => (
+                  <div key={idx} className="p-3 border rounded-lg bg-muted/30">
+                    <p className="font-medium text-sm">{cert.name}</p>
+                    {cert.issuer && <p className="text-xs text-muted-foreground">{cert.issuer}</p>}
+                    {cert.issue_date && <p className="text-xs text-muted-foreground">Emitido em: {cert.issue_date}</p>}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhuma certificação extraída. Faça upload do currículo para preencher automaticamente.</p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Projects */}
-        {projects.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Projetos</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {projects.map((proj, idx) => (
-                <div key={idx} className="p-3 border rounded-md bg-muted/30">
-                  <p className="font-medium">{proj.name}</p>
-                  {proj.description && <p className="text-sm">{proj.description}</p>}
-                  {proj.link && <a href={proj.link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">{proj.link}</a>}
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Projetos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {projects.length > 0 ? (
+              <div className="space-y-3">
+                {projects.map((proj, idx) => (
+                  <div key={idx} className="p-3 border rounded-lg bg-muted/30">
+                    <p className="font-medium">{proj.name}</p>
+                    {proj.description && <p className="text-sm mt-1">{proj.description}</p>}
+                    {proj.link && (
+                      <a 
+                        href={proj.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-xs text-primary hover:underline mt-1 inline-block"
+                      >
+                        {proj.link}
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum projeto extraído. Faça upload do currículo para preencher automaticamente.</p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Links */}
         <Card>
@@ -381,22 +438,38 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
           <CardContent className="space-y-3">
             <div>
               <Label htmlFor="linkedin_url">LinkedIn</Label>
-              <Input id="linkedin_url" {...form.register('linkedin_url')} placeholder="https://linkedin.com/in/..." />
+              <Input 
+                id="linkedin_url" 
+                {...form.register('linkedin_url')} 
+                placeholder="https://linkedin.com/in/seu-perfil" 
+              />
             </div>
             <div>
               <Label htmlFor="github_url">GitHub</Label>
-              <Input id="github_url" {...form.register('github_url')} placeholder="https://github.com/..." />
+              <Input 
+                id="github_url" 
+                {...form.register('github_url')} 
+                placeholder="https://github.com/seu-usuario" 
+              />
             </div>
             <div>
               <Label htmlFor="portfolio_url">Portfolio / Site Pessoal</Label>
-              <Input id="portfolio_url" {...form.register('portfolio_url')} placeholder="https://..." />
+              <Input 
+                id="portfolio_url" 
+                {...form.register('portfolio_url')} 
+                placeholder="https://seu-portfolio.com" 
+              />
             </div>
           </CardContent>
         </Card>
 
         <div className="flex justify-between pt-4">
-          <Button variant="outline" type="button" onClick={onBack} disabled={isLoading}>Voltar</Button>
-          <Button type="submit" disabled={form.formState.isSubmitting || isLoading}>Continuar</Button>
+          <Button variant="outline" type="button" onClick={onBack} disabled={isLoading}>
+            Voltar
+          </Button>
+          <Button type="submit" disabled={form.formState.isSubmitting || isLoading}>
+            Continuar
+          </Button>
         </div>
       </form>
     </div>
