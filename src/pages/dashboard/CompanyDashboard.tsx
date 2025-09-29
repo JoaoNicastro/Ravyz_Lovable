@@ -5,11 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useToast } from '@/hooks/use-toast';
 import { MatchRadarChart } from '@/components/MatchRadarChart';
 import { Notifications } from '@/components/Notifications';
 import { UserDropdown } from '@/components/UserDropdown';
-import { CheckCircle, XCircle, User, MapPin, Briefcase, LayoutDashboard, Briefcase as BriefcaseIcon } from 'lucide-react';
+import { CheckCircle, XCircle, User, MapPin, Briefcase, LayoutDashboard, Briefcase as BriefcaseIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import ravyzLogo from '@/assets/ravyz-logo.png';
 import { CreateJobDialog } from '@/components/CreateJobDialog';
 
@@ -42,6 +43,8 @@ export default function CompanyDashboard() {
   const [matches, setMatches] = useState<MatchResult[]>([]);
   const [companyProfile, setCompanyProfile] = useState<any>(null);
   const [jobs, setJobs] = useState<any[]>([]);
+  const [jobMatches, setJobMatches] = useState<Record<string, MatchResult[]>>({});
+  const [expandedJobs, setExpandedJobs] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -112,6 +115,58 @@ export default function CompanyDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadJobMatches = async (jobId: string) => {
+    try {
+      const { data: matchData, error } = await supabase
+        .from('matching_results')
+        .select(`
+          *,
+          candidate_profiles (
+            id,
+            headline,
+            location,
+            years_experience,
+            archetype,
+            pillar_scores,
+            avatar_url
+          ),
+          jobs (
+            id,
+            title,
+            archetype,
+            pillar_scores
+          )
+        `)
+        .eq('job_id', jobId)
+        .order('match_percentage', { ascending: false });
+
+      if (error) throw error;
+
+      setJobMatches(prev => ({
+        ...prev,
+        [jobId]: matchData || []
+      }));
+    } catch (error) {
+      console.error('Error loading job matches:', error);
+    }
+  };
+
+  const toggleJobExpanded = async (jobId: string) => {
+    const newExpanded = new Set(expandedJobs);
+    
+    if (newExpanded.has(jobId)) {
+      newExpanded.delete(jobId);
+    } else {
+      newExpanded.add(jobId);
+      // Load matches if not already loaded
+      if (!jobMatches[jobId]) {
+        await loadJobMatches(jobId);
+      }
+    }
+    
+    setExpandedJobs(newExpanded);
   };
 
   const handleFeedback = async (matchId: string, candidateId: string, jobId: string, feedback: 'advance' | 'reject') => {
@@ -365,46 +420,183 @@ export default function CompanyDashboard() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {jobs.map((job) => (
-                <Card key={job.id} className="flex flex-col">
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-lg line-clamp-2">{job.title}</CardTitle>
-                      <Badge variant={job.status === 'active' ? 'default' : 'secondary'}>
-                        {job.status === 'active' ? 'Ativa' : 'Inativa'}
-                      </Badge>
-                    </div>
-                    <CardDescription className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4" />
-                      {job.location}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-1 space-y-3">
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {job.description}
-                    </p>
-                    
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="w-4 h-4 text-muted-foreground" />
-                        <span className="capitalize">{job.work_model}</span>
-                      </div>
-                      
-                      {(job.salary_min || job.salary_max) && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">💰</span>
-                          <span>
-                            {job.salary_min && `R$ ${job.salary_min.toLocaleString()}`}
-                            {job.salary_min && job.salary_max && ' - '}
-                            {job.salary_max && `R$ ${job.salary_max.toLocaleString()}`}
-                          </span>
+            <div className="grid grid-cols-1 gap-4">
+              {jobs.map((job) => {
+                const isExpanded = expandedJobs.has(job.id);
+                const matches = jobMatches[job.id] || [];
+                
+                return (
+                  <Collapsible
+                    key={job.id}
+                    open={isExpanded}
+                    onOpenChange={() => toggleJobExpanded(job.id)}
+                  >
+                    <Card>
+                      <CollapsibleTrigger className="w-full">
+                        <CardHeader>
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 text-left">
+                              <CardTitle className="text-lg flex items-center gap-2">
+                                {job.title}
+                                {isExpanded ? (
+                                  <ChevronUp className="w-5 h-5" />
+                                ) : (
+                                  <ChevronDown className="w-5 h-5" />
+                                )}
+                              </CardTitle>
+                              <CardDescription className="flex items-center gap-2 mt-1">
+                                <MapPin className="w-4 h-4" />
+                                {job.location || 'Localização não informada'}
+                              </CardDescription>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={job.status === 'active' ? 'default' : 'secondary'}>
+                                {job.status === 'active' ? 'Ativa' : 'Inativa'}
+                              </Badge>
+                              {isExpanded && matches.length > 0 && (
+                                <Badge variant="outline">
+                                  {matches.length} candidato{matches.length !== 1 ? 's' : ''}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </CardHeader>
+                      </CollapsibleTrigger>
+
+                      <CardContent className="space-y-3 pt-0">
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {job.description}
+                        </p>
+                        
+                        <div className="flex items-center gap-4 text-sm flex-wrap">
+                          <div className="flex items-center gap-2">
+                            <Briefcase className="w-4 h-4 text-muted-foreground" />
+                            <span className="capitalize">{job.work_model}</span>
+                          </div>
+                          
+                          {(job.salary_min || job.salary_max) && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground">💰</span>
+                              <span>
+                                {job.salary_min && `R$ ${job.salary_min.toLocaleString()}`}
+                                {job.salary_min && job.salary_max && ' - '}
+                                {job.salary_max && `R$ ${job.salary_max.toLocaleString()}`}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+
+                        <CollapsibleContent>
+                          <div className="mt-6 pt-6 border-t space-y-4">
+                            <h4 className="font-semibold text-lg">Candidatos Compatíveis</h4>
+                            
+                            {matches.length === 0 ? (
+                              <p className="text-sm text-muted-foreground">
+                                Nenhum candidato compatível ainda.
+                              </p>
+                            ) : (
+                              <div className="space-y-4">
+                                {matches.map((match) => (
+                                  <Card key={match.id} className="overflow-hidden">
+                                    <CardHeader className="pb-3">
+                                      <div className="flex justify-between items-start">
+                                        <div className="flex-1">
+                                          <CardTitle className="text-base flex items-center gap-2">
+                                            {match.candidate_profiles.avatar_url && (
+                                              <img 
+                                                src={match.candidate_profiles.avatar_url} 
+                                                alt="Candidate"
+                                                className="w-6 h-6 rounded-full object-cover"
+                                              />
+                                            )}
+                                            <User className="w-4 h-4" />
+                                            {match.candidate_profiles.headline || 'Candidato'}
+                                          </CardTitle>
+                                          {match.candidate_profiles.location && (
+                                            <CardDescription className="flex items-center gap-1 mt-1">
+                                              <MapPin className="w-3 h-3" />
+                                              {match.candidate_profiles.location}
+                                            </CardDescription>
+                                          )}
+                                        </div>
+                                        <Badge 
+                                          className={`${getMatchBadgeColor(match.match_percentage)} text-white`}
+                                        >
+                                          {match.match_percentage}% Match
+                                        </Badge>
+                                      </div>
+                                    </CardHeader>
+
+                                    <CardContent className="space-y-3 pt-0">
+                                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Briefcase className="w-3 h-3" />
+                                        {match.candidate_profiles.years_experience} anos de experiência
+                                      </div>
+
+                                      {match.candidate_profiles.pillar_scores && job.pillar_scores && (
+                                        <div className="mt-3">
+                                          <MatchRadarChart
+                                            candidatePillars={match.candidate_profiles.pillar_scores}
+                                            jobPillars={job.pillar_scores}
+                                          />
+                                        </div>
+                                      )}
+
+                                      {match.explanation && (
+                                        <p className="text-xs text-muted-foreground">
+                                          {match.explanation}
+                                        </p>
+                                      )}
+
+                                      <div className="flex gap-2 pt-2">
+                                        {match.feedback_status ? (
+                                          <Badge variant="secondary" className="text-xs">
+                                            {match.feedback_status === 'advance' ? '✅ Aprovado' : '❌ Rejeitado'}
+                                          </Badge>
+                                        ) : (
+                                          <>
+                                            <Button
+                                              size="sm"
+                                              onClick={() => handleFeedback(
+                                                match.id, 
+                                                match.candidate_profiles.id, 
+                                                job.id, 
+                                                'advance'
+                                              )}
+                                              className="flex items-center gap-1"
+                                            >
+                                              <CheckCircle className="w-3 h-3" />
+                                              Avançar
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={() => handleFeedback(
+                                                match.id, 
+                                                match.candidate_profiles.id, 
+                                                job.id, 
+                                                'reject'
+                                              )}
+                                              className="flex items-center gap-1"
+                                            >
+                                              <XCircle className="w-3 h-3" />
+                                              Rejeitar
+                                            </Button>
+                                          </>
+                                        )}
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </CollapsibleContent>
+                      </CardContent>
+                    </Card>
+                  </Collapsible>
+                );
+              })}
             </div>
           )}
         </TabsContent>
