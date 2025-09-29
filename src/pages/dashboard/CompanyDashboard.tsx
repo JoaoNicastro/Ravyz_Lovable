@@ -40,6 +40,7 @@ export default function CompanyDashboard() {
   const { toast } = useToast();
   const [matches, setMatches] = useState<MatchResult[]>([]);
   const [companyProfile, setCompanyProfile] = useState<any>(null);
+  const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -63,6 +64,16 @@ export default function CompanyDashboard() {
 
       if (profileError) throw profileError;
       setCompanyProfile(profile);
+
+      // Get company jobs
+      const { data: jobsData, error: jobsError } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('company_id', profile.id)
+        .order('created_at', { ascending: false });
+
+      if (jobsError) throw jobsError;
+      setJobs(jobsData || []);
 
       // Get matches for company jobs
       const { data: matchData, error: matchError } = await supabase
@@ -192,6 +203,65 @@ export default function CompanyDashboard() {
         </div>
       </div>
 
+      {/* Jobs Section */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold mb-4">Minhas Vagas</h2>
+        {jobs.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <h3 className="text-lg font-semibold mb-2">Nenhuma vaga criada</h3>
+              <p className="text-muted-foreground mb-4">
+                Crie sua primeira vaga para começar a receber candidatos!
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {jobs.map((job) => (
+              <Card key={job.id} className="flex flex-col">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-lg line-clamp-2">{job.title}</CardTitle>
+                    <Badge variant={job.status === 'active' ? 'default' : 'secondary'}>
+                      {job.status === 'active' ? 'Ativa' : 'Inativa'}
+                    </Badge>
+                  </div>
+                  <CardDescription className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    {job.location}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 space-y-3">
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {job.description}
+                  </p>
+                  
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-muted-foreground" />
+                      <span className="capitalize">{job.work_model}</span>
+                    </div>
+                    
+                    {(job.salary_min || job.salary_max) && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">💰</span>
+                        <span>
+                          {job.salary_min && `R$ ${job.salary_min.toLocaleString()}`}
+                          {job.salary_min && job.salary_max && ' - '}
+                          {job.salary_max && `R$ ${job.salary_max.toLocaleString()}`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Matches Section */}
+      <h2 className="text-2xl font-bold mb-4">Candidatos Compatíveis</h2>
       {matches.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center">
