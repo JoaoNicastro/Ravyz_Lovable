@@ -626,6 +626,10 @@ export type Database = {
         Args: { "": string } | { "": unknown }
         Returns: unknown
       }
+      company_has_active_jobs: {
+        Args: { _company_id: string }
+        Returns: boolean
+      }
       get_current_user_candidate_profile_id: {
         Args: Record<PropertyKey, never>
         Returns: string
