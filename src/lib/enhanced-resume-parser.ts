@@ -6,6 +6,7 @@ export interface ParsedResumeData {
   phone?: string;
   date_of_birth?: string;
   location?: string;
+  skills?: string[];
 }
 
 // Configure PDF.js worker
@@ -246,6 +247,73 @@ function cleanPhoneNumber(phone: string): string {
     .trim();
 }
 
+function extractSkills(textItems: TextItem[]): string[] {
+  const skills: Set<string> = new Set();
+  const fullText = textItems.map(item => item.text).join(' ').toLowerCase();
+
+  // Common tech skills and keywords
+  const techSkills = [
+    'javascript', 'typescript', 'react', 'vue', 'angular', 'node.js', 'nodejs', 'python', 'java', 'c++', 'c#',
+    'html', 'css', 'sass', 'scss', 'tailwind', 'bootstrap', 'sql', 'mysql', 'postgresql', 'mongodb', 'firebase',
+    'git', 'docker', 'kubernetes', 'aws', 'azure', 'gcp', 'api', 'rest', 'restful', 'graphql', 'redis',
+    'express', 'nestjs', 'django', 'flask', 'spring', 'laravel', 'php', 'ruby', 'rails', 'golang', 'go',
+    'terraform', 'jenkins', 'ci/cd', 'agile', 'scrum', 'jira', 'figma', 'adobe', 'photoshop',
+    'illustrator', 'excel', 'powerpoint', 'word', 'office', 'leadership', 'management', 'communication',
+    'teamwork', 'problem solving', 'analytical', 'creative', 'strategic', 'planning', 'project management',
+    'marketing', 'sales', 'customer service', 'design', 'ux', 'ui', 'machine learning', 'ai', 'data science',
+    'analytics', 'tableau', 'power bi', 'r', 'matlab', 'stata', 'sas', 'linux', 'windows', 'macos',
+    'mobile', 'ios', 'android', 'react native', 'flutter', 'swift', 'kotlin', 'blockchain', 'web3',
+    'solidity', 'rust', 'testing', 'jest', 'cypress', 'selenium', 'junit', 'devops', 'monitoring',
+    'elasticsearch', 'kafka', 'rabbitmq', 'microservices', 'serverless', 'lambda', 'cloud', 'networking',
+    'security', 'penetration testing', 'ethical hacking', 'compliance', 'gdpr', 'finance', 'accounting',
+    'budgeting', 'forecasting', 'seo', 'sem', 'content', 'writing', 'copywriting', 'translation',
+    'next.js', 'nextjs', 'vue.js', 'nuxt', 'svelte', 'redux', 'mobx', 'webpack', 'vite', 'babel',
+    'postgres', 'sqlite', 'dynamodb', 'cassandra', 'redis', 'memcached', 'nginx', 'apache',
+  ];
+
+  // Find skills section first
+  let skillsSection = '';
+  const skillsPatterns = [
+    /(?:skills|habilidades|competências|technical skills|soft skills)[\s:]+([^\n]{0,1000})/gi,
+    /(?:technologies|tecnologias)[\s:]+([^\n]{0,1000})/gi,
+  ];
+
+  for (const pattern of skillsPatterns) {
+    const matches = fullText.matchAll(pattern);
+    for (const match of matches) {
+      skillsSection += ' ' + match[1];
+    }
+  }
+
+  // Extract from skills section with higher priority
+  if (skillsSection) {
+    techSkills.forEach(skill => {
+      const pattern = new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      if (pattern.test(skillsSection)) {
+        const capitalizedSkill = skill.split(' ').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+        skills.add(capitalizedSkill);
+      }
+    });
+  }
+
+  // If no skills found in dedicated section, scan full text
+  if (skills.size < 3) {
+    techSkills.forEach(skill => {
+      const pattern = new RegExp(`\\b${skill.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      if (pattern.test(fullText)) {
+        const capitalizedSkill = skill.split(' ').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+        skills.add(capitalizedSkill);
+      }
+    });
+  }
+
+  return Array.from(skills).slice(0, 20); // Limit to 20 skills
+}
+
 export async function parseResumeEnhanced(file: File): Promise<ParsedResumeData> {
   try {
     console.log('Starting enhanced resume parsing for:', file.name);
@@ -302,6 +370,12 @@ export async function parseResumeEnhanced(file: File): Promise<ParsedResumeData>
       } else {
         result.location = cleanLocation;
       }
+    }
+
+    // Extract skills
+    const extractedSkills = extractSkills(textItems);
+    if (extractedSkills.length > 0) {
+      result.skills = extractedSkills;
     }
 
     console.log('Final parsed result:', result);

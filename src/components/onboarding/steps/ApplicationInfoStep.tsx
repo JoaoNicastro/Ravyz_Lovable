@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Upload, FileText, Loader2 } from "lucide-react";
-import { parseResume, type ParsedResumeData } from "@/lib/resume-parser";
+import { parseResumeEnhanced, type ParsedResumeData } from "@/lib/enhanced-resume-parser";
 import { toast } from "sonner";
 
 const applicationInfoSchema = z.object({
@@ -60,7 +60,7 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
     setIsParsingResume(true);
     
     try {
-      const parsedData = await parseResume(file);
+      const parsedData = await parseResumeEnhanced(file);
       
       // Fill form with parsed data
       if (parsedData.full_name) {
