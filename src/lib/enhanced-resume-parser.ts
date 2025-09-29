@@ -12,8 +12,8 @@ export interface WorkExperience {
 
 export interface Education {
   institution: string;
-  degree: string;
-  field?: string;
+  major: string;
+  gpa?: string;
   start_date?: string;
   end_date?: string;
   status?: 'completed' | 'in_progress';
@@ -358,31 +358,99 @@ function extractWorkExperience(textItems: TextItem[]): WorkExperience[] {
   const experiences: WorkExperience[] = [];
   const fullText = textItems.map(item => item.text).join('\n');
   
-  const expSection = fullText.match(/(experience|work history|employment)[:\s]*\n([\s\S]*?)(?=\n[A-Z][A-Z\s]+:|$)/i);
-  if (!expSection) return experiences;
+  // Find the Experience section - more flexible pattern
+  const experienceSectionMatch = fullText.match(/(?:experience|work\s+history|employment|professional\s+experience)[:\s]*\n([\s\S]*?)(?=\n(?:education|skills|projects|certifications?|languages?|awards?|publications?)\s*[:\n]|$)/i);
+  
+  if (!experienceSectionMatch) {
+    console.log('No experience section found in resume');
+    return experiences;
+  }
 
-  const expText = expSection[2];
-  const jobBlocks = expText.split(/\n(?=[A-Z])/);
-
-  jobBlocks.forEach(block => {
-    const lines = block.split('\n').filter(l => l.trim());
-    if (lines.length < 2) return;
-
-    const titleCompany = lines[0];
-    const dateMatch = lines.find(l => /\d{4}/.test(l));
-    const description = lines.slice(1).join(' ').substring(0, 300);
-
-    experiences.push({
-      company: titleCompany.includes('|') ? titleCompany.split('|')[1]?.trim() || titleCompany : titleCompany,
-      title: titleCompany.includes('|') ? titleCompany.split('|')[0]?.trim() || titleCompany : titleCompany,
-      start_date: dateMatch?.match(/\d{4}/)?.[0],
-      end_date: dateMatch?.match(/\d{4}.*?(\d{4}|present|current)/i)?.[1],
-      current: /present|current/i.test(dateMatch || ''),
-      description: description || undefined,
-      technologies: []
-    });
-  });
-
+  const expText = experienceSectionMatch[1];
+  console.log('Found experience section text length:', expText.length);
+  
+  // Split by lines that look like job titles or companies (often bold or have dates)
+  const lines = expText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  
+  let currentExp: Partial<WorkExperience> | null = null;
+  let descriptionLines: string[] = [];
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Check if this line contains a date range (likely a job entry)
+    const datePattern = /(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{1,2}\/\d{4}|\d{4})[\s\-–—to]*(?:present|current|now|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{1,2}\/\d{4}|\d{4})?/i;
+    const hasDate = datePattern.test(line);
+    
+    // If we find a line with dates and we have a current experience, save it
+    if (hasDate && currentExp && currentExp.title) {
+      // Parse dates from the line
+      const dates = line.match(/(\d{4})/g);
+      const isCurrent = /present|current|now/i.test(line);
+      
+      if (dates && dates.length > 0) {
+        currentExp.start_date = dates[0];
+        currentExp.end_date = dates[1] || (isCurrent ? undefined : dates[0]);
+        currentExp.current = isCurrent;
+      }
+      
+      // Add description if we have any
+      if (descriptionLines.length > 0) {
+        currentExp.description = descriptionLines.join(' ').substring(0, 300);
+      }
+      
+      experiences.push(currentExp as WorkExperience);
+      currentExp = null;
+      descriptionLines = [];
+    }
+    // Check if this looks like a job title/company line (not a bullet point)
+    else if (!line.startsWith('•') && !line.startsWith('-') && !line.startsWith('*') && line.length > 5) {
+      // If we have a current experience, save it first
+      if (currentExp && currentExp.title) {
+        if (descriptionLines.length > 0) {
+          currentExp.description = descriptionLines.join(' ').substring(0, 300);
+        }
+        experiences.push(currentExp as WorkExperience);
+        descriptionLines = [];
+      }
+      
+      // Start a new experience entry
+      // Check if line contains a separator like | or – to split title and company
+      if (line.includes('|')) {
+        const parts = line.split('|').map(p => p.trim());
+        currentExp = {
+          title: parts[0] || line,
+          company: parts[1] || parts[0] || line,
+        };
+      } else if (line.includes('–') || line.includes('—')) {
+        const parts = line.split(/[–—]/).map(p => p.trim());
+        currentExp = {
+          title: parts[0] || line,
+          company: parts[1] || parts[0] || line,
+        };
+      } else if (!hasDate) {
+        // This line might be the title, next line might be company
+        currentExp = {
+          title: line,
+          company: lines[i + 1] && !datePattern.test(lines[i + 1]) ? lines[i + 1] : line,
+        };
+      }
+    }
+    // This is likely a description/bullet point
+    else if (currentExp && (line.startsWith('•') || line.startsWith('-') || line.startsWith('*'))) {
+      descriptionLines.push(line.replace(/^[•\-*]\s*/, ''));
+    }
+  }
+  
+  // Don't forget to add the last experience
+  if (currentExp && currentExp.title) {
+    if (descriptionLines.length > 0) {
+      currentExp.description = descriptionLines.join(' ').substring(0, 300);
+    }
+    experiences.push(currentExp as WorkExperience);
+  }
+  
+  console.log('Extracted experiences:', experiences.length);
   return experiences.slice(0, 10);
 }
 
@@ -391,28 +459,85 @@ function extractEducation(textItems: TextItem[]): Education[] {
   const education: Education[] = [];
   const fullText = textItems.map(item => item.text).join('\n');
   
-  const eduSection = fullText.match(/(education|academic|training)[:\s]*\n([\s\S]*?)(?=\n[A-Z][A-Z\s]+:|$)/i);
-  if (!eduSection) return education;
+  // Find the Education section - more flexible pattern
+  const eduSectionMatch = fullText.match(/(?:education|academic|training|qualifications?)[:\s]*\n([\s\S]*?)(?=\n(?:experience|work\s+history|skills|projects|certifications?|languages?|awards?)\s*[:\n]|$)/i);
+  
+  if (!eduSectionMatch) {
+    console.log('No education section found in resume');
+    return education;
+  }
 
-  const eduText = eduSection[2];
-  const eduBlocks = eduText.split(/\n(?=[A-Z])/);
-
-  eduBlocks.forEach(block => {
-    const lines = block.split('\n').filter(l => l.trim());
-    if (lines.length < 1) return;
-
-    const degreeMatch = lines.find(l => /(bachelor|master|phd|diploma|degree)/i.test(l));
-    const dateMatch = lines.find(l => /\d{4}/.test(l));
-
-    education.push({
-      institution: lines[0].trim(),
-      degree: degreeMatch?.trim() || lines[0].trim(),
-      start_date: dateMatch?.match(/\d{4}/)?.[0],
-      end_date: dateMatch?.match(/\d{4}.*?(\d{4}|present|current)/i)?.[1],
-      status: /present|current|ongoing/i.test(dateMatch || '') ? 'in_progress' : 'completed'
-    });
-  });
-
+  const eduText = eduSectionMatch[1];
+  console.log('Found education section text length:', eduText.length);
+  
+  const lines = eduText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  
+  let currentEdu: Partial<Education> | null = null;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    
+    // Check if this line contains dates
+    const datePattern = /(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{1,2}\/\d{4}|\d{4})[\s\-–—to]*(?:present|current|now|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|\d{1,2}\/\d{4}|\d{4})?/i;
+    const hasDate = datePattern.test(line);
+    
+    // Check if line contains GPA
+    const gpaMatch = line.match(/gpa[:\s]*(\d+\.?\d*)/i);
+    
+    // Check if this looks like a degree
+    const isDegree = /bachelor|master|phd|doctorate|diploma|degree|b\.?s\.?|m\.?s\.?|b\.?a\.?|m\.?a\.?|associate/i.test(line);
+    
+    // If we find dates and have a current education entry, finalize it
+    if (hasDate && currentEdu && currentEdu.institution) {
+      const dates = line.match(/(\d{4})/g);
+      const isCurrent = /present|current|now|ongoing/i.test(line);
+      
+      if (dates && dates.length > 0) {
+        currentEdu.start_date = dates[0];
+        currentEdu.end_date = dates[1] || (isCurrent ? undefined : dates[0]);
+        currentEdu.status = isCurrent ? 'in_progress' : 'completed';
+      }
+      
+      education.push(currentEdu as Education);
+      currentEdu = null;
+    }
+    // If this looks like an institution name (longer text, not a degree)
+    else if (!hasDate && !isDegree && line.length > 10 && !gpaMatch) {
+      // Save previous education if exists
+      if (currentEdu && currentEdu.institution) {
+        education.push(currentEdu as Education);
+      }
+      
+      // Start new education entry
+      currentEdu = {
+        institution: line,
+        major: '',
+        status: 'completed'
+      };
+    }
+    // If this looks like a degree line
+    else if (isDegree && currentEdu) {
+      // Extract major/field from degree line
+      const degreeText = line.replace(/gpa[:\s]*\d+\.?\d*/i, '').trim();
+      currentEdu.major = degreeText;
+      
+      // Check for GPA
+      if (gpaMatch) {
+        currentEdu.gpa = gpaMatch[1];
+      }
+    }
+    // Standalone GPA line
+    else if (gpaMatch && currentEdu) {
+      currentEdu.gpa = gpaMatch[1];
+    }
+  }
+  
+  // Don't forget the last education entry
+  if (currentEdu && currentEdu.institution) {
+    education.push(currentEdu as Education);
+  }
+  
+  console.log('Extracted education entries:', education.length);
   return education.slice(0, 5);
 }
 
