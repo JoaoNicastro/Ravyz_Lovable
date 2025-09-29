@@ -51,11 +51,28 @@ interface Application {
   };
 }
 
+interface Job {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  salary_min?: number;
+  salary_max?: number;
+  archetype: string;
+  pillar_scores: any;
+  status: string;
+  company_profiles: {
+    company_name: string;
+    logo_url?: string;
+  };
+}
+
 export default function CandidateDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [matches, setMatches] = useState<MatchResult[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [candidateProfile, setCandidateProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -135,6 +152,22 @@ export default function CandidateDashboard() {
 
       if (applicationsError) throw applicationsError;
       setApplications(applicationsData || []);
+
+      // Get all active jobs
+      const { data: jobsData, error: jobsError } = await supabase
+        .from('jobs')
+        .select(`
+          *,
+          company_profiles (
+            company_name,
+            logo_url
+          )
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (jobsError) throw jobsError;
+      setJobs(jobsData || []);
     } catch (error) {
       console.error('Error fetching candidate data:', error);
       toast({
@@ -254,10 +287,14 @@ export default function CandidateDashboard() {
       </div>
 
       <Tabs defaultValue="dashboard" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-2xl grid-cols-3">
           <TabsTrigger value="dashboard" className="flex items-center gap-2">
             <LayoutDashboard className="w-4 h-4" />
             Matches
+          </TabsTrigger>
+          <TabsTrigger value="vagas" className="flex items-center gap-2">
+            <Building className="w-4 h-4" />
+            Vagas
           </TabsTrigger>
           <TabsTrigger value="candidaturas" className="flex items-center gap-2">
             <FileText className="w-4 h-4" />
@@ -385,6 +422,91 @@ export default function CandidateDashboard() {
                             </Button>
                           </>
                         )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Vagas Tab */}
+        <TabsContent value="vagas" className="space-y-6 mt-6">
+          <div>
+            <h2 className="text-2xl font-bold mb-4">Vagas Disponíveis</h2>
+            {jobs.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <h3 className="text-lg font-semibold mb-2">Nenhuma vaga disponível</h3>
+                  <p className="text-muted-foreground">
+                    Novas vagas aparecerão aqui quando forem publicadas.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {jobs.map((job) => (
+                  <Card key={job.id}>
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <CardTitle className="flex items-center gap-3">
+                            {job.company_profiles.logo_url && (
+                              <img 
+                                src={job.company_profiles.logo_url} 
+                                alt={job.company_profiles.company_name}
+                                className="w-8 h-8 rounded-full object-cover"
+                              />
+                            )}
+                            {job.title}
+                          </CardTitle>
+                          <CardDescription className="flex items-center gap-2 mt-1">
+                            <Building className="w-4 h-4" />
+                            {job.company_profiles.company_name}
+                            {job.location && (
+                              <>
+                                <MapPin className="w-4 h-4 ml-2" />
+                                {job.location}
+                              </>
+                            )}
+                          </CardDescription>
+                        </div>
+                        {job.archetype && (
+                          <Badge variant="outline">
+                            {job.archetype}
+                          </Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="space-y-4">
+                      {(job.salary_min || job.salary_max) && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <DollarSign className="w-4 h-4" />
+                          {job.salary_min && job.salary_max
+                            ? `R$ ${job.salary_min.toLocaleString()} - R$ ${job.salary_max.toLocaleString()}`
+                            : job.salary_min
+                            ? `A partir de R$ ${job.salary_min.toLocaleString()}`
+                            : `Até R$ ${job.salary_max.toLocaleString()}`
+                          }
+                        </div>
+                      )}
+
+                      {job.description && (
+                        <div>
+                          <h4 className="font-medium text-sm mb-1">Descrição da Vaga</h4>
+                          <p className="text-sm text-muted-foreground line-clamp-3">
+                            {job.description}
+                          </p>
+                        </div>
+                      )}
+
+                      <div className="flex gap-3 pt-2">
+                        <Button className="flex items-center gap-2">
+                          <ThumbsUp className="w-4 h-4" />
+                          Candidatar-se
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
