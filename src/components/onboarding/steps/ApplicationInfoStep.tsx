@@ -487,43 +487,51 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Manual Education Entry */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Adicionar Formação</Label>
-              <div className="grid grid-cols-1 gap-3">
-                <Input 
-                  placeholder="Instituição *" 
-                  value={newEducation.institution}
-                  onChange={(e) => setNewEducation({...newEducation, institution: e.target.value})}
-                />
-                <Input 
-                  placeholder="Curso *" 
-                  value={newEducation.major}
-                  onChange={(e) => setNewEducation({...newEducation, major: e.target.value})}
-                />
-                <Input 
-                  placeholder="GPA (opcional)" 
-                  value={newEducation.gpa}
-                  onChange={(e) => setNewEducation({...newEducation, gpa: e.target.value})}
-                />
-                <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-sm font-medium mb-3 block">Adicionar Formação</Label>
+              <Card className="p-4 bg-muted/30">
+                <div className="space-y-3">
                   <Input 
-                    type="date"
-                    placeholder="Data de início"
-                    value={newEducation.start_date}
-                    onChange={(e) => setNewEducation({...newEducation, start_date: e.target.value})}
+                    placeholder="Instituição *" 
+                    value={newEducation.institution}
+                    onChange={(e) => setNewEducation({...newEducation, institution: e.target.value})}
                   />
                   <Input 
-                    type="date"
-                    placeholder="Data de fim"
-                    value={newEducation.end_date}
-                    onChange={(e) => setNewEducation({...newEducation, end_date: e.target.value})}
+                    placeholder="Curso *" 
+                    value={newEducation.major}
+                    onChange={(e) => setNewEducation({...newEducation, major: e.target.value})}
                   />
+                  <Input 
+                    placeholder="GPA (opcional)" 
+                    value={newEducation.gpa}
+                    onChange={(e) => setNewEducation({...newEducation, gpa: e.target.value})}
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="edu-start-date" className="text-xs text-muted-foreground">Data de início</Label>
+                      <Input 
+                        id="edu-start-date"
+                        type="date"
+                        value={newEducation.start_date}
+                        onChange={(e) => setNewEducation({...newEducation, start_date: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="edu-end-date" className="text-xs text-muted-foreground">Data de fim</Label>
+                      <Input 
+                        id="edu-end-date"
+                        type="date"
+                        value={newEducation.end_date}
+                        onChange={(e) => setNewEducation({...newEducation, end_date: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                  <Button type="button" onClick={addEducation} size="sm" className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Formação
+                  </Button>
                 </div>
-              </div>
-              <Button type="button" onClick={addEducation} size="sm" className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Formação
-              </Button>
+              </Card>
             </div>
 
             {education.length > 0 && (
