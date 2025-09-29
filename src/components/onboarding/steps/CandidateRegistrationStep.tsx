@@ -1,15 +1,7 @@
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import React from "react";
 import { z } from "zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { CandidateProfileForm } from "@/components/forms/CandidateProfileForm";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Upload, FileText, Loader2 } from "lucide-react";
-import { parseResumeEnhanced, type ParsedResumeData } from "@/lib/enhanced-resume-parser";
-import { toast } from "sonner";
 
 const candidateSchema = z.object({
   // Basic info fields
@@ -34,75 +26,9 @@ interface StepProps {
   data?: CandidateData;
 }
 
-const CandidateRegistrationStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data }) => {
-  const [isParsingResume, setIsParsingResume] = useState(false);
-  
-  const form = useForm<CandidateData>({
-    resolver: zodResolver(candidateSchema),
-    defaultValues: data || { 
-      full_name: "", 
-      date_of_birth: undefined, 
-      email: undefined, 
-      phone: undefined, 
-      location: undefined,
-      avatar_url: "",
-      headline: "",
-      years_experience: 0,
-      skills: [],
-    },
-  });
-
+const CandidateRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
   const handleSubmit = (formData: CandidateData) => {
     onNext(formData);
-  };
-
-  const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (file.type !== 'application/pdf') {
-      toast.error('Por favor, selecione apenas arquivos PDF');
-      return;
-    }
-
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Arquivo muito grande. Máximo 10MB permitido');
-      return;
-    }
-
-    setIsParsingResume(true);
-    
-    try {
-      const parsedData = await parseResumeEnhanced(file);
-      
-      // Fill form with parsed data
-      if (parsedData.full_name) {
-        form.setValue('full_name', parsedData.full_name);
-      }
-      if (parsedData.email) {
-        form.setValue('email', parsedData.email);
-      }
-      if (parsedData.phone) {
-        form.setValue('phone', parsedData.phone);
-      }
-      if (parsedData.date_of_birth) {
-        form.setValue('date_of_birth', parsedData.date_of_birth);
-      }
-      if (parsedData.location) {
-        form.setValue('location', parsedData.location);
-      }
-
-      toast.success('Currículo analisado com sucesso! Dados preenchidos automaticamente.');
-    } catch (error) {
-      console.error('Error parsing resume:', error);
-      toast.error('Erro ao analisar o currículo. Tente novamente.');
-    } finally {
-      setIsParsingResume(false);
-      // Clear the input
-      event.target.value = '';
-    }
   };
 
   return (
@@ -116,50 +42,6 @@ const CandidateRegistrationStep: React.FC<StepProps> = ({ onNext, onBack, isLoad
         </p>
       </div>
 
-      {/* Resume Upload Section */}
-      <Card className="border-dashed">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Upload className="h-5 w-5" />
-            Upload de Currículo (Opcional)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Faça upload do seu currículo em PDF para preenchimento automático inteligente dos dados
-            </p>
-            
-            <div className="flex items-center gap-4">
-              <Label htmlFor="resume-upload" className="cursor-pointer">
-                <Button variant="outline" asChild disabled={isParsingResume}>
-                  <span className="flex items-center gap-2">
-                    {isParsingResume ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <FileText className="h-4 w-4" />
-                    )}
-                    {isParsingResume ? 'Analisando com IA...' : 'Selecionar PDF'}
-                  </span>
-                </Button>
-              </Label>
-              
-              <Input
-                id="resume-upload"
-                type="file"
-                accept=".pdf"
-                onChange={handleResumeUpload}
-                className="hidden"
-                disabled={isParsingResume}
-              />
-              
-              <span className="text-xs text-muted-foreground">
-                Máximo 10MB • Análise inteligente de currículo
-              </span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       <CandidateProfileForm
         onSubmit={handleSubmit}
