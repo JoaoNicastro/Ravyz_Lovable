@@ -90,7 +90,7 @@ const BIRTH_DATE_FEATURE_SETS: FeatureSet[] = [
 
 async function readPdfEnhanced(file: File): Promise<TextItem[]> {
   const arrayBuffer = await file.arrayBuffer();
-  const pdfDoc = await pdfjsLib.getDocument(arrayBuffer).promise;
+  const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
   let textItems: TextItem[] = [];
 
   for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {

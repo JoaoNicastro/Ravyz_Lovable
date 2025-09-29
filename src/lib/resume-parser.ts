@@ -37,7 +37,7 @@ export async function extractTextFromPDF(file: File): Promise<string> {
     const arrayBuffer = await file.arrayBuffer();
     console.log('Successfully converted file to arrayBuffer');
     
-    const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
     console.log('PDF document loaded, pages:', pdf.numPages);
     
     let fullText = '';
