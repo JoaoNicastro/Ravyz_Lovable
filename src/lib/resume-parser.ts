@@ -12,6 +12,7 @@ export interface ParsedResumeData {
   email?: string;
   phone?: string;
   date_of_birth?: string;
+  skills?: string[];
 }
 
 // Email pattern
@@ -120,7 +121,64 @@ export function extractPersonalInfo(text: string): ParsedResumeData {
     }
   }
 
+  // Extract skills
+  result.skills = extractSkills(text);
+
   return result;
+}
+
+function extractSkills(text: string): string[] {
+  const skills: Set<string> = new Set();
+  const lowerText = text.toLowerCase();
+
+  // Common tech skills and keywords
+  const techSkills = [
+    'javascript', 'typescript', 'react', 'vue', 'angular', 'node.js', 'nodejs', 'python', 'java', 'c++', 'c#',
+    'html', 'css', 'sass', 'tailwind', 'bootstrap', 'sql', 'mysql', 'postgresql', 'mongodb', 'firebase',
+    'git', 'docker', 'kubernetes', 'aws', 'azure', 'gcp', 'api', 'rest', 'graphql', 'redis',
+    'express', 'nestjs', 'django', 'flask', 'spring', 'laravel', 'php', 'ruby', 'rails', 'golang', 'go',
+    'terraform', 'jenkins', 'ci/cd', 'agile', 'scrum', 'jira', 'figma', 'adobe', 'photoshop',
+    'illustrator', 'excel', 'powerpoint', 'word', 'office', 'leadership', 'management', 'communication',
+    'teamwork', 'problem solving', 'analytical', 'creative', 'strategic', 'planning', 'project management',
+    'marketing', 'sales', 'customer service', 'design', 'ux', 'ui', 'machine learning', 'ai', 'data science',
+    'analytics', 'tableau', 'power bi', 'r', 'matlab', 'stata', 'sas', 'linux', 'windows', 'macos',
+    'mobile', 'ios', 'android', 'react native', 'flutter', 'swift', 'kotlin', 'blockchain', 'web3',
+    'solidity', 'rust', 'testing', 'jest', 'cypress', 'selenium', 'junit', 'devops', 'monitoring',
+    'elasticsearch', 'kafka', 'rabbitmq', 'microservices', 'serverless', 'lambda', 'cloud', 'networking',
+    'security', 'penetration testing', 'ethical hacking', 'compliance', 'gdpr', 'finance', 'accounting',
+    'budgeting', 'forecasting', 'seo', 'sem', 'content', 'writing', 'copywriting', 'translation',
+    'languages', 'english', 'spanish', 'french', 'german', 'portuguese', 'mandarin', 'japanese',
+  ];
+
+  // Check for skills section
+  const skillsSectionMatch = lowerText.match(/(?:habilidades|skills|competências|technical skills|soft skills)[\s:]+([^\n]{0,500})/i);
+  if (skillsSectionMatch) {
+    const skillsSection = skillsSectionMatch[1];
+    // Extract skills from this section
+    techSkills.forEach(skill => {
+      if (skillsSection.includes(skill.toLowerCase())) {
+        // Capitalize first letter of each word
+        const capitalizedSkill = skill.split(' ').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+        skills.add(capitalizedSkill);
+      }
+    });
+  }
+
+  // Also scan entire document for skills
+  if (skills.size === 0) {
+    techSkills.forEach(skill => {
+      if (lowerText.includes(skill.toLowerCase())) {
+        const capitalizedSkill = skill.split(' ').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+        skills.add(capitalizedSkill);
+      }
+    });
+  }
+
+  return Array.from(skills).slice(0, 15); // Limit to 15 skills to avoid overwhelming
 }
 
 export async function parseResume(file: File): Promise<ParsedResumeData> {

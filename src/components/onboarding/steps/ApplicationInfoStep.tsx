@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Upload, FileText, Loader2 } from "lucide-react";
 import { parseResume, type ParsedResumeData } from "@/lib/resume-parser";
 import { toast } from "sonner";
@@ -15,6 +16,7 @@ const applicationInfoSchema = z.object({
   date_of_birth: z.string().optional(),
   email: z.string().email("Email inválido").optional(),
   phone: z.string().optional(),
+  skills: z.array(z.string()).optional(),
 });
 
 type ApplicationInfoData = z.infer<typeof applicationInfoSchema>;
@@ -28,10 +30,11 @@ interface StepProps {
 
 const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = false, data }) => {
   const [isParsingResume, setIsParsingResume] = useState(false);
+  const [extractedSkills, setExtractedSkills] = useState<string[]>([]);
   
   const form = useForm<ApplicationInfoData>({
     resolver: zodResolver(applicationInfoSchema),
-    defaultValues: data || { full_name: "", date_of_birth: undefined, email: undefined, phone: undefined },
+    defaultValues: data || { full_name: "", date_of_birth: undefined, email: undefined, phone: undefined, skills: [] },
   });
 
   const submit = (values: ApplicationInfoData) => {
@@ -76,6 +79,10 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
           const formattedDate = date.toISOString().split('T')[0];
           form.setValue('date_of_birth', formattedDate);
         }
+      }
+      if (parsedData.skills && parsedData.skills.length > 0) {
+        setExtractedSkills(parsedData.skills);
+        form.setValue('skills', parsedData.skills);
       }
 
       toast.success('Currículo analisado com sucesso! Dados preenchidos automaticamente.');
@@ -168,6 +175,23 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
               <Label htmlFor="phone">Telefone</Label>
               <Input id="phone" {...form.register('phone')} placeholder="(xx) xxxxx-xxxx" />
             </div>
+
+            {extractedSkills.length > 0 && (
+              <div>
+                <Label>Principais Habilidades (extraídas do currículo)</Label>
+                <div className="flex flex-wrap gap-2 mt-2 p-3 border rounded-md bg-muted/30">
+                  {extractedSkills.map((skill, index) => (
+                    <Badge 
+                      key={index}
+                      variant="secondary"
+                      className="text-sm"
+                    >
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="flex justify-between pt-4">
               <Button variant="outline" type="button" onClick={onBack} disabled={isLoading}>Voltar</Button>
