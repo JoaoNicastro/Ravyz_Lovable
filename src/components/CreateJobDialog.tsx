@@ -16,6 +16,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -23,6 +24,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
 import {
   Select,
   SelectContent,
@@ -33,6 +35,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 
+const PILLARS = [
+  { key: 'risk', label: 'Risco', description: 'Tolerância a riscos e experimentação' },
+  { key: 'ambition', label: 'Ambição', description: 'Foco em crescimento e conquistas' },
+  { key: 'autonomy', label: 'Autonomia', description: 'Independência nas decisões' },
+  { key: 'teamwork', label: 'Trabalho em Equipe', description: 'Colaboração e cooperação' },
+  { key: 'leadership', label: 'Liderança', description: 'Capacidade de liderar e inspirar' },
+];
+
 const jobFormSchema = z.object({
   title: z.string().min(3, 'Título deve ter pelo menos 3 caracteres'),
   description: z.string().min(10, 'Descrição deve ter pelo menos 10 caracteres'),
@@ -40,6 +50,11 @@ const jobFormSchema = z.object({
   work_model: z.enum(['remote', 'hybrid', 'onsite']),
   salary_min: z.string().optional(),
   salary_max: z.string().optional(),
+  risk: z.number().min(1).max(5),
+  ambition: z.number().min(1).max(5),
+  autonomy: z.number().min(1).max(5),
+  teamwork: z.number().min(1).max(5),
+  leadership: z.number().min(1).max(5),
 });
 
 type JobFormValues = z.infer<typeof jobFormSchema>;
@@ -63,6 +78,11 @@ export function CreateJobDialog({ companyId, onJobCreated }: CreateJobDialogProp
       work_model: 'hybrid',
       salary_min: '',
       salary_max: '',
+      risk: 3,
+      ambition: 3,
+      autonomy: 3,
+      teamwork: 3,
+      leadership: 3,
     },
   });
 
@@ -78,6 +98,13 @@ export function CreateJobDialog({ companyId, onJobCreated }: CreateJobDialogProp
         salary_min: values.salary_min ? parseFloat(values.salary_min) : null,
         salary_max: values.salary_max ? parseFloat(values.salary_max) : null,
         status: 'active',
+        pillar_scores: {
+          risk: values.risk,
+          ambition: values.ambition,
+          autonomy: values.autonomy,
+          teamwork: values.teamwork,
+          leadership: values.leadership,
+        },
       });
 
       if (error) throw error;
@@ -219,6 +246,45 @@ export function CreateJobDialog({ companyId, onJobCreated }: CreateJobDialogProp
                   </FormItem>
                 )}
               />
+            </div>
+
+            <div className="space-y-4 pt-4 border-t">
+              <div>
+                <h3 className="font-semibold mb-2">Assessment da Vaga</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Avalie os pilares necessários para esta vaga (1 = mínimo, 5 = máximo)
+                </p>
+              </div>
+
+              {PILLARS.map((pillar) => (
+                <FormField
+                  key={pillar.key}
+                  control={form.control}
+                  name={pillar.key as any}
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center justify-between">
+                        <FormLabel>{pillar.label}</FormLabel>
+                        <span className="text-sm font-medium">{field.value}</span>
+                      </div>
+                      <FormControl>
+                        <Slider
+                          min={1}
+                          max={5}
+                          step={1}
+                          value={[field.value]}
+                          onValueChange={(vals) => field.onChange(vals[0])}
+                          className="w-full"
+                        />
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        {pillar.description}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ))}
             </div>
 
             <DialogFooter>
