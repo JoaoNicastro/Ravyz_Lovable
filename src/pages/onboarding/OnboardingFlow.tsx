@@ -161,21 +161,21 @@ const OnboardingFlow = () => {
       const profileData = {
         user_id: user.user.id,
         // Basic personal info from registration
-        full_name: registrationData?.full_name,
-        date_of_birth: registrationData?.date_of_birth,
-        email: registrationData?.email,
-        phone: registrationData?.phone,
+        full_name: registrationData?.full_name || null,
+        date_of_birth: registrationData?.date_of_birth?.trim() ? registrationData.date_of_birth : null,
+        email: registrationData?.email || null,
+        phone: registrationData?.phone || null,
         // Professional profile info
-        avatar_url: registrationData?.avatar_url,
-        headline: registrationData?.headline,
-        location: registrationData?.location,
-        years_experience: registrationData?.years_experience,
+        avatar_url: registrationData?.avatar_url || null,
+        headline: registrationData?.headline || null,
+        location: registrationData?.location || null,
+        years_experience: registrationData?.years_experience || null,
         skills: registrationData?.skills || [],
         // Assessment data
-        current_position: assessmentData?.current_position,
-        key_achievements: assessmentData?.achievements,
+        current_position: assessmentData?.current_position || null,
+        key_achievements: assessmentData?.achievements || null,
         preferred_roles: assessmentData?.preferred_roles || [],
-        career_goals: assessmentData?.career_goals,
+        career_goals: assessmentData?.career_goals || null,
         preferences: {
           completionLevel: 100,
           desired_role: dreamJobData?.desiredRole,
