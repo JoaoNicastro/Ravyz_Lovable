@@ -5,6 +5,7 @@ export interface ParsedResumeData {
   email?: string;
   phone?: string;
   date_of_birth?: string;
+  location?: string;
 }
 
 // Configure PDF.js worker
@@ -45,6 +46,8 @@ const matchPhone = (item: TextItem) =>
 const matchName = (item: TextItem) => item.text.match(/^[A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ][a-záéíóúàèìòùâêîôûãõç]+\s+[A-ZÁÉÍÓÚÀÈÌÒÙÂÊÎÔÛÃÕÇ][a-záéíóúàèìòùâêîôûãõç]+/);
 const matchBirthDate = (item: TextItem) => 
   item.text.match(/(?:(?:0[1-9]|[12][0-9]|3[01])\/(?:0[1-9]|1[0-2])\/(?:19|20)\d{2})|(?:(?:0[1-9]|[12][0-9]|3[01])-(?:0[1-9]|1[0-2])-(?:19|20)\d{2})/);
+const matchLocation = (item: TextItem) => 
+  item.text.match(/(?:São Paulo|Rio de Janeiro|Belo Horizonte|Salvador|Brasília|Fortaleza|Recife|Porto Alegre|Curitiba|Manaus|Belém|Goiânia|Campinas|São Luís|São Gonçalo|Maceió|Duque de Caxias|Natal|Teresina|Campo Grande|Nova Iguaçu|São Bernardo|Santos|João Pessoa|Jaboatão|Osasco|Uberlândia|Sorocaba|Contagem|Aracaju|Feira de Santana|Cuiabá|Joinville|Juiz de Fora|Londrina|Aparecida de Goiânia|Niterói|Porto Velho|Serra|Caxias do Sul|Vila Velha|Florianópolis|Diadema|Carapicuíba|Piracicaba|Olinda|Canoas|Bauru|São José dos Campos|Franca|Pelotas|Ribeirão Preto|Anápolis|Jundiaí|Maringá|São Paulo, SP|Rio de Janeiro, RJ|Belo Horizonte, MG|Salvador, BA|Brasília, DF|Fortaleza, CE|Recife, PE|Porto Alegre, RS|Curitiba, PR|Manaus, AM|Belém, PA|Goiânia, GO|Campinas, SP|São Luís, MA|SP|RJ|MG|BA|DF|CE|PE|RS|PR|AM|PA|GO|MA|AC|AL|AP|ES|MT|MS|PB|PI|RN|RO|RR|SC|SE|TO|Acre|Alagoas|Amapá|Amazonas|Bahia|Ceará|Distrito Federal|Espírito Santo|Goiás|Maranhão|Mato Grosso|Mato Grosso do Sul|Minas Gerais|Pará|Paraíba|Paraná|Pernambuco|Piauí|Rio de Janeiro|Rio Grande do Norte|Rio Grande do Sul|Rondônia|Roraima|Santa Catarina|São Paulo|Sergipe|Tocantins|Remoto|Remote)/i);
 
 // Feature checking functions
 const isBold = (item: TextItem) => item.fontName.toLowerCase().includes('bold');
@@ -89,6 +92,16 @@ const BIRTH_DATE_FEATURE_SETS: FeatureSet[] = [
   [(item: TextItem) => item.text.includes('/') || item.text.includes('-'), 1],
   // Negative features
   [hasAt, -4],
+  [hasParenthesis, -2],
+];
+
+const LOCATION_FEATURE_SETS: FeatureSet[] = [
+  [matchLocation, 4, true],
+  [(item: TextItem) => /cidade|city|localização|location|endereço|address|residência/i.test(item.text), 2],
+  [(item: TextItem) => /,\s*(SP|RJ|MG|PR|RS|SC|BA|GO|PE|CE|PA|AM|RO|AC|DF|MS|MT|TO|MA|PI|AL|SE|PB|RN|ES)/i.test(item.text), 3],
+  // Negative features
+  [hasAt, -4],
+  [hasNumber, -1],
   [hasParenthesis, -2],
 ];
 
@@ -239,8 +252,9 @@ export async function parseResumeEnhanced(file: File): Promise<ParsedResumeData>
     const [email] = getTextWithHighestFeatureScore(textItems, EMAIL_FEATURE_SETS);
     const [phone] = getTextWithHighestFeatureScore(textItems, PHONE_FEATURE_SETS);
     const [birthDate] = getTextWithHighestFeatureScore(textItems, BIRTH_DATE_FEATURE_SETS);
+    const [location] = getTextWithHighestFeatureScore(textItems, LOCATION_FEATURE_SETS);
 
-    console.log('Extracted data:', { name, email, phone, birthDate });
+    console.log('Extracted data:', { name, email, phone, birthDate, location });
 
     // Step 3: Format and validate the extracted data
     const result: ParsedResumeData = {};
@@ -262,6 +276,10 @@ export async function parseResumeEnhanced(file: File): Promise<ParsedResumeData>
       if (formattedDate) {
         result.date_of_birth = formattedDate;
       }
+    }
+
+    if (location && location.length > 2) {
+      result.location = location.trim();
     }
 
     console.log('Final parsed result:', result);

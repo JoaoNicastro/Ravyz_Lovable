@@ -10,7 +10,6 @@ import { toast } from "sonner";
 const candidateSchema = z.object({
   avatar_url: z.string().optional(),
   headline: z.string().min(1, "Título profissional é obrigatório"),
-  location: z.string().min(1, "Localização é obrigatória"),
   years_experience: z.number().min(0, "Anos de experiência deve ser um número positivo"),
 });
 

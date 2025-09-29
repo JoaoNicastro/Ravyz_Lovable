@@ -16,6 +16,7 @@ const basicInfoSchema = z.object({
   date_of_birth: z.string().optional(),
   email: z.string().email("Email inválido").optional(),
   phone: z.string().optional(),
+  location: z.string().optional(),
   // Removed education and work_experience per request
 });
 
@@ -33,7 +34,7 @@ const BasicInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data })
   
   const form = useForm<BasicInfoData>({
     resolver: zodResolver(basicInfoSchema),
-    defaultValues: data || { full_name: "", date_of_birth: undefined, email: undefined, phone: undefined },
+    defaultValues: data || { full_name: "", date_of_birth: undefined, email: undefined, phone: undefined, location: undefined },
   });
 
   const submit = (values: BasicInfoData) => {
@@ -73,6 +74,9 @@ const BasicInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data })
       }
       if (parsedData.date_of_birth) {
         form.setValue('date_of_birth', parsedData.date_of_birth);
+      }
+      if (parsedData.location) {
+        form.setValue('location', parsedData.location);
       }
 
       toast.success('Currículo analisado com sucesso! Dados preenchidos automaticamente.');
@@ -164,6 +168,11 @@ const BasicInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading, data })
             <div>
               <Label htmlFor="phone">Telefone</Label>
               <Input id="phone" {...form.register('phone')} placeholder="(xx) xxxxx-xxxx" />
+            </div>
+
+            <div>
+              <Label htmlFor="location">Localização</Label>
+              <Input id="location" {...form.register('location')} placeholder="Ex: São Paulo, SP | Rio de Janeiro, RJ | Remoto" />
             </div>
 
             {/* education and work_experience removed per request */}

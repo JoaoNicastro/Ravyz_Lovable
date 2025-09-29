@@ -14,7 +14,6 @@ import { useState } from "react";
 const candidateProfileSchema = z.object({
   avatar_url: z.string().url("URL inválida").optional().or(z.literal("")),
   headline: z.string().min(5, "Título deve ter pelo menos 5 caracteres").max(200, "Título muito longo"),
-  location: z.string().max(100, "Localização muito longa").optional(),
   years_experience: z.number().min(0, "Experiência não pode ser negativa").max(50, "Experiência muito alta"),
   skills: z.array(z.string()).min(1, "Adicione pelo menos uma habilidade"),
 });
@@ -34,7 +33,6 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
     defaultValues: {
       avatar_url: initialData?.avatar_url || "",
       headline: initialData?.headline || "",
-      location: initialData?.location || "",
       years_experience: initialData?.years_experience || 0,
       skills: initialData?.skills || [],
     }
@@ -94,14 +92,6 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
           <Input placeholder="Ex: Desenvolvedor Full Stack | Designer UI/UX | Gerente de Marketing" />
         </ReusableFormField>
 
-        {/* Location */}
-        <ReusableFormField
-          control={form.control}
-          name="location"
-          label="Localização"
-        >
-          <Input placeholder="Ex: São Paulo, SP | Rio de Janeiro, RJ | Remoto" />
-        </ReusableFormField>
 
         {/* Years of Experience */}
         <ReusableFormField
