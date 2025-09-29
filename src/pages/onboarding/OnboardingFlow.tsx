@@ -178,15 +178,15 @@ const OnboardingFlow = () => {
         career_goals: assessmentData?.career_goals,
         preferences: {
           completionLevel: 100,
-          desired_role: dreamJobData?.desired_role,
-          company_size: dreamJobData?.company_size,
-          work_model: dreamJobData?.work_model,
-          salary_min: dreamJobData?.salary_min,
-          salary_max: dreamJobData?.salary_max,
-          preferred_locations: dreamJobData?.locations || [],
-          industry_interests: dreamJobData?.industries || [],
-          deal_breakers: dreamJobData?.deal_breakers,
-          additional_preferences: dreamJobData?.additional_preferences
+          desired_role: dreamJobData?.desiredRole,
+          company_size: dreamJobData?.preferredCompanySize,
+          work_model: dreamJobData?.workModel,
+          salary_min: dreamJobData?.salaryRange?.min,
+          salary_max: dreamJobData?.salaryRange?.max,
+          preferred_locations: dreamJobData?.preferredLocations || [],
+          industry_interests: dreamJobData?.industryPreferences || [],
+          deal_breakers: dreamJobData?.dealBreakers,
+          additional_preferences: dreamJobData?.additionalPreferences
         }
       };
 
