@@ -12,6 +12,13 @@ import { ArrowRight, ArrowLeft, Upload, X, Plus } from "lucide-react";
 import { useState } from "react";
 
 const candidateProfileSchema = z.object({
+  // Basic info fields
+  full_name: z.string().min(1, "Nome é obrigatório"),
+  date_of_birth: z.string().optional(),
+  email: z.string().email("Email inválido").optional(),
+  phone: z.string().optional(),
+  location: z.string().optional(),
+  // Profile fields
   avatar_url: z.string().url("URL inválida").optional().or(z.literal("")),
   headline: z.string().min(5, "Título deve ter pelo menos 5 caracteres").max(200, "Título muito longo"),
   years_experience: z.number().min(0, "Experiência não pode ser negativa").max(50, "Experiência muito alta"),
@@ -31,6 +38,11 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
   const form = useForm<CandidateProfileFormData>({
     resolver: zodResolver(candidateProfileSchema),
     defaultValues: {
+      full_name: initialData?.full_name || "",
+      date_of_birth: initialData?.date_of_birth || "",
+      email: initialData?.email || "",
+      phone: initialData?.phone || "",
+      location: initialData?.location || "",
       avatar_url: initialData?.avatar_url || "",
       headline: initialData?.headline || "",
       years_experience: initialData?.years_experience || 0,
@@ -60,37 +72,90 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Avatar */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Foto do Perfil</label>
-          <div className="flex items-center gap-4">
-            <Avatar className="w-20 h-20">
-              <AvatarImage src={form.watch("avatar_url")} />
-              <AvatarFallback>
-                <Upload className="h-6 w-6 text-muted-foreground" />
-              </AvatarFallback>
-            </Avatar>
-            <div className="space-y-2 flex-1">
-              <ReusableFormField
-                control={form.control}
-                name="avatar_url"
-                description="Cole a URL de uma foto ou deixe em branco por agora"
-              >
-                <Input placeholder="URL da foto (opcional)" />
-              </ReusableFormField>
-            </div>
+        {/* Basic Information Fields */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Dados Pessoais</h3>
+          
+          <ReusableFormField
+            control={form.control}
+            name="full_name"
+            label="Nome completo *"
+          >
+            <Input placeholder="Seu nome completo" />
+          </ReusableFormField>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ReusableFormField
+              control={form.control}
+              name="date_of_birth"
+              label="Data de nascimento"
+            >
+              <Input type="date" />
+            </ReusableFormField>
+
+            <ReusableFormField
+              control={form.control}
+              name="email"
+              label="E-mail"
+            >
+              <Input type="email" placeholder="seu@email.com" />
+            </ReusableFormField>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ReusableFormField
+              control={form.control}
+              name="phone"
+              label="Telefone"
+            >
+              <Input placeholder="(xx) xxxxx-xxxx" />
+            </ReusableFormField>
+
+            <ReusableFormField
+              control={form.control}
+              name="location"
+              label="Localização"
+            >
+              <Input placeholder="Ex: São Paulo, SP | Rio de Janeiro, RJ | Remoto" />
+            </ReusableFormField>
           </div>
         </div>
 
-        {/* Headline */}
-        <ReusableFormField
-          control={form.control}
-          name="headline"
-          label="Título Profissional *"
-          description="Como você se apresentaria em uma frase? Seja específico e atrativo."
-        >
-          <Input placeholder="Ex: Desenvolvedor Full Stack | Designer UI/UX | Gerente de Marketing" />
-        </ReusableFormField>
+        {/* Professional Information */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Perfil Profissional</h3>
+          
+          {/* Avatar */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Foto do Perfil</label>
+            <div className="flex items-center gap-4">
+              <Avatar className="w-20 h-20">
+                <AvatarImage src={form.watch("avatar_url")} />
+                <AvatarFallback>
+                  <Upload className="h-6 w-6 text-muted-foreground" />
+                </AvatarFallback>
+              </Avatar>
+              <div className="space-y-2 flex-1">
+                <ReusableFormField
+                  control={form.control}
+                  name="avatar_url"
+                  description="Cole a URL de uma foto ou deixe em branco por agora"
+                >
+                  <Input placeholder="URL da foto (opcional)" />
+                </ReusableFormField>
+              </div>
+            </div>
+          </div>
+
+          {/* Headline */}
+          <ReusableFormField
+            control={form.control}
+            name="headline"
+            label="Título Profissional *"
+            description="Como você se apresentaria em uma frase? Seja específico e atrativo."
+          >
+            <Input placeholder="Ex: Desenvolvedor Full Stack | Designer UI/UX | Gerente de Marketing" />
+          </ReusableFormField>
 
 
         {/* Years of Experience */}
@@ -178,6 +243,7 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
               {form.formState.errors.skills.message}
             </p>
           )}
+        </div>
         </div>
 
         {/* Navigation */}

@@ -14,7 +14,7 @@ import CandidateValidationStep from "@/components/onboarding/steps/CandidateVali
 import ProfessionalAssessmentStep from "@/components/onboarding/steps/ProfessionalAssessmentStep";
 import CandidateAssessmentStep from "@/components/onboarding/steps/CandidateAssessmentStep";
 import DreamJobStep from "@/components/onboarding/steps/DreamJobStep";
-import BasicInfoStep from "@/components/onboarding/steps/BasicInfoStep";
+
 
 interface StepData {
   id: string;
@@ -37,17 +37,10 @@ const STEPS: StepData[] = [
     description: "Escolha como deseja completar seu perfil",
     component: FillMethodStep,
   },
-  // application-info merged into basic-info; kept single basic-info step
-  {
-    id: "basic-info",
-    title: "Informações para Candidatura",
-    description: "Forneça nome, idade, formação e experiência",
-    component: BasicInfoStep,
-  },
   {
     id: "registration",
-    title: "Informações Básicas",
-    description: "Preencha suas informações pessoais",
+    title: "Informações para Candidatura",
+    description: "Preencha suas informações pessoais e profissionais",
     component: CandidateRegistrationStep,
   },
   {
@@ -167,13 +160,20 @@ const OnboardingFlow = () => {
 
       const profileData = {
         user_id: user.user.id,
+        // Basic personal info from registration
+        full_name: registrationData?.full_name,
+        date_of_birth: registrationData?.date_of_birth,
+        email: registrationData?.email,
+        phone: registrationData?.phone,
+        // Professional profile info
         avatar_url: registrationData?.avatar_url,
         headline: registrationData?.headline,
         location: registrationData?.location,
         years_experience: registrationData?.years_experience,
+        skills: registrationData?.skills || [],
+        // Assessment data
         current_position: assessmentData?.current_position,
         key_achievements: assessmentData?.achievements,
-        skills: assessmentData?.skills || [],
         preferred_roles: assessmentData?.preferred_roles || [],
         career_goals: assessmentData?.career_goals,
         preferences: {
