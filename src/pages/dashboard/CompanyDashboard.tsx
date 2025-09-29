@@ -10,6 +10,7 @@ import { Notifications } from '@/components/Notifications';
 import { UserDropdown } from '@/components/UserDropdown';
 import { CheckCircle, XCircle, User, MapPin, Briefcase } from 'lucide-react';
 import ravyzLogo from '@/assets/ravyz-logo.png';
+import { CreateJobDialog } from '@/components/CreateJobDialog';
 
 interface MatchResult {
   id: string;
@@ -180,6 +181,12 @@ export default function CompanyDashboard() {
           </div>
         </div>
         <div className="flex items-center gap-4">
+          {companyProfile && (
+            <CreateJobDialog 
+              companyId={companyProfile.id} 
+              onJobCreated={fetchCompanyData}
+            />
+          )}
           <Notifications />
           <UserDropdown />
         </div>
