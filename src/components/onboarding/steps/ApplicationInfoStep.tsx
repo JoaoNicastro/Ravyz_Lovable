@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -81,17 +81,7 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
       projects: []
     },
   });
-  
-  // Field Arrays for grouped editable cards
-  const { fields: expFields, append: appendExperienceFA, remove: removeExperienceFA, replace: replaceExperienceFA } = useFieldArray({
-    control: form.control,
-    name: 'work_experience',
-  });
-  const { fields: projectFields, append: appendProjectFA, remove: removeProjectFA, replace: replaceProjectFA } = useFieldArray({
-    control: form.control,
-    name: 'projects',
-  });
-  
+
   const submit = (values: ApplicationInfoData) => {
     onNext(values);
   };
@@ -134,12 +124,12 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
         }
       }
       
-      if (parsedData.work_experience) replaceExperienceFA(parsedData.work_experience as any);
+      if (parsedData.work_experience) form.setValue('work_experience', parsedData.work_experience);
       if (parsedData.education) form.setValue('education', parsedData.education);
       if (parsedData.hard_skills) form.setValue('hard_skills', parsedData.hard_skills);
       if (parsedData.languages) form.setValue('languages', parsedData.languages);
       if (parsedData.certifications) form.setValue('certifications', parsedData.certifications);
-      if (parsedData.projects) replaceProjectFA(parsedData.projects as any);
+      if (parsedData.projects) form.setValue('projects', parsedData.projects);
 
       toast.success('Currículo analisado com sucesso! Revise e complete os dados abaixo.');
     } catch (error) {
@@ -151,25 +141,33 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
     }
   };
 
+  const workExperience = form.watch('work_experience') || [];
   const education = form.watch('education') || [];
   const hardSkills = form.watch('hard_skills') || [];
   const languages = form.watch('languages') || [];
   const certifications = form.watch('certifications') || [];
+  const projects = form.watch('projects') || [];
 
-  // State for manual input fields (only for sections not using field arrays)
+  // State for manual input fields
+  const [newExperience, setNewExperience] = useState({ company: '', title: '', start_date: '', end_date: '', description: '', current: false });
   const [newEducation, setNewEducation] = useState({ institution: '', major: '', gpa: '', start_date: '', end_date: '' });
   const [newHardSkill, setNewHardSkill] = useState('');
   const [newLanguage, setNewLanguage] = useState({ name: '', proficiency: '' });
   const [newCertification, setNewCertification] = useState({ name: '', issuer: '', issue_date: '' });
+  const [newProject, setNewProject] = useState({ name: '', description: '', link: '' });
 
-  // Experience handlers using Field Array
   const addExperience = () => {
-    appendExperienceFA({ company: '', title: '', start_date: '', end_date: '', current: false, description: '' });
-    toast.success('Experiência adicionada');
+    if (newExperience.company && newExperience.title) {
+      form.setValue('work_experience', [...workExperience, newExperience]);
+      setNewExperience({ company: '', title: '', start_date: '', end_date: '', description: '', current: false });
+      toast.success('Experiência adicionada');
+    } else {
+      toast.error('Preencha empresa e cargo');
+    }
   };
 
   const removeExperience = (idx: number) => {
-    removeExperienceFA(idx);
+    form.setValue('work_experience', workExperience.filter((_, i) => i !== idx));
     toast.success('Experiência removida');
   };
 
@@ -231,14 +229,20 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
   };
 
   const addProject = () => {
-    appendProjectFA({ name: '', description: '', link: '' });
-    toast.success('Projeto adicionado');
+    if (newProject.name) {
+      form.setValue('projects', [...projects, newProject]);
+      setNewProject({ name: '', description: '', link: '' });
+      toast.success('Projeto adicionado');
+    } else {
+      toast.error('Preencha o nome do projeto');
+    }
   };
 
   const removeProject = (idx: number) => {
-    removeProjectFA(idx);
+    form.setValue('projects', projects.filter((_, i) => i !== idx));
     toast.success('Projeto removido');
   };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-8">
       <div className="text-center space-y-2">
@@ -357,25 +361,78 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
               </div>
             </div>
 
-            {/* Experience Items */}
-            <div className="space-y-4 pt-4 border-t">
-              <div className="flex justify-between items-center">
-                <Label className="text-sm font-medium">Experiências</Label>
-                <Button type="button" size="sm" onClick={addExperience}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Experiência
-                </Button>
-              </div>
-
-              {expFields.length === 0 && (
-                <p className="text-sm text-muted-foreground">Nenhuma experiência adicionada ainda.</p>
-              )}
-
-              <div className="space-y-3">
-                {expFields.map((field, idx) => {
-                  const isCurrent = form.watch(`work_experience.${idx}.current`);
-                  return (
-                    <Card key={field.id} className="p-4 bg-muted/30 relative group">
+            {/* Manual Experience Entry */}
+            <div className="pt-4 border-t">
+              <Label className="text-sm font-medium mb-3 block">Adicionar Experiência</Label>
+              <Card className="p-4 bg-muted/30">
+                <div className="space-y-3">
+                  <Input 
+                    placeholder="Nome da Empresa *" 
+                    value={newExperience.company}
+                    onChange={(e) => setNewExperience({...newExperience, company: e.target.value})}
+                  />
+                  <Input 
+                    placeholder="Cargo *" 
+                    value={newExperience.title}
+                    onChange={(e) => setNewExperience({...newExperience, title: e.target.value})}
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="exp-start-date" className="text-xs text-muted-foreground">Data de início</Label>
+                      <Input 
+                        id="exp-start-date"
+                        type="date"
+                        value={newExperience.start_date}
+                        onChange={(e) => setNewExperience({...newExperience, start_date: e.target.value})}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="exp-end-date" className="text-xs text-muted-foreground">Data de fim</Label>
+                      <Input 
+                        id="exp-end-date"
+                        type="date"
+                        value={newExperience.end_date}
+                        onChange={(e) => setNewExperience({...newExperience, end_date: e.target.value})}
+                        disabled={newExperience.current}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="current-job"
+                      checked={newExperience.current || false}
+                      onChange={(e) => setNewExperience({...newExperience, current: e.target.checked, end_date: e.target.checked ? '' : newExperience.end_date})}
+                      className="h-4 w-4 rounded border-input"
+                    />
+                    <Label htmlFor="current-job" className="text-sm font-normal cursor-pointer">
+                      Este é meu emprego atual
+                    </Label>
+                  </div>
+                  <div>
+                    <Label htmlFor="exp-description" className="text-xs text-muted-foreground">Descrição das responsabilidades e conquistas</Label>
+                    <Textarea 
+                      id="exp-description"
+                      placeholder="Descreva suas principais responsabilidades, conquistas e projetos..."
+                      value={newExperience.description}
+                      onChange={(e) => setNewExperience({...newExperience, description: e.target.value})}
+                      rows={3}
+                    />
+                  </div>
+                  <Button type="button" onClick={addExperience} size="sm" className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Experiência
+                  </Button>
+                </div>
+              </Card>
+            </div>
+            
+            {workExperience.length > 0 && (
+              <div className="space-y-2 pt-4 border-t">
+                <Label className="text-sm font-medium">Suas Experiências:</Label>
+                <div className="space-y-3">
+                  {workExperience.map((exp, idx) => (
+                    <Card key={idx} className="p-4 bg-muted/30 relative group">
                       <Button
                         type="button"
                         variant="ghost"
@@ -385,48 +442,25 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
                       >
                         <X className="h-4 w-4" />
                       </Button>
-                      <div className="space-y-3 pr-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <div>
-                            <Label htmlFor={`exp-company-${idx}`} className="text-xs text-muted-foreground">Empresa</Label>
-                            <Input id={`exp-company-${idx}`} placeholder="Nome da Empresa" {...form.register(`work_experience.${idx}.company` as const)} />
-                          </div>
-                          <div>
-                            <Label htmlFor={`exp-title-${idx}`} className="text-xs text-muted-foreground">Cargo</Label>
-                            <Input id={`exp-title-${idx}`} placeholder="Cargo" {...form.register(`work_experience.${idx}.title` as const)} />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <Label htmlFor={`exp-start-${idx}`} className="text-xs text-muted-foreground">Data de início</Label>
-                            <Input id={`exp-start-${idx}`} type="date" {...form.register(`work_experience.${idx}.start_date` as const)} />
-                          </div>
-                          <div>
-                            <Label htmlFor={`exp-end-${idx}`} className="text-xs text-muted-foreground">Data de fim</Label>
-                            <Input id={`exp-end-${idx}`} type="date" disabled={!!isCurrent} {...form.register(`work_experience.${idx}.end_date` as const)} />
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            id={`exp-current-${idx}`}
-                            className="h-4 w-4 rounded border-input"
-                            {...form.register(`work_experience.${idx}.current` as const)}
-                          />
-                          <Label htmlFor={`exp-current-${idx}`} className="text-sm font-normal cursor-pointer">
-                            Este é meu emprego atual
-                          </Label>
-                        </div>
+                      <div className="space-y-2 pr-8">
                         <div>
-                          <Label htmlFor={`exp-desc-${idx}`} className="text-xs text-muted-foreground">Descrição das responsabilidades e conquistas</Label>
-                          <Textarea id={`exp-desc-${idx}`} rows={3} placeholder="Descreva suas principais responsabilidades, conquistas e projetos..." {...form.register(`work_experience.${idx}.description` as const)} />
+                          <p className="font-semibold text-base">{exp.title}</p>
+                          <p className="text-sm text-muted-foreground">{exp.company}</p>
                         </div>
+                        {exp.start_date && (
+                          <p className="text-xs text-muted-foreground">
+                            {exp.start_date} - {exp.current ? 'Emprego atual' : exp.end_date || 'Presente'}
+                          </p>
+                        )}
+                        {exp.description && (
+                          <p className="text-sm mt-2 leading-relaxed">{exp.description}</p>
+                        )}
                       </div>
                     </Card>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -660,23 +694,48 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
             <CardTitle>Projetos</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Project Items */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label className="text-sm font-medium">Projetos</Label>
-                <Button type="button" size="sm" onClick={addProject}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Projeto
-                </Button>
-              </div>
+            {/* Manual Project Entry */}
+            <div>
+              <Label className="text-sm font-medium mb-3 block">Adicionar Projeto</Label>
+              <Card className="p-4 bg-muted/30">
+                <div className="space-y-3">
+                  <Input 
+                    placeholder="Nome do projeto *" 
+                    value={newProject.name}
+                    onChange={(e) => setNewProject({...newProject, name: e.target.value})}
+                  />
+                  <div>
+                    <Label htmlFor="project-description" className="text-xs text-muted-foreground">Descrição</Label>
+                    <Textarea 
+                      id="project-description"
+                      placeholder="Descreva o projeto, tecnologias usadas, resultados..."
+                      value={newProject.description}
+                      onChange={(e) => setNewProject({...newProject, description: e.target.value})}
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="project-link" className="text-xs text-muted-foreground">Link (opcional)</Label>
+                    <Input 
+                      id="project-link"
+                      placeholder="GitHub, site, demo, etc." 
+                      value={newProject.link}
+                      onChange={(e) => setNewProject({...newProject, link: e.target.value})}
+                    />
+                  </div>
+                  <Button type="button" onClick={addProject} size="sm" className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Projeto
+                  </Button>
+                </div>
+              </Card>
+            </div>
 
-              {projectFields.length === 0 && (
-                <p className="text-sm text-muted-foreground">Nenhum projeto adicionado ainda.</p>
-              )}
-
-              <div className="space-y-3">
-                {projectFields.map((field, idx) => (
-                  <Card key={field.id} className="p-4 bg-muted/30 relative group">
+            {projects.length > 0 && (
+              <div className="space-y-3 pt-4 border-t">
+                <Label className="text-sm font-medium">Seus Projetos:</Label>
+                {projects.map((proj, idx) => (
+                  <Card key={idx} className="p-4 bg-muted/30 relative group">
                     <Button
                       type="button"
                       variant="ghost"
@@ -686,24 +745,24 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
                     >
                       <X className="h-4 w-4" />
                     </Button>
-                    <div className="space-y-3 pr-8">
-                      <div>
-                        <Label htmlFor={`project-name-${idx}`} className="text-xs text-muted-foreground">Nome do Projeto</Label>
-                        <Input id={`project-name-${idx}`} placeholder="Nome do projeto" {...form.register(`projects.${idx}.name` as const)} />
-                      </div>
-                      <div>
-                        <Label htmlFor={`project-desc-${idx}`} className="text-xs text-muted-foreground">Descrição</Label>
-                        <Textarea id={`project-desc-${idx}`} rows={3} placeholder="Descreva o projeto, tecnologias usadas, resultados..." {...form.register(`projects.${idx}.description` as const)} />
-                      </div>
-                      <div>
-                        <Label htmlFor={`project-link-${idx}`} className="text-xs text-muted-foreground">Link (opcional)</Label>
-                        <Input id={`project-link-${idx}`} placeholder="GitHub, site, demo, etc." {...form.register(`projects.${idx}.link` as const)} />
-                      </div>
+                    <div className="space-y-2 pr-8">
+                      <p className="font-semibold text-base">{proj.name}</p>
+                      {proj.description && <p className="text-sm leading-relaxed">{proj.description}</p>}
+                      {proj.link && (
+                        <a 
+                          href={proj.link} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-xs text-primary hover:underline inline-block"
+                        >
+                          {proj.link}
+                        </a>
+                      )}
                     </div>
                   </Card>
                 ))}
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
