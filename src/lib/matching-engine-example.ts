@@ -11,10 +11,10 @@ async function exampleRavyzMatching() {
   const candidateData: CandidateRavyzData = {
     id: 'candidate-123',
     pillar_scores: {
-      compensation: 3.8, // High importance on compensation
-      ambiente: 4.2,     // Very high importance on environment
-      proposito: 2.9,    // Moderate importance on purpose
-      crescimento: 4.5   // Very high importance on growth
+      Compensation: 3.8, // High importance on compensation
+      Ambiente: 4.2,     // Very high importance on environment
+      Propósito: 2.9,    // Moderate importance on purpose
+      Crescimento: 4.5   // Very high importance on growth
     },
     archetype: 'Construtor' // Determined from pillar combination
   };
@@ -23,11 +23,11 @@ async function exampleRavyzMatching() {
   const jobData: JobRavyzData = {
     id: 'job-456',
     pillar_scores: {
-      autonomy: 4.0,     // High autonomy offered
-      leadership: 3.2,   // Moderate leadership opportunities
-      teamwork: 4.1,     // High teamwork requirement
-      risk: 2.8,         // Moderate risk tolerance needed
-      ambition: 3.9      // High ambition/growth potential
+      Autonomia: 4.0,     // High autonomy offered
+      Liderança: 3.2,   // Moderate leadership opportunities
+      TrabalhoGrupo: 4.1,     // High teamwork requirement
+      Risco: 2.8,         // Moderate risk tolerance needed
+      Ambição: 3.9      // High ambition/growth potential
     },
     archetype: 'Mobilizador' // Determined from job requirements
   };

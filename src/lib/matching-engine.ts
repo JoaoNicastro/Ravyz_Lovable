@@ -5,10 +5,10 @@ import { supabase } from '@/integrations/supabase/client';
 export interface CandidateRavyzData {
   id: string;
   pillar_scores: {
-    compensation?: number;
-    ambiente?: number;
-    proposito?: number;
-    crescimento?: number;
+    Compensation?: number;
+    Ambiente?: number;
+    Propósito?: number;
+    Crescimento?: number;
   };
   archetype: string;
   // Legacy fields for backward compatibility
@@ -27,11 +27,11 @@ export interface CandidateRavyzData {
 export interface JobRavyzData {
   id: string;
   pillar_scores: {
-    autonomy?: number;
-    leadership?: number;
-    teamwork?: number;
-    risk?: number;
-    ambition?: number;
+    Autonomia?: number;
+    Liderança?: number;
+    TrabalhoGrupo?: number;
+    Risco?: number;
+    Ambição?: number;
   };
   archetype: string;
   // Legacy fields for backward compatibility
@@ -78,9 +78,9 @@ export interface JobData {
 
 export class MatchingEngine {
   
-  // Define standard pillar order for vectorization
-  private readonly CANDIDATE_PILLAR_ORDER = ['compensation', 'ambiente', 'proposito', 'crescimento'];
-  private readonly JOB_PILLAR_ORDER = ['ambition', 'teamwork', 'leadership', 'autonomy', 'risk'];
+  // Define standard pillar order for vectorization (using exact names from mock data)
+  private readonly CANDIDATE_PILLAR_ORDER = ['Compensation', 'Ambiente', 'Propósito', 'Crescimento'];
+  private readonly JOB_PILLAR_ORDER = ['Ambição', 'TrabalhoGrupo', 'Liderança', 'Autonomia', 'Risco'];
 
   /**
    * Convert pillar scores to normalized vector
@@ -223,16 +223,21 @@ export class MatchingEngine {
   private calculatePillarBreakdown(candidatePillars: Record<string, number>, jobPillars: Record<string, number>): PillarBreakdown {
     const pillarBreakdown: PillarBreakdown = {};
     
-    // Updated pillar mappings based on MATCH RAVYZ methodology
+    // Map candidate pillars to job pillars based on MATCH RAVYZ methodology
+    // Using exact pillar names from mock data (case-sensitive)
     const pillarMappings = [
-      { candidate: 'compensation', job: 'ambition' }, // Financial motivation vs career growth expectations
-      { candidate: 'ambiente', job: 'teamwork' }, // Culture/environment fit vs collaboration needs
-      { candidate: 'proposito', job: 'leadership' }, // Purpose alignment vs leadership opportunities
-      { candidate: 'crescimento', job: 'autonomy' }, // Growth desire vs independence offered
+      { candidate: 'Compensation', job: 'Ambição', name: 'Compensação' },
+      { candidate: 'Ambiente', job: 'TrabalhoGrupo', name: 'Ambiente' },
+      { candidate: 'Propósito', job: 'Liderança', name: 'Propósito' },
+      { candidate: 'Crescimento', job: 'Autonomia', name: 'Crescimento' },
     ];
 
+    console.log('🔍 Calculating pillar breakdown...');
+    console.log('Candidate pillars:', candidatePillars);
+    console.log('Job pillars:', jobPillars);
+
     // Calculate compatibility for each pillar mapping
-    pillarMappings.forEach(({ candidate: candidatePillar, job: jobPillar }) => {
+    pillarMappings.forEach(({ candidate: candidatePillar, job: jobPillar, name }) => {
       const candidateScore = candidatePillars[candidatePillar] || 0;
       const jobScore = jobPillars[jobPillar] || 0;
       
@@ -242,20 +247,24 @@ export class MatchingEngine {
       // Apply MATCH RAVYZ formula: Compatibility = 100% - (difference * 20)
       const compatibility = Math.max(0, 100 - (difference * 20));
       
-      pillarBreakdown[candidatePillar as keyof PillarBreakdown] = compatibility;
+      console.log(`  ${name}: candidate=${candidateScore}, job=${jobScore}, diff=${difference}, compat=${compatibility}%`);
+      
+      pillarBreakdown[name as keyof PillarBreakdown] = compatibility;
     });
 
-    // Handle job risk pillar separately - compare against candidate risk tolerance
-    if (jobPillars['risk'] !== undefined) {
-      // Use average of candidate's other pillars as proxy for risk tolerance
-      const candidateRiskTolerance = candidatePillars['crescimento'] || 3; // Growth correlates with risk tolerance
-      const jobRiskScore = jobPillars['risk'] || 0;
+    // Handle job risk pillar separately - compare against candidate growth/risk tolerance
+    if (jobPillars['Risco'] !== undefined) {
+      const candidateRiskTolerance = candidatePillars['Crescimento'] || 3;
+      const jobRiskScore = jobPillars['Risco'] || 0;
       const difference = Math.abs(candidateRiskTolerance - jobRiskScore);
       const compatibility = Math.max(0, 100 - (difference * 20));
       
-      pillarBreakdown['risk' as keyof PillarBreakdown] = compatibility;
+      console.log(`  Risco: candidate=${candidateRiskTolerance}, job=${jobRiskScore}, diff=${difference}, compat=${compatibility}%`);
+      
+      pillarBreakdown['Risco' as keyof PillarBreakdown] = compatibility;
     }
 
+    console.log('Final pillar breakdown:', pillarBreakdown);
     return pillarBreakdown;
   }
 

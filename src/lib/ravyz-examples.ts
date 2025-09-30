@@ -9,10 +9,10 @@ import { MatchingEngine, CandidateRavyzData, JobRavyzData } from './matching-eng
 const exampleCandidate: CandidateRavyzData = {
   id: 'candidate-123',
   pillar_scores: {
-    compensation: 3.5,  // Compensation pillar (questions 1-7)
-    ambiente: 4.2,      // Environment pillar (questions 8-14)
-    proposito: 4.8,     // Purpose pillar (questions 15-21)
-    crescimento: 4.0    // Growth pillar (questions 22-30)
+    Compensation: 3.5,  // Compensation pillar (questions 1-7)
+    Ambiente: 4.2,      // Environment pillar (questions 8-14)
+    Propósito: 4.8,     // Purpose pillar (questions 15-21)
+    Crescimento: 4.0    // Growth pillar (questions 22-30)
   },
   archetype: 'Visionário' // Determined by top 2 pillars: proposito + ambiente
 };
@@ -21,11 +21,11 @@ const exampleCandidate: CandidateRavyzData = {
 const exampleJob: JobRavyzData = {
   id: 'job-456',
   pillar_scores: {
-    autonomy: 4.1,      // Autonomy pillar (questions 1-6)
-    leadership: 4.5,    // Leadership pillar (questions 7-12)
-    teamwork: 3.8,      // Teamwork pillar (questions 13-18)
-    risk: 3.2,          // Risk pillar (questions 19-24)
-    ambition: 4.0       // Ambition pillar (questions 25-30)
+    Autonomia: 4.1,      // Autonomy pillar (questions 1-6)
+    Liderança: 4.5,    // Leadership pillar (questions 7-12)
+    TrabalhoGrupo: 3.8,      // Teamwork pillar (questions 13-18)
+    Risco: 3.2,          // Risk pillar (questions 19-24)
+    Ambição: 4.0       // Ambition pillar (questions 25-30)
   },
   archetype: 'Visionário' // Determined by top 2 pillars: leadership + autonomy
 };
@@ -106,17 +106,17 @@ async function batchMatchingExample() {
   const candidates: CandidateRavyzData[] = [
     {
       id: 'candidate-1',
-      pillar_scores: { compensation: 4.2, ambiente: 3.8, proposito: 4.0, crescimento: 4.5 },
+      pillar_scores: { Compensation: 4.2, Ambiente: 3.8, Propósito: 4.0, Crescimento: 4.5 },
       archetype: 'Protagonista'
     },
     {
       id: 'candidate-2', 
-      pillar_scores: { compensation: 3.1, ambiente: 4.3, proposito: 2.8, crescimento: 3.9 },
+      pillar_scores: { Compensation: 3.1, Ambiente: 4.3, Propósito: 2.8, Crescimento: 3.9 },
       archetype: 'Construtor'
     },
     {
       id: 'candidate-3',
-      pillar_scores: { compensation: 3.7, ambiente: 2.9, proposito: 4.2, crescimento: 3.4 },
+      pillar_scores: { Compensation: 3.7, Ambiente: 2.9, Propósito: 4.2, Crescimento: 3.4 },
       archetype: 'Visionário'
     }
   ];
@@ -124,12 +124,12 @@ async function batchMatchingExample() {
   const jobs: JobRavyzData[] = [
     {
       id: 'job-senior-dev',
-      pillar_scores: { autonomy: 4.1, leadership: 3.8, teamwork: 4.0, risk: 3.2, ambition: 4.3 },
+      pillar_scores: { Autonomia: 4.1, Liderança: 3.8, TrabalhoGrupo: 4.0, Risco: 3.2, Ambição: 4.3 },
       archetype: 'Protagonista'
     },
     {
       id: 'job-tech-lead',
-      pillar_scores: { autonomy: 3.5, leadership: 4.5, teamwork: 3.8, risk: 3.8, ambition: 4.0 },
+      pillar_scores: { Autonomia: 3.5, Liderança: 4.5, TrabalhoGrupo: 3.8, Risco: 3.8, Ambição: 4.0 },
       archetype: 'Mobilizador'
     }
   ];
@@ -158,14 +158,14 @@ function matrixCalculationExample() {
   console.log('\n🧮 === MATRIX CALCULATION EXAMPLE ===');
   
   const candidates: CandidateRavyzData[] = [
-    { id: 'c1', pillar_scores: { compensation: 4.0, ambiente: 3.5, proposito: 4.2, crescimento: 3.8 }, archetype: 'Protagonista' },
-    { id: 'c2', pillar_scores: { compensation: 3.2, ambiente: 4.1, proposito: 2.9, crescimento: 4.3 }, archetype: 'Construtor' },
-    { id: 'c3', pillar_scores: { compensation: 3.8, ambiente: 3.0, proposito: 4.5, crescimento: 3.4 }, archetype: 'Visionário' }
+    { id: 'c1', pillar_scores: { Compensation: 4.0, Ambiente: 3.5, Propósito: 4.2, Crescimento: 3.8 }, archetype: 'Protagonista' },
+    { id: 'c2', pillar_scores: { Compensation: 3.2, Ambiente: 4.1, Propósito: 2.9, Crescimento: 4.3 }, archetype: 'Construtor' },
+    { id: 'c3', pillar_scores: { Compensation: 3.8, Ambiente: 3.0, Propósito: 4.5, Crescimento: 3.4 }, archetype: 'Visionário' }
   ];
 
   const jobs: JobRavyzData[] = [
-    { id: 'j1', pillar_scores: { autonomy: 4.0, leadership: 3.8, teamwork: 4.1, risk: 3.3, ambition: 4.2 }, archetype: 'Protagonista' },
-    { id: 'j2', pillar_scores: { autonomy: 3.4, leadership: 4.2, teamwork: 3.9, risk: 3.7, ambition: 3.8 }, archetype: 'Mobilizador' }
+    { id: 'j1', pillar_scores: { Autonomia: 4.0, Liderança: 3.8, TrabalhoGrupo: 4.1, Risco: 3.3, Ambição: 4.2 }, archetype: 'Protagonista' },
+    { id: 'j2', pillar_scores: { Autonomia: 3.4, Liderança: 4.2, TrabalhoGrupo: 3.9, Risco: 3.7, Ambição: 3.8 }, archetype: 'Mobilizador' }
   ];
 
   console.log('🔢 Calculating 3x2 compatibility matrix...');
