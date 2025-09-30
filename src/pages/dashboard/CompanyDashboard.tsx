@@ -14,6 +14,7 @@ import ravyzLogo from '@/assets/ravyz-logo.png';
 import { MatchingEngine, CandidateRavyzData, JobRavyzData } from '@/lib/matching-engine';
 import { mockCandidates, mockJobs, MockCandidate, MockJob, getMockJobsByCompanyId } from '@/lib/mock-loader';
 import { CreateJobDialog } from '@/components/CreateJobDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MatchResult {
   candidate_id: string;
@@ -35,10 +36,31 @@ export default function CompanyDashboard() {
   const [expandedJobs, setExpandedJobs] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('matches');
+  const [companyId, setCompanyId] = useState<string | null>(null);
 
   useEffect(() => {
+    loadCompanyProfile();
     loadMockData();
   }, []);
+
+  const loadCompanyProfile = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('company_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) throw error;
+      if (data) {
+        setCompanyId(data.id);
+      }
+    } catch (error) {
+      console.error('Error loading company profile:', error);
+    }
+  };
 
   const loadMockData = async () => {
     try {
@@ -391,10 +413,12 @@ export default function CompanyDashboard() {
           <TabsContent value="jobs" className="mt-6">
             <div className="flex justify-between items-center mb-6">
               <p className="text-muted-foreground">Gerencie suas vagas publicadas</p>
-              <CreateJobDialog 
-                companyId="test-company-123" 
-                onJobCreated={loadMockData}
-              />
+              {companyId && (
+                <CreateJobDialog 
+                  companyId={companyId} 
+                  onJobCreated={loadMockData}
+                />
+              )}
             </div>
             <div className="grid gap-4">
               {jobs.map((job) => (
