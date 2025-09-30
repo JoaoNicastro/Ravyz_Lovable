@@ -272,16 +272,18 @@ const OnboardingFlow = () => {
         }
       }
 
-      // Update user completion status
+      // Update user completion status and set active_profile
       const { error } = await supabase
         .from('users')
         .update({ 
-          profiles: ['candidate']
+          profiles: ['candidate'],
+          active_profile: 'candidate'
         })
         .eq('id', user.user.id);
 
       if (error) throw error;
 
+      console.log('✅ [Onboarding] Candidate profile created, active_profile set');
       toast.success("Onboarding concluído com sucesso!");
       navigate("/dashboard/candidate");
     } catch (error) {

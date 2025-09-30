@@ -2,16 +2,36 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Users, Target, Zap, Shield, TrendingUp, Briefcase, LogOut, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { getDefaultDashboardRoute } from "@/lib/navigation";
+import { useState } from "react";
 import heroImage from "@/assets/hero-recruitment.jpg";
 import ravyzLogo from "@/assets/ravyz-logo.png";
 
 const Index = () => {
   const { user, signOut, loading } = useAuth();
+  const navigate = useNavigate();
+  const [navigating, setNavigating] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const handleGoToDashboard = async () => {
+    if (!user) return;
+    
+    setNavigating(true);
+    try {
+      const route = await getDefaultDashboardRoute(supabase, user.id);
+      navigate(route);
+    } catch (error) {
+      console.error('Error determining dashboard route:', error);
+      navigate('/profile-selection');
+    } finally {
+      setNavigating(false);
+    }
   };
 
   const renderAuthButtons = () => {
@@ -24,12 +44,19 @@ const Index = () => {
     if (user) {
       return (
         <div className="flex items-center space-x-4">
-          <Link to="/profile-selection">
-            <Button variant="ghost" className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            className="flex items-center gap-2"
+            onClick={handleGoToDashboard}
+            disabled={navigating}
+          >
+            {navigating ? (
+              <div className="w-4 h-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            ) : (
               <User className="h-4 w-4" />
-              Dashboard
-            </Button>
-          </Link>
+            )}
+            Dashboard
+          </Button>
           <Button 
             variant="outline" 
             onClick={handleSignOut}
@@ -73,13 +100,20 @@ const Index = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-            <Link to="/profile-selection">
-              <Button size="lg" className="bg-gradient-primary hover:shadow-glow transition-all duration-300">
+            <Button 
+              size="lg" 
+              className="bg-gradient-primary hover:shadow-glow transition-all duration-300"
+              onClick={handleGoToDashboard}
+              disabled={navigating}
+            >
+              {navigating ? (
+                <div className="w-5 h-5 mr-2 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+              ) : (
                 <User className="mr-2 h-5 w-5" />
-                Ir para Dashboard
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+              )}
+              Ir para Dashboard
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
         </div>
       );

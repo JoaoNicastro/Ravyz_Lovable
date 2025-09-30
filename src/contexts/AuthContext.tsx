@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
+import { getDefaultDashboardRoute } from '@/lib/navigation';
 
 interface AuthContextType {
   user: User | null;
@@ -30,14 +32,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+
+        // Redirect to appropriate dashboard on sign in
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('🔐 User signed in, determining dashboard route...');
+          // Small delay to ensure state is updated
+          setTimeout(async () => {
+            const route = await getDefaultDashboardRoute(supabase, session.user.id);
+            console.log('🚀 Navigating to:', route);
+            navigate(route);
+          }, 100);
+        }
       }
     );
 
@@ -49,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const signUp = async (email: string, password: string, name?: string) => {
     try {

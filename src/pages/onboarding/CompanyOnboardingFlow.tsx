@@ -172,6 +172,20 @@ const CompanyOnboardingFlow: React.FC = () => {
 
       if (jobError) throw jobError;
 
+      // Update user's active_profile to company
+      const { error: userUpdateError } = await supabase
+        .from('users')
+        .update({ 
+          profiles: ['company'],
+          active_profile: 'company'
+        })
+        .eq('id', user.user.id);
+
+      if (userUpdateError) {
+        console.error('Error updating user active_profile:', userUpdateError);
+      }
+
+      console.log('✅ [Onboarding] Company profile created, active_profile set');
       toast.success("Onboarding concluído com sucesso!");
       navigate("/dashboard/company");
       
