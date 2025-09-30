@@ -8,7 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import { MatchCard } from '@/components/MatchCard';
 import { Notifications } from '@/components/Notifications';
 import { UserDropdown } from '@/components/UserDropdown';
-import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText, Sparkles, Briefcase, Send, Clock, Heart, CheckCircle2 } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText, Sparkles, Briefcase, Send, Clock, Heart, CheckCircle2, X } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ravyzLogo from '@/assets/ravyz-logo.png';
 import { MatchingEngine, CandidateRavyzData, JobRavyzData } from '@/lib/matching-engine';
 import { mockCandidates, mockJobs, MockCandidate, MockJob } from '@/lib/mock-loader';
@@ -47,6 +48,8 @@ export default function CandidateDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('matches');
   const [applications, setApplications] = useState<Application[]>([]);
+  const [selectedJobDetails, setSelectedJobDetails] = useState<any>(null);
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
   useEffect(() => {
     // Load applications from localStorage
@@ -182,7 +185,16 @@ export default function CandidateDashboard() {
     }
   };
 
-  const handleApply = (jobId: string, jobTitle: string, location: string) => {
+  const handleApply = async (jobId: string, jobTitle: string, location: string) => {
+    if (!candidateProfileId) {
+      toast({
+        title: 'Erro',
+        description: 'Perfil de candidato não encontrado',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     // Check if already applied
     if (applications.some(app => app.job_id === jobId)) {
       toast({
@@ -193,25 +205,51 @@ export default function CandidateDashboard() {
       return;
     }
 
-    const newApplication: Application = {
-      id: crypto.randomUUID(),
-      job_id: jobId,
-      job_title: jobTitle,
-      company_name: 'Empresa Teste',
-      applied_at: new Date().toISOString(),
-      status: 'pending',
-      location,
-    };
+    try {
+      // Save to Supabase
+      const { data, error } = await supabase
+        .from('applications')
+        .insert({
+          candidate_id: candidateProfileId,
+          job_id: jobId,
+          status: 'applied',
+        })
+        .select()
+        .single();
 
-    const updated = [...applications, newApplication];
-    setApplications(updated);
-    localStorage.setItem('candidate_applications', JSON.stringify(updated));
+      if (error) throw error;
 
-    toast({
-      title: 'Candidatura enviada!',
-      description: 'Você se candidatou à vaga com sucesso.',
-    });
-    console.log('📝 Applied to job:', jobId);
+      const newApplication: Application = {
+        id: data.id,
+        job_id: jobId,
+        job_title: jobTitle,
+        company_name: 'Empresa',
+        applied_at: new Date().toISOString(),
+        status: 'pending',
+        location,
+      };
+
+      const updated = [...applications, newApplication];
+      setApplications(updated);
+      localStorage.setItem('candidate_applications', JSON.stringify(updated));
+
+      toast({
+        title: 'Candidatura enviada!',
+        description: 'Você se candidatou à vaga com sucesso.',
+      });
+      
+      // Switch to applications tab
+      setActiveTab('applications');
+      
+      console.log('📝 Applied to job:', jobId);
+    } catch (error) {
+      console.error('Error applying to job:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível enviar a candidatura',
+        variant: 'destructive',
+      });
+    }
   };
 
   // Wrapper for MatchCard component
@@ -230,12 +268,34 @@ export default function CandidateDashboard() {
     console.log('💾 Saved job:', jobId);
   };
 
-  const handleViewDetails = (jobId: string) => {
-    toast({
-      title: 'Detalhes da vaga',
-      description: 'Funcionalidade em desenvolvimento',
-    });
-    console.log('👁️ View details:', jobId);
+  const handleViewDetails = async (jobId: string) => {
+    try {
+      const { data: job, error } = await supabase
+        .from('jobs')
+        .select(`
+          *,
+          company_profiles:company_id (
+            company_name,
+            description,
+            industry,
+            location
+          )
+        `)
+        .eq('id', jobId)
+        .single();
+
+      if (error) throw error;
+      
+      setSelectedJobDetails(job);
+      setShowDetailsDialog(true);
+    } catch (error) {
+      console.error('Error loading job details:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar detalhes da vaga',
+        variant: 'destructive',
+      });
+    }
   };
 
   const getStatusBadge = (status: Application['status']) => {
@@ -331,14 +391,10 @@ export default function CandidateDashboard() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
             <TabsTrigger value="matches">
               <Sparkles className="w-4 h-4 mr-2" />
               Matches
-            </TabsTrigger>
-            <TabsTrigger value="jobs">
-              <Briefcase className="w-4 h-4 mr-2" />
-              Vagas ({matches.length})
             </TabsTrigger>
             <TabsTrigger value="applications">
               <Send className="w-4 h-4 mr-2" />
@@ -486,93 +542,7 @@ export default function CandidateDashboard() {
             )}
           </TabsContent>
 
-          {/* Tab 2: Vagas - Lista de Oportunidades */}
-          <TabsContent value="jobs" className="space-y-6 mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Vagas Recomendadas</CardTitle>
-                <CardDescription>
-                  Oportunidades ordenadas por compatibilidade com seu perfil
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            {matches.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <p className="text-muted-foreground">Nenhuma vaga disponível</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {matches.map((match) => (
-                  <Card key={match.job_id} className="hover:shadow-md transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg">{match.job.title}</CardTitle>
-                          <CardDescription className="mt-1 flex flex-wrap items-center gap-3 text-sm">
-                            <span className="flex items-center gap-1">
-                              <Building className="w-3 h-3" />
-                              Empresa Teste
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              {match.job.location}
-                            </span>
-                          </CardDescription>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <div className="text-2xl font-bold text-primary">
-                            {Math.round(match.compatibility_score)}%
-                          </div>
-                          <div className="text-xs text-muted-foreground">match</div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="space-y-4">
-                      {/* Tags */}
-                      <div className="flex flex-wrap gap-2">
-                        {match.job.requirements.slice(0, 5).map((req, index) => (
-                          <Badge 
-                            key={index} 
-                            variant={candidateProfile.skills.includes(req) ? "default" : "outline"}
-                            className="text-xs"
-                          >
-                            {req}
-                          </Badge>
-                        ))}
-                        {match.job.requirements.length > 5 && (
-                          <Badge variant="secondary" className="text-xs">
-                            +{match.job.requirements.length - 5}
-                          </Badge>
-                        )}
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex gap-3">
-                        <Button 
-                          className="flex-1" 
-                          onClick={() => handleApply(match.job_id, match.job.title, match.job.location)}
-                          disabled={applications.some(app => app.job_id === match.job_id)}
-                        >
-                          <Send className="w-4 h-4 mr-2" />
-                          {applications.some(app => app.job_id === match.job_id) ? 'Já Aplicado' : 'Candidatar-se'}
-                        </Button>
-                        <Button variant="outline">
-                          <FileText className="w-4 h-4 mr-2" />
-                          Ver Detalhes
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Tab 3: Candidaturas - Histórico */}
+          {/* Tab 2: Candidaturas - Histórico */}
           <TabsContent value="applications" className="space-y-6 mt-6">
             <Card>
               <CardHeader>
@@ -591,47 +561,64 @@ export default function CandidateDashboard() {
                   <Button 
                     variant="outline" 
                     className="mt-4"
-                    onClick={() => setActiveTab('jobs')}
+                    onClick={() => setActiveTab('matches')}
                   >
-                    Ver Vagas Disponíveis
+                    Ver Matches
                   </Button>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid gap-4">
+              <div className="space-y-4">
                 {applications.map((app) => {
                   const statusInfo = getStatusBadge(app.status);
                   return (
-                    <Card key={app.id}>
+                    <Card key={app.id} className="hover:shadow-lg transition-shadow">
                       <CardHeader>
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <CardTitle className="text-lg">{app.job_title}</CardTitle>
-                            <CardDescription className="mt-1 flex flex-wrap items-center gap-3 text-sm">
+                            <div className="flex items-center gap-3 mb-2">
+                              <CardTitle className="text-xl">{app.job_title}</CardTitle>
+                              <Badge variant={statusInfo.variant}>
+                                {statusInfo.label}
+                              </Badge>
+                            </div>
+                            <CardDescription className="flex flex-wrap items-center gap-3 text-sm">
                               <span className="flex items-center gap-1">
-                                <Building className="w-3 h-3" />
+                                <Building className="w-4 h-4" />
                                 {app.company_name}
                               </span>
+                              <span>•</span>
                               <span className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3" />
+                                <MapPin className="w-4 h-4" />
                                 {app.location}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {new Date(app.applied_at).toLocaleDateString('pt-BR')}
                               </span>
                             </CardDescription>
                           </div>
-                          <Badge variant={statusInfo.variant}>
-                            {statusInfo.label}
-                          </Badge>
                         </div>
                       </CardHeader>
-                      <CardContent>
-                        <Button variant="outline" size="sm">
-                          <FileText className="w-4 h-4 mr-2" />
-                          Ver Detalhes
-                        </Button>
+                      
+                      <CardContent className="space-y-4">
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            Aplicado em {new Date(app.applied_at).toLocaleDateString('pt-BR', {
+                              day: '2-digit',
+                              month: 'long',
+                              year: 'numeric'
+                            })}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleViewDetails(app.job_id)}
+                          >
+                            <FileText className="w-4 h-4 mr-2" />
+                            Ver Detalhes Completos
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   );
@@ -641,6 +628,93 @@ export default function CandidateDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Job Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          {selectedJobDetails && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-2xl">{selectedJobDetails.title}</DialogTitle>
+                <DialogDescription className="flex items-center gap-3 text-base mt-2">
+                  <span className="flex items-center gap-1">
+                    <Building className="w-4 h-4" />
+                    {selectedJobDetails.company_profiles?.company_name || 'Empresa'}
+                  </span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    {selectedJobDetails.location || 'Remote'}
+                  </span>
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-6 mt-4">
+                {/* Salary */}
+                {selectedJobDetails.salary_min && selectedJobDetails.salary_max && (
+                  <div>
+                    <h3 className="font-semibold mb-2 flex items-center gap-2">
+                      <DollarSign className="w-4 h-4" />
+                      Faixa Salarial
+                    </h3>
+                    <p className="text-muted-foreground">
+                      R$ {selectedJobDetails.salary_min.toLocaleString('pt-BR')} – R$ {selectedJobDetails.salary_max.toLocaleString('pt-BR')}
+                    </p>
+                  </div>
+                )}
+
+                {/* Job Description */}
+                {selectedJobDetails.description && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Sobre a Vaga</h3>
+                    <p className="text-muted-foreground whitespace-pre-line">
+                      {selectedJobDetails.description}
+                    </p>
+                  </div>
+                )}
+
+                {/* Company Description */}
+                {selectedJobDetails.company_profiles?.description && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Sobre a Empresa</h3>
+                    <p className="text-muted-foreground">
+                      {selectedJobDetails.company_profiles.description}
+                    </p>
+                    {selectedJobDetails.company_profiles.industry && (
+                      <div className="mt-2">
+                        <Badge variant="outline">
+                          {selectedJobDetails.company_profiles.industry}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Requirements */}
+                {selectedJobDetails.requirements && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Requisitos</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(selectedJobDetails.requirements).map(([key, value]) => (
+                        <Badge key={key} variant="secondary">
+                          {String(value)}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Published Date */}
+                <div className="text-sm text-muted-foreground pt-4 border-t">
+                  Publicada há {Math.floor(
+                    (new Date().getTime() - new Date(selectedJobDetails.created_at).getTime()) / (1000 * 60 * 60 * 24)
+                  )} dias
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

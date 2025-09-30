@@ -239,6 +239,14 @@ export function MatchCard({ match, onApply, onSave, onViewDetails }: MatchCardPr
           <Button
             variant="outline"
             size="sm"
+            onClick={() => onViewDetails(match.job_id)}
+            className="gap-2"
+          >
+            Ver Detalhes
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => onSave(match.job_id)}
             className="gap-2"
           >

@@ -43,10 +43,13 @@ export async function getCandidateMatches(candidateId: string): Promise<MatchDat
           salary_min,
           salary_max,
           requirements,
+          description,
           created_at,
           company_profiles:company_id (
             id,
-            company_name
+            company_name,
+            description,
+            industry
           )
         )
       `)
