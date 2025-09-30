@@ -42,17 +42,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
-
-        // Redirect to appropriate dashboard on sign in
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log('🔐 User signed in, determining dashboard route...');
-          // Small delay to ensure state is updated
-          setTimeout(async () => {
-            const route = await getDefaultDashboardRoute(supabase, session.user.id);
-            console.log('🚀 Navigating to:', route);
-            navigate(route);
-          }, 100);
-        }
       }
     );
 
@@ -64,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, []);
 
   const signUp = async (email: string, password: string, name?: string) => {
     try {
@@ -163,6 +152,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: "Login realizado!",
           description: "Redirecionando...",
         });
+        
+        // Redirect to profile selection after successful login
+        navigate('/profile-selection');
       }
 
       return { error };
