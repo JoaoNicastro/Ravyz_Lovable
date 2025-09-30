@@ -89,10 +89,16 @@ export default function CandidateDashboard() {
 
       setMatches(matchesWithJobData);
 
+      console.log('\n📊 DEBUG: Raw Match Data');
+      console.log('First match raw score:', matchesWithJobData[0]?.compatibility_score);
+      console.log('First match pillar_breakdown:', matchesWithJobData[0]?.pillar_breakdown);
+
       // Log top 5 matches
       console.log('🏆 Top 5 Matches:');
       matchesWithJobData.slice(0, 5).forEach((match, i) => {
-        console.log(`${i + 1}. ${match.job.title} - ${(match.compatibility_score * 100).toFixed(1)}%`);
+        console.log(`${i + 1}. ${match.job.title}`);
+        console.log(`   Raw Score: ${match.compatibility_score}%`);
+        console.log(`   Base Similarity: ${match.base_similarity}%, Archetype Boost: ${match.archetype_boost}%`);
         console.log(`   Candidate: ${match.candidate_archetype} vs Job: ${match.job_archetype}`);
       });
 
@@ -239,7 +245,7 @@ export default function CandidateDashboard() {
                         </div>
                         <div className="text-right">
                           <div className="text-4xl font-bold text-primary">
-                            {(match.compatibility_score * 100).toFixed(0)}%
+                            {Math.round(match.compatibility_score)}%
                           </div>
                           <div className="text-sm text-muted-foreground">Compatibilidade</div>
                         </div>
@@ -271,22 +277,25 @@ export default function CandidateDashboard() {
                       <div>
                         <h4 className="text-sm font-semibold mb-3">Detalhamento por Pilar</h4>
                         <div className="grid gap-2">
-                          {Object.entries(match.pillar_breakdown).map(([pillar, score]) => (
-                            <div key={pillar} className="flex items-center justify-between text-sm">
-                              <span className="text-muted-foreground capitalize">{pillar}</span>
-                              <div className="flex items-center gap-2">
-                                <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
-                                  <div 
-                                    className="h-full bg-primary"
-                                    style={{ width: `${(score as number) * 100}%` }}
-                                  />
+                          {Object.entries(match.pillar_breakdown).map(([pillar, score]) => {
+                            const pillarScore = score as number;
+                            return (
+                              <div key={pillar} className="flex items-center justify-between text-sm">
+                                <span className="text-muted-foreground capitalize">{pillar}</span>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
+                                    <div 
+                                      className="h-full bg-primary"
+                                      style={{ width: `${Math.min(100, Math.max(0, pillarScore))}%` }}
+                                    />
+                                  </div>
+                                  <span className="w-12 text-right font-medium">
+                                    {Math.round(pillarScore)}%
+                                  </span>
                                 </div>
-                                <span className="w-12 text-right font-medium">
-                                  {((score as number) * 100).toFixed(0)}%
-                                </span>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
 

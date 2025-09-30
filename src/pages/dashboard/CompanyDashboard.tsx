@@ -98,6 +98,14 @@ export default function CompanyDashboard() {
 
       setJobMatches(matchesByJob);
 
+      console.log('\n📊 DEBUG: Raw Match Data');
+      const firstJob = companyJobs[0];
+      const firstMatch = matchesByJob[firstJob?.id]?.[0];
+      if (firstMatch) {
+        console.log('First match raw score:', firstMatch.compatibility_score);
+        console.log('First match pillar_breakdown:', firstMatch.pillar_breakdown);
+      }
+
       // Log summary
       console.log('🏆 Matches Summary:');
       companyJobs.forEach(job => {
@@ -105,7 +113,9 @@ export default function CompanyDashboard() {
         console.log(`  ${job.title}: ${count} candidates`);
         if (count > 0) {
           const topMatch = matchesByJob[job.id][0];
-          console.log(`    Top: ${topMatch.candidate.full_name} - ${(topMatch.compatibility_score * 100).toFixed(1)}%`);
+          console.log(`    Top: ${topMatch.candidate.full_name}`);
+          console.log(`    Raw Score: ${topMatch.compatibility_score}%`);
+          console.log(`    Base: ${topMatch.base_similarity}%, Boost: ${topMatch.archetype_boost}%`);
         }
       });
 
@@ -273,7 +283,7 @@ export default function CompanyDashboard() {
                                         </div>
                                         <div className="text-right">
                                           <div className="text-3xl font-bold text-primary">
-                                            {(match.compatibility_score * 100).toFixed(0)}%
+                                            {Math.round(match.compatibility_score)}%
                                           </div>
                                           <div className="text-xs text-muted-foreground">Match</div>
                                         </div>

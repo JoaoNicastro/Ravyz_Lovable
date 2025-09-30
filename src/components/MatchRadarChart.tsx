@@ -21,7 +21,7 @@ export const MatchRadarChart = ({ candidatePillars, jobPillars }: RadarChartProp
           <PolarAngleAxis dataKey="pillar" className="text-xs" />
           <PolarRadiusAxis 
             angle={90} 
-            domain={[0, 100]} 
+            domain={[0, 5]} 
             tick={false}
             axisLine={false}
           />
