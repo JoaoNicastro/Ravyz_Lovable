@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -29,13 +29,14 @@ const applicationInfoSchema = z.object({
   })).optional(),
   education: z.array(z.object({
     institution: z.string(),
-    major: z.string(),
-    gpa: z.string().optional(),
+    degree: z.string(),
+    field: z.string().optional(),
     start_date: z.string().optional(),
     end_date: z.string().optional(),
+    status: z.enum(['completed', 'in_progress']).optional(),
   })).optional(),
   hard_skills: z.array(z.string()).optional(),
-  
+  soft_skills: z.array(z.string()).optional(),
   languages: z.array(z.object({
     name: z.string(),
     proficiency: z.string().optional(),
@@ -76,22 +77,13 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
       work_experience: [],
       education: [],
       hard_skills: [],
+      soft_skills: [],
       languages: [],
       certifications: [],
       projects: []
     },
   });
-  
-  // Field Arrays for grouped editable cards
-  const { fields: expFields, append: appendExperienceFA, remove: removeExperienceFA, replace: replaceExperienceFA } = useFieldArray({
-    control: form.control,
-    name: 'work_experience',
-  });
-  const { fields: projectFields, append: appendProjectFA, remove: removeProjectFA, replace: replaceProjectFA } = useFieldArray({
-    control: form.control,
-    name: 'projects',
-  });
-  
+
   const submit = (values: ApplicationInfoData) => {
     onNext(values);
   };
@@ -134,12 +126,13 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
         }
       }
       
-      if (parsedData.work_experience) replaceExperienceFA(parsedData.work_experience as any);
+      if (parsedData.work_experience) form.setValue('work_experience', parsedData.work_experience);
       if (parsedData.education) form.setValue('education', parsedData.education);
       if (parsedData.hard_skills) form.setValue('hard_skills', parsedData.hard_skills);
+      if (parsedData.soft_skills) form.setValue('soft_skills', parsedData.soft_skills);
       if (parsedData.languages) form.setValue('languages', parsedData.languages);
       if (parsedData.certifications) form.setValue('certifications', parsedData.certifications);
-      if (parsedData.projects) replaceProjectFA(parsedData.projects as any);
+      if (parsedData.projects) form.setValue('projects', parsedData.projects);
 
       toast.success('Currículo analisado com sucesso! Revise e complete os dados abaixo.');
     } catch (error) {
@@ -151,35 +144,45 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
     }
   };
 
+  const workExperience = form.watch('work_experience') || [];
   const education = form.watch('education') || [];
   const hardSkills = form.watch('hard_skills') || [];
+  const softSkills = form.watch('soft_skills') || [];
   const languages = form.watch('languages') || [];
   const certifications = form.watch('certifications') || [];
+  const projects = form.watch('projects') || [];
 
-  // State for manual input fields (only for sections not using field arrays)
-  const [newEducation, setNewEducation] = useState({ institution: '', major: '', gpa: '', start_date: '', end_date: '' });
+  // State for manual input fields
+  const [newExperience, setNewExperience] = useState({ company: '', title: '', start_date: '', end_date: '', description: '' });
+  const [newEducation, setNewEducation] = useState({ institution: '', degree: '', field: '', start_date: '', end_date: '' });
   const [newHardSkill, setNewHardSkill] = useState('');
+  const [newSoftSkill, setNewSoftSkill] = useState('');
   const [newLanguage, setNewLanguage] = useState({ name: '', proficiency: '' });
   const [newCertification, setNewCertification] = useState({ name: '', issuer: '', issue_date: '' });
+  const [newProject, setNewProject] = useState({ name: '', description: '', link: '' });
 
-  // Experience handlers using Field Array
   const addExperience = () => {
-    appendExperienceFA({ company: '', title: '', start_date: '', end_date: '', current: false, description: '' });
-    toast.success('Experiência adicionada');
+    if (newExperience.company && newExperience.title) {
+      form.setValue('work_experience', [...workExperience, newExperience]);
+      setNewExperience({ company: '', title: '', start_date: '', end_date: '', description: '' });
+      toast.success('Experiência adicionada');
+    } else {
+      toast.error('Preencha empresa e cargo');
+    }
   };
 
   const removeExperience = (idx: number) => {
-    removeExperienceFA(idx);
+    form.setValue('work_experience', workExperience.filter((_, i) => i !== idx));
     toast.success('Experiência removida');
   };
 
   const addEducation = () => {
-    if (newEducation.institution && newEducation.major) {
-      form.setValue('education', [...education, newEducation]);
-      setNewEducation({ institution: '', major: '', gpa: '', start_date: '', end_date: '' });
+    if (newEducation.institution && newEducation.degree) {
+      form.setValue('education', [...education, { ...newEducation, status: 'completed' as const }]);
+      setNewEducation({ institution: '', degree: '', field: '', start_date: '', end_date: '' });
       toast.success('Formação adicionada');
     } else {
-      toast.error('Preencha instituição e curso');
+      toast.error('Preencha instituição e grau');
     }
   };
 
@@ -198,6 +201,18 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
 
   const removeHardSkill = (idx: number) => {
     form.setValue('hard_skills', hardSkills.filter((_, i) => i !== idx));
+  };
+
+  const addSoftSkill = () => {
+    if (newSoftSkill.trim()) {
+      form.setValue('soft_skills', [...softSkills, newSoftSkill.trim()]);
+      setNewSoftSkill('');
+      toast.success('Habilidade comportamental adicionada');
+    }
+  };
+
+  const removeSoftSkill = (idx: number) => {
+    form.setValue('soft_skills', softSkills.filter((_, i) => i !== idx));
   };
 
   const addLanguage = () => {
@@ -231,14 +246,20 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
   };
 
   const addProject = () => {
-    appendProjectFA({ name: '', description: '', link: '' });
-    toast.success('Projeto adicionado');
+    if (newProject.name) {
+      form.setValue('projects', [...projects, newProject]);
+      setNewProject({ name: '', description: '', link: '' });
+      toast.success('Projeto adicionado');
+    } else {
+      toast.error('Preencha o nome do projeto');
+    }
   };
 
   const removeProject = (idx: number) => {
-    removeProjectFA(idx);
+    form.setValue('projects', projects.filter((_, i) => i !== idx));
     toast.success('Projeto removido');
   };
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-8">
       <div className="text-center space-y-2">
@@ -357,25 +378,50 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
               </div>
             </div>
 
-            {/* Experience Items */}
-            <div className="space-y-4 pt-4 border-t">
-              <div className="flex justify-between items-center">
-                <Label className="text-sm font-medium">Experiências</Label>
-                <Button type="button" size="sm" onClick={addExperience}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Experiência
-                </Button>
+            {/* Manual Experience Entry */}
+            <div className="pt-4 border-t space-y-3">
+              <Label className="text-sm font-medium">Adicionar Experiência</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Input 
+                  placeholder="Empresa *" 
+                  value={newExperience.company}
+                  onChange={(e) => setNewExperience({...newExperience, company: e.target.value})}
+                />
+                <Input 
+                  placeholder="Cargo *" 
+                  value={newExperience.title}
+                  onChange={(e) => setNewExperience({...newExperience, title: e.target.value})}
+                />
+                <Input 
+                  type="date"
+                  placeholder="Data início"
+                  value={newExperience.start_date}
+                  onChange={(e) => setNewExperience({...newExperience, start_date: e.target.value})}
+                />
+                <Input 
+                  type="date"
+                  placeholder="Data fim"
+                  value={newExperience.end_date}
+                  onChange={(e) => setNewExperience({...newExperience, end_date: e.target.value})}
+                />
               </div>
-
-              {expFields.length === 0 && (
-                <p className="text-sm text-muted-foreground">Nenhuma experiência adicionada ainda.</p>
-              )}
-
-              <div className="space-y-3">
-                {expFields.map((field, idx) => {
-                  const isCurrent = form.watch(`work_experience.${idx}.current`);
-                  return (
-                    <Card key={field.id} className="p-4 bg-muted/30 relative group">
+              <Textarea 
+                placeholder="Descrição das responsabilidades"
+                value={newExperience.description}
+                onChange={(e) => setNewExperience({...newExperience, description: e.target.value})}
+                rows={2}
+              />
+              <Button type="button" onClick={addExperience} size="sm" className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Experiência
+              </Button>
+            </div>
+            {workExperience.length > 0 && (
+              <div className="space-y-2 pt-4 border-t">
+                <Label className="text-sm font-medium">Suas Experiências:</Label>
+                <div className="space-y-3">
+                  {workExperience.map((exp, idx) => (
+                    <div key={idx} className="p-3 border rounded-lg bg-muted/30 relative group">
                       <Button
                         type="button"
                         variant="ghost"
@@ -385,48 +431,19 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
                       >
                         <X className="h-4 w-4" />
                       </Button>
-                      <div className="space-y-3 pr-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                          <div>
-                            <Label htmlFor={`exp-company-${idx}`} className="text-xs text-muted-foreground">Empresa</Label>
-                            <Input id={`exp-company-${idx}`} placeholder="Nome da Empresa" {...form.register(`work_experience.${idx}.company` as const)} />
-                          </div>
-                          <div>
-                            <Label htmlFor={`exp-title-${idx}`} className="text-xs text-muted-foreground">Cargo</Label>
-                            <Input id={`exp-title-${idx}`} placeholder="Cargo" {...form.register(`work_experience.${idx}.title` as const)} />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <Label htmlFor={`exp-start-${idx}`} className="text-xs text-muted-foreground">Data de início</Label>
-                            <Input id={`exp-start-${idx}`} type="date" {...form.register(`work_experience.${idx}.start_date` as const)} />
-                          </div>
-                          <div>
-                            <Label htmlFor={`exp-end-${idx}`} className="text-xs text-muted-foreground">Data de fim</Label>
-                            <Input id={`exp-end-${idx}`} type="date" disabled={!!isCurrent} {...form.register(`work_experience.${idx}.end_date` as const)} />
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            id={`exp-current-${idx}`}
-                            className="h-4 w-4 rounded border-input"
-                            {...form.register(`work_experience.${idx}.current` as const)}
-                          />
-                          <Label htmlFor={`exp-current-${idx}`} className="text-sm font-normal cursor-pointer">
-                            Este é meu emprego atual
-                          </Label>
-                        </div>
-                        <div>
-                          <Label htmlFor={`exp-desc-${idx}`} className="text-xs text-muted-foreground">Descrição das responsabilidades e conquistas</Label>
-                          <Textarea id={`exp-desc-${idx}`} rows={3} placeholder="Descreva suas principais responsabilidades, conquistas e projetos..." {...form.register(`work_experience.${idx}.description` as const)} />
-                        </div>
-                      </div>
-                    </Card>
-                  );
-                })}
+                      <p className="font-medium">{exp.title}</p>
+                      <p className="text-sm text-muted-foreground">{exp.company}</p>
+                      {exp.start_date && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {exp.start_date} - {exp.current ? 'Presente' : exp.end_date || 'Presente'}
+                        </p>
+                      )}
+                      {exp.description && <p className="text-sm mt-2">{exp.description}</p>}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
@@ -437,51 +454,43 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Manual Education Entry */}
-            <div>
-              <Label className="text-sm font-medium mb-3 block">Adicionar Formação</Label>
-              <Card className="p-4 bg-muted/30">
-                <div className="space-y-3">
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Adicionar Formação</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <Input 
+                  placeholder="Instituição *" 
+                  value={newEducation.institution}
+                  onChange={(e) => setNewEducation({...newEducation, institution: e.target.value})}
+                />
+                <Input 
+                  placeholder="Grau/Curso *" 
+                  value={newEducation.degree}
+                  onChange={(e) => setNewEducation({...newEducation, degree: e.target.value})}
+                />
+                <Input 
+                  placeholder="Área de estudo" 
+                  value={newEducation.field}
+                  onChange={(e) => setNewEducation({...newEducation, field: e.target.value})}
+                />
+                <div className="grid grid-cols-2 gap-2">
                   <Input 
-                    placeholder="Instituição *" 
-                    value={newEducation.institution}
-                    onChange={(e) => setNewEducation({...newEducation, institution: e.target.value})}
+                    type="date"
+                    placeholder="Início"
+                    value={newEducation.start_date}
+                    onChange={(e) => setNewEducation({...newEducation, start_date: e.target.value})}
                   />
                   <Input 
-                    placeholder="Curso *" 
-                    value={newEducation.major}
-                    onChange={(e) => setNewEducation({...newEducation, major: e.target.value})}
+                    type="date"
+                    placeholder="Fim"
+                    value={newEducation.end_date}
+                    onChange={(e) => setNewEducation({...newEducation, end_date: e.target.value})}
                   />
-                  <Input 
-                    placeholder="GPA (opcional)" 
-                    value={newEducation.gpa}
-                    onChange={(e) => setNewEducation({...newEducation, gpa: e.target.value})}
-                  />
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="edu-start-date" className="text-xs text-muted-foreground">Data de início</Label>
-                      <Input 
-                        id="edu-start-date"
-                        type="date"
-                        value={newEducation.start_date}
-                        onChange={(e) => setNewEducation({...newEducation, start_date: e.target.value})}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="edu-end-date" className="text-xs text-muted-foreground">Data de fim</Label>
-                      <Input 
-                        id="edu-end-date"
-                        type="date"
-                        value={newEducation.end_date}
-                        onChange={(e) => setNewEducation({...newEducation, end_date: e.target.value})}
-                      />
-                    </div>
-                  </div>
-                  <Button type="button" onClick={addEducation} size="sm" className="w-full">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Formação
-                  </Button>
                 </div>
-              </Card>
+              </div>
+              <Button type="button" onClick={addEducation} size="sm" className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Formação
+              </Button>
             </div>
 
             {education.length > 0 && (
@@ -498,12 +507,12 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
                     >
                       <X className="h-4 w-4" />
                     </Button>
-                    <p className="font-medium">{edu.major}</p>
+                    <p className="font-medium">{edu.degree}</p>
+                    {edu.field && <p className="text-sm text-muted-foreground">{edu.field}</p>}
                     <p className="text-sm text-muted-foreground">{edu.institution}</p>
-                    {edu.gpa && <p className="text-sm text-muted-foreground">GPA: {edu.gpa}</p>}
                     {edu.start_date && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        {edu.start_date} - {edu.end_date || 'Presente'}
+                        {edu.start_date} - {edu.status === 'in_progress' ? 'Em andamento' : edu.end_date || 'Concluído'}
                       </p>
                     )}
                   </div>
@@ -545,6 +554,31 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
               )}
             </div>
 
+            {/* Soft Skills */}
+            <div>
+              <Label className="text-sm font-medium">Soft Skills (Comportamentais)</Label>
+              <div className="flex gap-2 mt-2">
+                <Input 
+                  placeholder="Ex: Liderança, Comunicação..."
+                  value={newSoftSkill}
+                  onChange={(e) => setNewSoftSkill(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSoftSkill())}
+                />
+                <Button type="button" onClick={addSoftSkill} size="sm">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              {softSkills.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2 p-3 border rounded-lg bg-muted/30">
+                  {softSkills.map((skill, idx) => (
+                    <Badge key={idx} variant="outline" className="cursor-pointer" onClick={() => removeSoftSkill(idx)}>
+                      {skill}
+                      <X className="h-3 w-3 ml-1" />
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
@@ -660,23 +694,35 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
             <CardTitle>Projetos</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Project Items */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <Label className="text-sm font-medium">Projetos</Label>
-                <Button type="button" size="sm" onClick={addProject}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Adicionar Projeto
-                </Button>
-              </div>
+            {/* Manual Project Entry */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Adicionar Projeto</Label>
+              <Input 
+                placeholder="Nome do projeto *" 
+                value={newProject.name}
+                onChange={(e) => setNewProject({...newProject, name: e.target.value})}
+              />
+              <Textarea 
+                placeholder="Descrição do projeto"
+                value={newProject.description}
+                onChange={(e) => setNewProject({...newProject, description: e.target.value})}
+                rows={2}
+              />
+              <Input 
+                placeholder="Link (GitHub, site, etc.)" 
+                value={newProject.link}
+                onChange={(e) => setNewProject({...newProject, link: e.target.value})}
+              />
+              <Button type="button" onClick={addProject} size="sm" className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Projeto
+              </Button>
+            </div>
 
-              {projectFields.length === 0 && (
-                <p className="text-sm text-muted-foreground">Nenhum projeto adicionado ainda.</p>
-              )}
-
-              <div className="space-y-3">
-                {projectFields.map((field, idx) => (
-                  <Card key={field.id} className="p-4 bg-muted/30 relative group">
+            {projects.length > 0 && (
+              <div className="space-y-3 pt-4 border-t">
+                {projects.map((proj, idx) => (
+                  <div key={idx} className="p-3 border rounded-lg bg-muted/30 relative group">
                     <Button
                       type="button"
                       variant="ghost"
@@ -686,24 +732,22 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
                     >
                       <X className="h-4 w-4" />
                     </Button>
-                    <div className="space-y-3 pr-8">
-                      <div>
-                        <Label htmlFor={`project-name-${idx}`} className="text-xs text-muted-foreground">Nome do Projeto</Label>
-                        <Input id={`project-name-${idx}`} placeholder="Nome do projeto" {...form.register(`projects.${idx}.name` as const)} />
-                      </div>
-                      <div>
-                        <Label htmlFor={`project-desc-${idx}`} className="text-xs text-muted-foreground">Descrição</Label>
-                        <Textarea id={`project-desc-${idx}`} rows={3} placeholder="Descreva o projeto, tecnologias usadas, resultados..." {...form.register(`projects.${idx}.description` as const)} />
-                      </div>
-                      <div>
-                        <Label htmlFor={`project-link-${idx}`} className="text-xs text-muted-foreground">Link (opcional)</Label>
-                        <Input id={`project-link-${idx}`} placeholder="GitHub, site, demo, etc." {...form.register(`projects.${idx}.link` as const)} />
-                      </div>
-                    </div>
-                  </Card>
+                    <p className="font-medium">{proj.name}</p>
+                    {proj.description && <p className="text-sm mt-1">{proj.description}</p>}
+                    {proj.link && (
+                      <a 
+                        href={proj.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-xs text-primary hover:underline mt-1 inline-block"
+                      >
+                        {proj.link}
+                      </a>
+                    )}
+                  </div>
                 ))}
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
 
