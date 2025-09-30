@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, FileText, Loader2, Plus, X } from "lucide-react";
+import { Upload, FileText, Loader2, Plus, X, Pencil, Check } from "lucide-react";
 import { parseResumeEnhanced, type ParsedResumeData } from "@/lib/enhanced-resume-parser";
 import { toast } from "sonner";
 
@@ -156,6 +156,10 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
   const [newCertification, setNewCertification] = useState({ name: '', issuer: '', issue_date: '' });
   const [newProject, setNewProject] = useState({ name: '', description: '', link: '' });
 
+  // State for editing existing items
+  const [editingExpIndex, setEditingExpIndex] = useState<number | null>(null);
+  const [editingProjectIndex, setEditingProjectIndex] = useState<number | null>(null);
+
   const addExperience = () => {
     if (newExperience.company && newExperience.title) {
       form.setValue('work_experience', [...workExperience, newExperience]);
@@ -241,6 +245,22 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
   const removeProject = (idx: number) => {
     form.setValue('projects', projects.filter((_, i) => i !== idx));
     toast.success('Projeto removido');
+  };
+
+  const updateExperience = (idx: number, updatedExp: typeof workExperience[0]) => {
+    const updated = [...workExperience];
+    updated[idx] = updatedExp;
+    form.setValue('work_experience', updated);
+    setEditingExpIndex(null);
+    toast.success('Experiência atualizada');
+  };
+
+  const updateProject = (idx: number, updatedProj: typeof projects[0]) => {
+    const updated = [...projects];
+    updated[idx] = updatedProj;
+    form.setValue('projects', updated);
+    setEditingProjectIndex(null);
+    toast.success('Projeto atualizado');
   };
 
   return (
@@ -433,29 +453,143 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
                 <div className="space-y-3">
                   {workExperience.map((exp, idx) => (
                     <Card key={idx} className="p-4 bg-muted/30 relative group">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        onClick={() => removeExperience(idx)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                      <div className="space-y-2 pr-8">
-                        <div>
-                          <p className="font-semibold text-base">{exp.title}</p>
-                          <p className="text-sm text-muted-foreground">{exp.company}</p>
+                      {editingExpIndex === idx ? (
+                        // Edit mode
+                        <div className="space-y-3">
+                          <Input 
+                            placeholder="Nome da Empresa *" 
+                            defaultValue={exp.company}
+                            onChange={(e) => {
+                              const updated = [...workExperience];
+                              updated[idx] = {...updated[idx], company: e.target.value};
+                              form.setValue('work_experience', updated);
+                            }}
+                          />
+                          <Input 
+                            placeholder="Cargo *" 
+                            defaultValue={exp.title}
+                            onChange={(e) => {
+                              const updated = [...workExperience];
+                              updated[idx] = {...updated[idx], title: e.target.value};
+                              form.setValue('work_experience', updated);
+                            }}
+                          />
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Data de início</Label>
+                              <Input 
+                                type="date"
+                                defaultValue={exp.start_date}
+                                onChange={(e) => {
+                                  const updated = [...workExperience];
+                                  updated[idx] = {...updated[idx], start_date: e.target.value};
+                                  form.setValue('work_experience', updated);
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Data de fim</Label>
+                              <Input 
+                                type="date"
+                                defaultValue={exp.end_date}
+                                onChange={(e) => {
+                                  const updated = [...workExperience];
+                                  updated[idx] = {...updated[idx], end_date: e.target.value};
+                                  form.setValue('work_experience', updated);
+                                }}
+                                disabled={exp.current}
+                              />
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id={`current-job-${idx}`}
+                              checked={exp.current || false}
+                              onChange={(e) => {
+                                const updated = [...workExperience];
+                                updated[idx] = {...updated[idx], current: e.target.checked, end_date: e.target.checked ? '' : updated[idx].end_date};
+                                form.setValue('work_experience', updated);
+                              }}
+                              className="h-4 w-4 rounded border-input"
+                            />
+                            <Label htmlFor={`current-job-${idx}`} className="text-sm font-normal cursor-pointer">
+                              Este é meu emprego atual
+                            </Label>
+                          </div>
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Descrição das responsabilidades e conquistas</Label>
+                            <Textarea 
+                              placeholder="Descreva suas principais responsabilidades, conquistas e projetos..."
+                              defaultValue={exp.description}
+                              onChange={(e) => {
+                                const updated = [...workExperience];
+                                updated[idx] = {...updated[idx], description: e.target.value};
+                                form.setValue('work_experience', updated);
+                              }}
+                              rows={3}
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              type="button" 
+                              onClick={() => setEditingExpIndex(null)} 
+                              size="sm" 
+                              variant="outline"
+                              className="flex-1"
+                            >
+                              Cancelar
+                            </Button>
+                            <Button 
+                              type="button" 
+                              onClick={() => setEditingExpIndex(null)} 
+                              size="sm"
+                              className="flex-1"
+                            >
+                              <Check className="h-4 w-4 mr-2" />
+                              Salvar
+                            </Button>
+                          </div>
                         </div>
-                        {exp.start_date && (
-                          <p className="text-xs text-muted-foreground">
-                            {exp.start_date} - {exp.current ? 'Emprego atual' : exp.end_date || 'Presente'}
-                          </p>
-                        )}
-                        {exp.description && (
-                          <p className="text-sm mt-2 leading-relaxed">{exp.description}</p>
-                        )}
-                      </div>
+                      ) : (
+                        // View mode
+                        <>
+                          <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => setEditingExpIndex(idx)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => removeExperience(idx)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="space-y-2 pr-16">
+                            <div>
+                              <p className="font-semibold text-base">{exp.title}</p>
+                              <p className="text-sm text-muted-foreground">{exp.company}</p>
+                            </div>
+                            {exp.start_date && (
+                              <p className="text-xs text-muted-foreground">
+                                {exp.start_date} - {exp.current ? 'Emprego atual' : exp.end_date || 'Presente'}
+                              </p>
+                            )}
+                            {exp.description && (
+                              <p className="text-sm mt-2 leading-relaxed">{exp.description}</p>
+                            )}
+                          </div>
+                        </>
+                      )}
                     </Card>
                   ))}
                 </div>
@@ -736,29 +870,103 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
                 <Label className="text-sm font-medium">Seus Projetos:</Label>
                 {projects.map((proj, idx) => (
                   <Card key={idx} className="p-4 bg-muted/30 relative group">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                      onClick={() => removeProject(idx)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                    <div className="space-y-2 pr-8">
-                      <p className="font-semibold text-base">{proj.name}</p>
-                      {proj.description && <p className="text-sm leading-relaxed">{proj.description}</p>}
-                      {proj.link && (
-                        <a 
-                          href={proj.link} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-xs text-primary hover:underline inline-block"
-                        >
-                          {proj.link}
-                        </a>
-                      )}
-                    </div>
+                    {editingProjectIndex === idx ? (
+                      // Edit mode
+                      <div className="space-y-3">
+                        <Input 
+                          placeholder="Nome do projeto *" 
+                          defaultValue={proj.name}
+                          onChange={(e) => {
+                            const updated = [...projects];
+                            updated[idx] = {...updated[idx], name: e.target.value};
+                            form.setValue('projects', updated);
+                          }}
+                        />
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Descrição</Label>
+                          <Textarea 
+                            placeholder="Descreva o projeto, tecnologias usadas, resultados..."
+                            defaultValue={proj.description}
+                            onChange={(e) => {
+                              const updated = [...projects];
+                              updated[idx] = {...updated[idx], description: e.target.value};
+                              form.setValue('projects', updated);
+                            }}
+                            rows={3}
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Link (opcional)</Label>
+                          <Input 
+                            placeholder="GitHub, site, demo, etc." 
+                            defaultValue={proj.link}
+                            onChange={(e) => {
+                              const updated = [...projects];
+                              updated[idx] = {...updated[idx], link: e.target.value};
+                              form.setValue('projects', updated);
+                            }}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            type="button" 
+                            onClick={() => setEditingProjectIndex(null)} 
+                            size="sm" 
+                            variant="outline"
+                            className="flex-1"
+                          >
+                            Cancelar
+                          </Button>
+                          <Button 
+                            type="button" 
+                            onClick={() => setEditingProjectIndex(null)} 
+                            size="sm"
+                            className="flex-1"
+                          >
+                            <Check className="h-4 w-4 mr-2" />
+                            Salvar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      // View mode
+                      <>
+                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => setEditingProjectIndex(idx)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => removeProject(idx)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="space-y-2 pr-16">
+                          <p className="font-semibold text-base">{proj.name}</p>
+                          {proj.description && <p className="text-sm leading-relaxed">{proj.description}</p>}
+                          {proj.link && (
+                            <a 
+                              href={proj.link} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="text-xs text-primary hover:underline inline-block"
+                            >
+                              {proj.link}
+                            </a>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </Card>
                 ))}
               </div>
