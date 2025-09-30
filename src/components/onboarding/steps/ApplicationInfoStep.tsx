@@ -151,12 +151,10 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
     }
   };
 
-  const workExperience = form.watch('work_experience') || [];
   const education = form.watch('education') || [];
   const hardSkills = form.watch('hard_skills') || [];
   const languages = form.watch('languages') || [];
   const certifications = form.watch('certifications') || [];
-  const projects = form.watch('projects') || [];
 
   // State for manual input fields (only for sections not using field arrays)
   const [newEducation, setNewEducation] = useState({ institution: '', major: '', gpa: '', start_date: '', end_date: '' });
@@ -662,48 +660,23 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
             <CardTitle>Projetos</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Manual Project Entry */}
-            <div>
-              <Label className="text-sm font-medium mb-3 block">Adicionar Projeto</Label>
-              <Card className="p-4 bg-muted/30">
-                <div className="space-y-3">
-                  <Input 
-                    placeholder="Nome do projeto *" 
-                    value={newProject.name}
-                    onChange={(e) => setNewProject({...newProject, name: e.target.value})}
-                  />
-                  <div>
-                    <Label htmlFor="project-description" className="text-xs text-muted-foreground">Descrição</Label>
-                    <Textarea 
-                      id="project-description"
-                      placeholder="Descreva o projeto, tecnologias usadas, resultados..."
-                      value={newProject.description}
-                      onChange={(e) => setNewProject({...newProject, description: e.target.value})}
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="project-link" className="text-xs text-muted-foreground">Link (opcional)</Label>
-                    <Input 
-                      id="project-link"
-                      placeholder="GitHub, site, demo, etc." 
-                      value={newProject.link}
-                      onChange={(e) => setNewProject({...newProject, link: e.target.value})}
-                    />
-                  </div>
-                  <Button type="button" onClick={addProject} size="sm" className="w-full">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Projeto
-                  </Button>
-                </div>
-              </Card>
-            </div>
+            {/* Project Items */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <Label className="text-sm font-medium">Projetos</Label>
+                <Button type="button" size="sm" onClick={addProject}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Adicionar Projeto
+                </Button>
+              </div>
 
-            {projects.length > 0 && (
-              <div className="space-y-3 pt-4 border-t">
-                <Label className="text-sm font-medium">Seus Projetos:</Label>
-                {projects.map((proj, idx) => (
-                  <Card key={idx} className="p-4 bg-muted/30 relative group">
+              {projectFields.length === 0 && (
+                <p className="text-sm text-muted-foreground">Nenhum projeto adicionado ainda.</p>
+              )}
+
+              <div className="space-y-3">
+                {projectFields.map((field, idx) => (
+                  <Card key={field.id} className="p-4 bg-muted/30 relative group">
                     <Button
                       type="button"
                       variant="ghost"
@@ -713,24 +686,24 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
                     >
                       <X className="h-4 w-4" />
                     </Button>
-                    <div className="space-y-2 pr-8">
-                      <p className="font-semibold text-base">{proj.name}</p>
-                      {proj.description && <p className="text-sm leading-relaxed">{proj.description}</p>}
-                      {proj.link && (
-                        <a 
-                          href={proj.link} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-xs text-primary hover:underline inline-block"
-                        >
-                          {proj.link}
-                        </a>
-                      )}
+                    <div className="space-y-3 pr-8">
+                      <div>
+                        <Label htmlFor={`project-name-${idx}`} className="text-xs text-muted-foreground">Nome do Projeto</Label>
+                        <Input id={`project-name-${idx}`} placeholder="Nome do projeto" {...form.register(`projects.${idx}.name` as const)} />
+                      </div>
+                      <div>
+                        <Label htmlFor={`project-desc-${idx}`} className="text-xs text-muted-foreground">Descrição</Label>
+                        <Textarea id={`project-desc-${idx}`} rows={3} placeholder="Descreva o projeto, tecnologias usadas, resultados..." {...form.register(`projects.${idx}.description` as const)} />
+                      </div>
+                      <div>
+                        <Label htmlFor={`project-link-${idx}`} className="text-xs text-muted-foreground">Link (opcional)</Label>
+                        <Input id={`project-link-${idx}`} placeholder="GitHub, site, demo, etc." {...form.register(`projects.${idx}.link` as const)} />
+                      </div>
                     </div>
                   </Card>
                 ))}
               </div>
-            )}
+            </div>
           </CardContent>
         </Card>
 
