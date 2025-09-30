@@ -1,0 +1,1246 @@
+[
+  {
+    "id": "43079430-ba94-4abf-b5a4-a83a9e51cce0",
+    "full_name": "Candidate 1 Test",
+    "email": "candidate1@example.com",
+    "phone": "+55 11 92679-9935",
+    "location": "São Paulo, SP",
+    "years_experience": 3,
+    "skills": [
+      "CI/CD",
+      "Docker",
+      "FastAPI",
+      "GraphQL"
+    ],
+    "pillar_scores": {
+      "Compensation": 5,
+      "Ambiente": 4,
+      "Propósito": 1,
+      "Crescimento": 1
+    },
+    "archetype": "Protagonista",
+    "headline": "Backend Engineer",
+    "created_at": "2025-09-30T01:21:05.126270Z"
+  },
+  {
+    "id": "62b1fa0d-60cd-40a6-92ca-3cd2d31ce8a6",
+    "full_name": "Candidate 2 Test",
+    "email": "candidate2@example.com",
+    "phone": "+55 11 91106-3615",
+    "location": "Recife, PE",
+    "years_experience": 7,
+    "skills": [
+      "Airflow",
+      "CI/CD",
+      "Docker",
+      "Flask",
+      "GCP",
+      "Kafka",
+      "Tailwind",
+      "TypeScript"
+    ],
+    "pillar_scores": {
+      "Compensation": 4,
+      "Ambiente": 3,
+      "Propósito": 3,
+      "Crescimento": 2
+    },
+    "archetype": "Guardião",
+    "headline": "Frontend Engineer",
+    "created_at": "2025-09-30T01:21:05.126437Z"
+  },
+  {
+    "id": "4145f3b6-4ef4-421d-9680-3d2a59d9a5db",
+    "full_name": "Candidate 3 Test",
+    "email": "candidate3@example.com",
+    "phone": "+55 11 91711-8527",
+    "location": "Porto Alegre, RS",
+    "years_experience": 3,
+    "skills": [
+      ".NET",
+      "AWS",
+      "Django",
+      "Rust"
+    ],
+    "pillar_scores": {
+      "Compensation": 1,
+      "Ambiente": 4,
+      "Propósito": 1,
+      "Crescimento": 5
+    },
+    "archetype": "Transformador",
+    "headline": "Cloud Engineer",
+    "created_at": "2025-09-30T01:21:05.126919Z"
+  },
+  {
+    "id": "497053f7-7203-459b-9808-ddd94f07c481",
+    "full_name": "Candidate 4 Test",
+    "email": "candidate4@example.com",
+    "phone": "+55 11 94814-2654",
+    "location": "Curitiba, PR",
+    "years_experience": 11,
+    "skills": [
+      "C#",
+      "GCP",
+      "Kubernetes",
+      "PostgreSQL",
+      "React",
+      "Rust",
+      "Tailwind",
+      "Teamwork"
+    ],
+    "pillar_scores": {
+      "Compensation": 3,
+      "Ambiente": 4,
+      "Propósito": 3,
+      "Crescimento": 2
+    },
+    "archetype": "Transformador",
+    "headline": "Frontend Engineer",
+    "created_at": "2025-09-30T01:21:05.127060Z"
+  },
+  {
+    "id": "707f3af5-d92c-4e04-b466-f0afc91de97f",
+    "full_name": "Candidate 5 Test",
+    "email": "candidate5@example.com",
+    "phone": "+55 11 95422-4598",
+    "location": "Recife, PE",
+    "years_experience": 6,
+    "skills": [
+      "CI/CD",
+      "GraphQL",
+      "MongoDB",
+      "PostgreSQL",
+      "Tailwind",
+      "Terraform"
+    ],
+    "pillar_scores": {
+      "Compensation": 3,
+      "Ambiente": 1,
+      "Propósito": 2,
+      "Crescimento": 1
+    },
+    "archetype": "Transformador",
+    "headline": "Data Engineer",
+    "created_at": "2025-09-30T01:21:05.127131Z"
+  },
+  {
+    "id": "a109237b-f3d7-4ee8-abd4-ff553780cec9",
+    "full_name": "Candidate 6 Test",
+    "email": "candidate6@example.com",
+    "phone": "+55 11 98517-3340",
+    "location": "Belo Horizonte, MG",
+    "years_experience": 8,
+    "skills": [
+      "Figma",
+      "Kafka",
+      "Spring",
+      "Teamwork"
+    ],
+    "pillar_scores": {
+      "Compensation": 2,
+      "Ambiente": 2,
+      "Propósito": 5,
+      "Crescimento": 5
+    },
+    "archetype": "Transformador",
+    "headline": "Cloud Engineer",
+    "created_at": "2025-09-30T01:21:05.127178Z"
+  },
+  {
+    "id": "1a7b9c3e-0a18-4e05-988a-ac18c8c7f800",
+    "full_name": "Candidate 7 Test",
+    "email": "candidate7@example.com",
+    "phone": "+55 11 91771-2796",
+    "location": "Rio de Janeiro, RJ",
+    "years_experience": 13,
+    "skills": [
+      "CI/CD",
+      "Django",
+      "Go",
+      "GraphQL",
+      "Kafka",
+      "PostgreSQL",
+      "React",
+      "Rust"
+    ],
+    "pillar_scores": {
+      "Compensation": 2,
+      "Ambiente": 4,
+      "Propósito": 5,
+      "Crescimento": 1
+    },
+    "archetype": "Explorador",
+    "headline": "Data Engineer",
+    "created_at": "2025-09-30T01:21:05.127255Z"
+  },
+  {
+    "id": "422125a3-d967-4a1b-aaa2-740b861b25f5",
+    "full_name": "Candidate 8 Test",
+    "email": "candidate8@example.com",
+    "phone": "+55 11 96573-2827",
+    "location": "Belo Horizonte, MG",
+    "years_experience": 14,
+    "skills": [
+      "C#",
+      "Django",
+      "Docker",
+      "FastAPI",
+      "GCP",
+      "PowerBI",
+      "Python",
+      "Rust"
+    ],
+    "pillar_scores": {
+      "Compensation": 4,
+      "Ambiente": 2,
+      "Propósito": 4,
+      "Crescimento": 1
+    },
+    "archetype": "Transformador",
+    "headline": "Cloud Engineer",
+    "created_at": "2025-09-30T01:21:05.127346Z"
+  },
+  {
+    "id": "85c1687a-950d-4b3e-9575-0f8f27c0d542",
+    "full_name": "Candidate 9 Test",
+    "email": "candidate9@example.com",
+    "phone": "+55 11 99689-1009",
+    "location": "Porto Alegre, RS",
+    "years_experience": 5,
+    "skills": [
+      "AWS",
+      "FastAPI",
+      "Java",
+      "MongoDB",
+      "Next.js",
+      "PostgreSQL",
+      "Rust",
+      "Tailwind"
+    ],
+    "pillar_scores": {
+      "Compensation": 3,
+      "Ambiente": 4,
+      "Propósito": 1,
+      "Crescimento": 1
+    },
+    "archetype": "Transformador",
+    "headline": "Frontend Engineer",
+    "created_at": "2025-09-30T01:21:05.127391Z"
+  },
+  {
+    "id": "97f2ccfd-5baa-4b47-b608-78a4246c7e7d",
+    "full_name": "Candidate 10 Test",
+    "email": "candidate10@example.com",
+    "phone": "+55 11 99727-3060",
+    "location": "Rio de Janeiro, RJ",
+    "years_experience": 7,
+    "skills": [
+      "GraphQL",
+      "MongoDB",
+      "PostgreSQL",
+      "Teamwork"
+    ],
+    "pillar_scores": {
+      "Compensation": 4,
+      "Ambiente": 5,
+      "Propósito": 2,
+      "Crescimento": 3
+    },
+    "archetype": "Pragmático",
+    "headline": "Cloud Engineer",
+    "created_at": "2025-09-30T01:21:05.127450Z"
+  },
+  {
+    "id": "61d4190a-57d4-4fe6-afab-980ff7488238",
+    "full_name": "Candidate 11 Test",
+    "email": "candidate11@example.com",
+    "phone": "+55 11 99479-8397",
+    "location": "São Paulo, SP",
+    "years_experience": 13,
+    "skills": [
+      "Go",
+      "Java",
+      "Kafka",
+      "PowerBI",
+      "Tailwind"
+    ],
+    "pillar_scores": {
+      "Compensation": 2,
+      "Ambiente": 2,
+      "Propósito": 1,
+      "Crescimento": 3
+    },
+    "archetype": "Protagonista",
+    "headline": "Cloud Engineer",
+    "created_at": "2025-09-30T01:21:05.127505Z"
+  },
+  {
+    "id": "c65b6c40-1d51-478f-ae1a-701c5b3a65f0",
+    "full_name": "Candidate 12 Test",
+    "email": "candidate12@example.com",
+    "phone": "+55 11 91514-6413",
+    "location": "São Paulo, SP",
+    "years_experience": 7,
+    "skills": [
+      ".NET",
+      "CI/CD",
+      "GCP",
+      "PostgreSQL",
+      "Python",
+      "React",
+      "Spring",
+      "TypeScript"
+    ],
+    "pillar_scores": {
+      "Compensation": 5,
+      "Ambiente": 2,
+      "Propósito": 3,
+      "Crescimento": 4
+    },
+    "archetype": "Guardião",
+    "headline": "Cloud Engineer",
+    "created_at": "2025-09-30T01:21:05.127562Z"
+  },
+  {
+    "id": "d45dbd05-14b5-472e-8e92-d4641918146a",
+    "full_name": "Candidate 13 Test",
+    "email": "candidate13@example.com",
+    "phone": "+55 11 98062-6804",
+    "location": "Curitiba, PR",
+    "years_experience": 4,
+    "skills": [
+      "AWS",
+      "Figma",
+      "GraphQL",
+      "Kafka",
+      "Leadership",
+      "Node.js",
+      "Problem Solving",
+      "dbt"
+    ],
+    "pillar_scores": {
+      "Compensation": 4,
+      "Ambiente": 4,
+      "Propósito": 1,
+      "Crescimento": 1
+    },
+    "archetype": "Protagonista",
+    "headline": "Data Engineer",
+    "created_at": "2025-09-30T01:21:05.127619Z"
+  },
+  {
+    "id": "1d79004c-4e1d-400c-853f-39ef6e7b8a15",
+    "full_name": "Candidate 14 Test",
+    "email": "candidate14@example.com",
+    "phone": "+55 11 97912-4006",
+    "location": "Belo Horizonte, MG",
+    "years_experience": 10,
+    "skills": [
+      "Docker",
+      "GraphQL",
+      "PowerBI",
+      "Tailwind"
+    ],
+    "pillar_scores": {
+      "Compensation": 4,
+      "Ambiente": 2,
+      "Propósito": 1,
+      "Crescimento": 4
+    },
+    "archetype": "Pragmático",
+    "headline": "Full-Stack Developer",
+    "created_at": "2025-09-30T01:21:05.127679Z"
+  },
+  {
+    "id": "eb6a5eee-6a14-446e-a24a-056d4818511b",
+    "full_name": "Candidate 15 Test",
+    "email": "candidate15@example.com",
+    "phone": "+55 11 97570-1960",
+    "location": "Rio de Janeiro, RJ",
+    "years_experience": 1,
+    "skills": [
+      "AWS",
+      "Communication",
+      "Figma",
+      "GraphQL",
+      "MongoDB",
+      "PowerBI",
+      "Python",
+      "Teamwork"
+    ],
+    "pillar_scores": {
+      "Compensation": 4,
+      "Ambiente": 1,
+      "Propósito": 4,
+      "Crescimento": 3
+    },
+    "archetype": "Explorador",
+    "headline": "Frontend Engineer",
+    "created_at": "2025-09-30T01:21:05.127735Z"
+  },
+  {
+    "id": "bba08724-b252-48e1-87ac-9ffb8ed2c354",
+    "full_name": "Candidate 16 Test",
+    "email": "candidate16@example.com",
+    "phone": "+55 11 99883-1998",
+    "location": "Recife, PE",
+    "years_experience": 13,
+    "skills": [
+      "AWS",
+      "Communication",
+      "Flask",
+      "Go",
+      "Kubernetes",
+      "Tailwind",
+      "Teamwork",
+      "TypeScript"
+    ],
+    "pillar_scores": {
+      "Compensation": 3,
+      "Ambiente": 1,
+      "Propósito": 1,
+      "Crescimento": 5
+    },
+    "archetype": "Explorador",
+    "headline": "Cloud Engineer",
+    "created_at": "2025-09-30T01:21:05.127783Z"
+  },
+  {
+    "id": "4d7cb909-8b79-42ef-b14b-98b216f4e6ca",
+    "full_name": "Candidate 17 Test",
+    "email": "candidate17@example.com",
+    "phone": "+55 11 92113-4853",
+    "location": "Curitiba, PR",
+    "years_experience": 5,
+    "skills": [
+      "Communication",
+      "MongoDB",
+      "Next.js",
+      "PostgreSQL"
+    ],
+    "pillar_scores": {
+      "Compensation": 1,
+      "Ambiente": 5,
+      "Propósito": 2,
+      "Crescimento": 5
+    },
+    "archetype": "Pragmático",
+    "headline": "Full-Stack Developer",
+    "created_at": "2025-09-30T01:21:05.127833Z"
+  },
+  {
+    "id": "df12936e-c621-41a2-8f4d-69780f2c756c",
+    "full_name": "Candidate 18 Test",
+    "email": "candidate18@example.com",
+    "phone": "+55 11 94910-5351",
+    "location": "Curitiba, PR",
+    "years_experience": 2,
+    "skills": [
+      ".NET",
+      "AWS",
+      "C#",
+      "Django",
+      "Problem Solving",
+      "Spring",
+      "Terraform"
+    ],
+    "pillar_scores": {
+      "Compensation": 2,
+      "Ambiente": 3,
+      "Propósito": 4,
+      "Crescimento": 3
+    },
+    "archetype": "Protagonista",
+    "headline": "Full-Stack Developer",
+    "created_at": "2025-09-30T01:21:05.127870Z"
+  },
+  {
+    "id": "91e7399c-594d-43e1-98b6-90a8743c4e58",
+    "full_name": "Candidate 19 Test",
+    "email": "candidate19@example.com",
+    "phone": "+55 11 95002-7054",
+    "location": "Belo Horizonte, MG",
+    "years_experience": 14,
+    "skills": [
+      "AWS",
+      "Communication",
+      "Django",
+      "Docker",
+      "Figma",
+      "Next.js",
+      "PostgreSQL",
+      "React"
+    ],
+    "pillar_scores": {
+      "Compensation": 2,
+      "Ambiente": 4,
+      "Propósito": 5,
+      "Crescimento": 3
+    },
+    "archetype": "Pragmático",
+    "headline": "Cloud Engineer",
+    "created_at": "2025-09-30T01:21:05.127909Z"
+  },
+  {
+    "id": "d55e634c-0fb4-4362-9d6c-046238ff275d",
+    "full_name": "Candidate 20 Test",
+    "email": "candidate20@example.com",
+    "phone": "+55 11 93546-5462",
+    "location": "Belo Horizonte, MG",
+    "years_experience": 0,
+    "skills": [
+      "AWS",
+      "Docker",
+      "Excel",
+      "Go",
+      "Java",
+      "Node.js",
+      "PowerBI",
+      "Teamwork"
+    ],
+    "pillar_scores": {
+      "Compensation": 5,
+      "Ambiente": 2,
+      "Propósito": 3,
+      "Crescimento": 2
+    },
+    "archetype": "Transformador",
+    "headline": "Cloud Engineer",
+    "created_at": "2025-09-30T01:21:05.127951Z"
+  },
+  {
+    "id": "5c95601a-9e33-465e-be91-1c624a439041",
+    "full_name": "Candidate 21 Test",
+    "email": "candidate21@example.com",
+    "phone": "+55 11 91058-6464",
+    "location": "Rio de Janeiro, RJ",
+    "years_experience": 15,
+    "skills": [
+      "Airflow",
+      "Docker",
+      "MongoDB",
+      "Node.js",
+      "TypeScript",
+      "dbt"
+    ],
+    "pillar_scores": {
+      "Compensation": 3,
+      "Ambiente": 2,
+      "Propósito": 4,
+      "Crescimento": 5
+    },
+    "archetype": "Explorador",
+    "headline": "Cloud Engineer",
+    "created_at": "2025-09-30T01:21:05.127982Z"
+  },
+  {
+    "id": "8cf3797a-c931-4fb9-b93a-cb9eebd9eb06",
+    "full_name": "Candidate 22 Test",
+    "email": "candidate22@example.com",
+    "phone": "+55 11 93426-8041",
+    "location": "Rio de Janeiro, RJ",
+    "years_experience": 0,
+    "skills": [
+      "Go",
+      "Kubernetes",
+      "PostgreSQL",
+      "React"
+    ],
+    "pillar_scores": {
+      "Compensation": 1,
+      "Ambiente": 3,
+      "Propósito": 3,
+      "Crescimento": 1
+    },
+    "archetype": "Transformador",
+    "headline": "Backend Engineer",
+    "created_at": "2025-09-30T01:21:05.128019Z"
+  },
+  {
+    "id": "8b7845f7-8e72-47fc-b081-6b791d34363c",
+    "full_name": "Candidate 23 Test",
+    "email": "candidate23@example.com",
+    "phone": "+55 11 93662-3900",
+    "location": "Curitiba, PR",
+    "years_experience": 7,
+    "skills": [
+      ".NET",
+      "Airflow",
+      "GraphQL",
+      "Kubernetes"
+    ],
+    "pillar_scores": {
+      "Compensation": 1,
+      "Ambiente": 2,
+      "Propósito": 3,
+      "Crescimento": 4
+    },
+    "archetype": "Guardião",
+    "headline": "Frontend Engineer",
+    "created_at": "2025-09-30T01:21:05.128089Z"
+  },
+  {
+    "id": "f9bb4153-8d4c-4c94-b1bc-e881995aa8de",
+    "full_name": "Candidate 24 Test",
+    "email": "candidate24@example.com",
+    "phone": "+55 11 94269-8541",
+    "location": "Belo Horizonte, MG",
+    "years_experience": 5,
+    "skills": [
+      "CI/CD",
+      "Leadership",
+      "React",
+      "Rust"
+    ],
+    "pillar_scores": {
+      "Compensation": 3,
+      "Ambiente": 2,
+      "Propósito": 2,
+      "Crescimento": 1
+    },
+    "archetype": "Guardião",
+    "headline": "Data Engineer",
+    "created_at": "2025-09-30T01:21:05.128141Z"
+  },
+  {
+    "id": "a9b119ea-9b25-40c8-8d1c-1dfa46c77cdb",
+    "full_name": "Candidate 25 Test",
+    "email": "candidate25@example.com",
+    "phone": "+55 11 99785-6425",
+    "location": "São Paulo, SP",
+    "years_experience": 10,
+    "skills": [
+      ".NET",
+      "Django",
+      "FastAPI",
+      "PostgreSQL",
+      "Spring",
+      "Tailwind"
+    ],
+    "pillar_scores": {
+      "Compensation": 1,
+      "Ambiente": 3,
+      "Propósito": 2,
+      "Crescimento": 5
+    },
+    "archetype": "Transformador",
+    "headline": "Full-Stack Developer",
+    "created_at": "2025-09-30T01:21:05.128184Z"
+  },
+  {
+    "id": "1bfc11f5-8eb9-4cad-97fe-d65275d581a4",
+    "full_name": "Candidate 26 Test",
+    "email": "candidate26@example.com",
+    "phone": "+55 11 94114-5173",
+    "location": "São Paulo, SP",
+    "years_experience": 3,
+    "skills": [
+      ".NET",
+      "Django",
+      "Figma",
+      "Java",
+      "Node.js",
+      "Spring",
+      "Tailwind",
+      "dbt"
+    ],
+    "pillar_scores": {
+      "Compensation": 4,
+      "Ambiente": 1,
+      "Propósito": 5,
+      "Crescimento": 5
+    },
+    "archetype": "Guardião",
+    "headline": "Frontend Engineer",
+    "created_at": "2025-09-30T01:21:05.128232Z"
+  },
+  {
+    "id": "382c133f-8e3e-4374-bafa-2c3d079e1c41",
+    "full_name": "Candidate 27 Test",
+    "email": "candidate27@example.com",
+    "phone": "+55 11 99308-6067",
+    "location": "Recife, PE",
+    "years_experience": 13,
+    "skills": [
+      "C#",
+      "GCP",
+      "Java",
+      "Spring"
+    ],
+    "pillar_scores": {
+      "Compensation": 4,
+      "Ambiente": 3,
+      "Propósito": 4,
+      "Crescimento": 3
+    },
+    "archetype": "Pragmático",
+    "headline": "Backend Engineer",
+    "created_at": "2025-09-30T01:21:05.128289Z"
+  },
+  {
+    "id": "74f2b4b7-e3d3-456d-b80a-00d490c8057b",
+    "full_name": "Candidate 28 Test",
+    "email": "candidate28@example.com",
+    "phone": "+55 11 95978-5700",
+    "location": "Rio de Janeiro, RJ",
+    "years_experience": 6,
+    "skills": [
+      "Airflow",
+      "FastAPI",
+      "Java",
+      "Next.js",
+      "Python",
+      "Rust",
+      "Tailwind"
+    ],
+    "pillar_scores": {
+      "Compensation": 4,
+      "Ambiente": 5,
+      "Propósito": 5,
+      "Crescimento": 3
+    },
+    "archetype": "Explorador",
+    "headline": "Data Engineer",
+    "created_at": "2025-09-30T01:21:05.128334Z"
+  },
+  {
+    "id": "7954a1be-39ed-46e9-bdbb-a34c3f6bc436",
+    "full_name": "Candidate 29 Test",
+    "email": "candidate29@example.com",
+    "phone": "+55 11 99445-6491",
+    "location": "São Paulo, SP",
+    "years_experience": 14,
+    "skills": [
+      "Communication",
+      "Flask",
+      "Leadership",
+      "MongoDB",
+      "Terraform"
+    ],
+    "pillar_scores": {
+      "Compensation": 2,
+      "Ambiente": 3,
+      "Propósito": 2,
+      "Crescimento": 2
+    },
+    "archetype": "Guardião",
+    "headline": "Full-Stack Developer",
+    "created_at": "2025-09-30T01:21:05.128373Z"
+  },
+  {
+    "id": "10f7089e-f8ae-4a98-9574-88eadfdb27a3",
+    "full_name": "Candidate 30 Test",
+    "email": "candidate30@example.com",
+    "phone": "+55 11 97291-9099",
+    "location": "Curitiba, PR",
+    "years_experience": 1,
+    "skills": [
+      "Airflow",
+      "Excel",
+      "Leadership",
+      "PostgreSQL",
+      "Tailwind"
+    ],
+    "pillar_scores": {
+      "Compensation": 2,
+      "Ambiente": 2,
+      "Propósito": 1,
+      "Crescimento": 1
+    },
+    "archetype": "Explorador",
+    "headline": "Backend Engineer",
+    "created_at": "2025-09-30T01:21:05.128409Z"
+  },
+  {
+    "id": "81dbf453-211b-4937-8e2d-b1b7e5f59655",
+    "full_name": "Candidate 31 Test",
+    "email": "candidate31@example.com",
+    "phone": "+55 11 98612-9702",
+    "location": "Porto Alegre, RS",
+    "years_experience": 5,
+    "skills": [
+      "CI/CD",
+      "Communication",
+      "Excel",
+      "GraphQL",
+      "Node.js",
+      "PostgreSQL",
+      "Problem Solving",
+      "dbt"
+    ],
+    "pillar_scores": {
+      "Compensation": 5,
+      "Ambiente": 3,
+      "Propósito": 4,
+      "Crescimento": 5
+    },
+    "archetype": "Pragmático",
+    "headline": "Data Engineer",
+    "created_at": "2025-09-30T01:21:05.128445Z"
+  },
+  {
+    "id": "17d6a8a1-2797-4951-9b54-5ebe3ccead9d",
+    "full_name": "Candidate 32 Test",
+    "email": "candidate32@example.com",
+    "phone": "+55 11 99540-8939",
+    "location": "Recife, PE",
+    "years_experience": 14,
+    "skills": [
+      "Django",
+      "FastAPI",
+      "GraphQL",
+      "Leadership",
+      "PowerBI"
+    ],
+    "pillar_scores": {
+      "Compensation": 2,
+      "Ambiente": 3,
+      "Propósito": 4,
+      "Crescimento": 1
+    },
+    "archetype": "Transformador",
+    "headline": "Backend Engineer",
+    "created_at": "2025-09-30T01:21:05.128479Z"
+  },
+  {
+    "id": "03d30bce-eb48-4a98-8928-4b8fe3f957da",
+    "full_name": "Candidate 33 Test",
+    "email": "candidate33@example.com",
+    "phone": "+55 11 93503-4505",
+    "location": "São Paulo, SP",
+    "years_experience": 8,
+    "skills": [
+      "Docker",
+      "GCP",
+      "MongoDB",
+      "PostgreSQL",
+      "Spring",
+      "Tailwind"
+    ],
+    "pillar_scores": {
+      "Compensation": 4,
+      "Ambiente": 4,
+      "Propósito": 3,
+      "Crescimento": 5
+    },
+    "archetype": "Explorador",
+    "headline": "Data Engineer",
+    "created_at": "2025-09-30T01:21:05.128503Z"
+  },
+  {
+    "id": "8088f80c-b419-4646-843d-584ec908610b",
+    "full_name": "Candidate 34 Test",
+    "email": "candidate34@example.com",
+    "phone": "+55 11 96763-5892",
+    "location": "Curitiba, PR",
+    "years_experience": 1,
+    "skills": [
+      "Airflow",
+      "Leadership",
+      "Python",
+      "Rust",
+      "TypeScript"
+    ],
+    "pillar_scores": {
+      "Compensation": 4,
+      "Ambiente": 5,
+      "Propósito": 5,
+      "Crescimento": 5
+    },
+    "archetype": "Guardião",
+    "headline": "Data Engineer",
+    "created_at": "2025-09-30T01:21:05.128540Z"
+  },
+  {
+    "id": "9bc0e128-f4b1-4fcf-9969-07a3e74b68c6",
+    "full_name": "Candidate 35 Test",
+    "email": "candidate35@example.com",
+    "phone": "+55 11 97624-3704",
+    "location": "Curitiba, PR",
+    "years_experience": 7,
+    "skills": [
+      "C#",
+      "Tailwind",
+      "Teamwork",
+      "Terraform",
+      "TypeScript",
+      "dbt"
+    ],
+    "pillar_scores": {
+      "Compensation": 2,
+      "Ambiente": 5,
+      "Propósito": 5,
+      "Crescimento": 1
+    },
+    "archetype": "Explorador",
+    "headline": "Cloud Engineer",
+    "created_at": "2025-09-30T01:21:05.128575Z"
+  },
+  {
+    "id": "17f17319-79df-4736-92b5-0008109b4eb2",
+    "full_name": "Candidate 36 Test",
+    "email": "candidate36@example.com",
+    "phone": "+55 11 91823-5262",
+    "location": "Curitiba, PR",
+    "years_experience": 0,
+    "skills": [
+      "Docker",
+      "Excel",
+      "Next.js",
+      "dbt"
+    ],
+    "pillar_scores": {
+      "Compensation": 3,
+      "Ambiente": 2,
+      "Propósito": 4,
+      "Crescimento": 3
+    },
+    "archetype": "Transformador",
+    "headline": "Data Engineer",
+    "created_at": "2025-09-30T01:21:05.128609Z"
+  },
+  {
+    "id": "271a266b-9554-4943-8b7f-4dbf17e356ca",
+    "full_name": "Candidate 37 Test",
+    "email": "candidate37@example.com",
+    "phone": "+55 11 96733-4673",
+    "location": "Recife, PE",
+    "years_experience": 8,
+    "skills": [
+      "Django",
+      "FastAPI",
+      "Go",
+      "Leadership",
+      "MongoDB",
+      "Python",
+      "TypeScript"
+    ],
+    "pillar_scores": {
+      "Compensation": 1,
+      "Ambiente": 1,
+      "Propósito": 1,
+      "Crescimento": 2
+    },
+    "archetype": "Guardião",
+    "headline": "Full-Stack Developer",
+    "created_at": "2025-09-30T01:21:05.128631Z"
+  },
+  {
+    "id": "0606aace-b0e6-4718-ab5a-9b7af8667fbd",
+    "full_name": "Candidate 38 Test",
+    "email": "candidate38@example.com",
+    "phone": "+55 11 95198-7043",
+    "location": "Rio de Janeiro, RJ",
+    "years_experience": 4,
+    "skills": [
+      "Docker",
+      "Excel",
+      "Figma",
+      "GCP",
+      "Leadership"
+    ],
+    "pillar_scores": {
+      "Compensation": 5,
+      "Ambiente": 5,
+      "Propósito": 1,
+      "Crescimento": 2
+    },
+    "archetype": "Transformador",
+    "headline": "Full-Stack Developer",
+    "created_at": "2025-09-30T01:21:05.128655Z"
+  },
+  {
+    "id": "93dc0b4c-a208-4312-a067-919b96aa9c2d",
+    "full_name": "Candidate 39 Test",
+    "email": "candidate39@example.com",
+    "phone": "+55 11 94978-2669",
+    "location": "Recife, PE",
+    "years_experience": 0,
+    "skills": [
+      ".NET",
+      "Flask",
+      "Kafka",
+      "React",
+      "Rust",
+      "Tailwind"
+    ],
+    "pillar_scores": {
+      "Compensation": 3,
+      "Ambiente": 5,
+      "Propósito": 1,
+      "Crescimento": 5
+    },
+    "archetype": "Protagonista",
+    "headline": "Frontend Engineer",
+    "created_at": "2025-09-30T01:21:05.128678Z"
+  },
+  {
+    "id": "6e9e0fa5-710e-4153-a46d-fb5b52e9cd95",
+    "full_name": "Candidate 40 Test",
+    "email": "candidate40@example.com",
+    "phone": "+55 11 99031-2729",
+    "location": "Curitiba, PR",
+    "years_experience": 13,
+    "skills": [
+      "C#",
+      "Communication",
+      "Figma",
+      "PostgreSQL",
+      "Python",
+      "dbt"
+    ],
+    "pillar_scores": {
+      "Compensation": 3,
+      "Ambiente": 4,
+      "Propósito": 2,
+      "Crescimento": 4
+    },
+    "archetype": "Guardião",
+    "headline": "Cloud Engineer",
+    "created_at": "2025-09-30T01:21:05.128700Z"
+  },
+  {
+    "id": "4c1a8ec6-452a-4abb-aa9a-0cfb972962b3",
+    "full_name": "Candidate 41 Test",
+    "email": "candidate41@example.com",
+    "phone": "+55 11 95022-2419",
+    "location": "Belo Horizonte, MG",
+    "years_experience": 8,
+    "skills": [
+      "Airflow",
+      "Docker",
+      "Excel",
+      "Flask",
+      "Go",
+      "Leadership",
+      "Terraform",
+      "dbt"
+    ],
+    "pillar_scores": {
+      "Compensation": 4,
+      "Ambiente": 2,
+      "Propósito": 4,
+      "Crescimento": 5
+    },
+    "archetype": "Pragmático",
+    "headline": "Data Engineer",
+    "created_at": "2025-09-30T01:21:05.128730Z"
+  },
+  {
+    "id": "62eafcb0-60a7-4247-b551-232862e03cf7",
+    "full_name": "Candidate 42 Test",
+    "email": "candidate42@example.com",
+    "phone": "+55 11 96813-5232",
+    "location": "Belo Horizonte, MG",
+    "years_experience": 10,
+    "skills": [
+      "Figma",
+      "Next.js",
+      "Spring",
+      "Teamwork"
+    ],
+    "pillar_scores": {
+      "Compensation": 3,
+      "Ambiente": 5,
+      "Propósito": 3,
+      "Crescimento": 5
+    },
+    "archetype": "Protagonista",
+    "headline": "Cloud Engineer",
+    "created_at": "2025-09-30T01:21:05.128769Z"
+  },
+  {
+    "id": "a060ca11-f77e-4198-b5de-bea7802848de",
+    "full_name": "Candidate 43 Test",
+    "email": "candidate43@example.com",
+    "phone": "+55 11 99041-8342",
+    "location": "São Paulo, SP",
+    "years_experience": 6,
+    "skills": [
+      "Airflow",
+      "GraphQL",
+      "Leadership",
+      "Teamwork"
+    ],
+    "pillar_scores": {
+      "Compensation": 1,
+      "Ambiente": 3,
+      "Propósito": 2,
+      "Crescimento": 4
+    },
+    "archetype": "Guardião",
+    "headline": "Frontend Engineer",
+    "created_at": "2025-09-30T01:21:05.128795Z"
+  },
+  {
+    "id": "3eb859ec-72dc-4722-bff7-d751e0aa8e07",
+    "full_name": "Candidate 44 Test",
+    "email": "candidate44@example.com",
+    "phone": "+55 11 98434-5438",
+    "location": "Belo Horizonte, MG",
+    "years_experience": 11,
+    "skills": [
+      ".NET",
+      "FastAPI",
+      "Go",
+      "Next.js",
+      "Problem Solving",
+      "Terraform",
+      "dbt"
+    ],
+    "pillar_scores": {
+      "Compensation": 3,
+      "Ambiente": 2,
+      "Propósito": 1,
+      "Crescimento": 2
+    },
+    "archetype": "Transformador",
+    "headline": "Full-Stack Developer",
+    "created_at": "2025-09-30T01:21:05.128852Z"
+  },
+  {
+    "id": "abc12765-cda6-43f5-811e-dc1bc7b7256d",
+    "full_name": "Candidate 45 Test",
+    "email": "candidate45@example.com",
+    "phone": "+55 11 92647-4180",
+    "location": "Belo Horizonte, MG",
+    "years_experience": 5,
+    "skills": [
+      "FastAPI",
+      "Figma",
+      "Flask",
+      "Leadership",
+      "Problem Solving"
+    ],
+    "pillar_scores": {
+      "Compensation": 2,
+      "Ambiente": 3,
+      "Propósito": 2,
+      "Crescimento": 3
+    },
+    "archetype": "Protagonista",
+    "headline": "Cloud Engineer",
+    "created_at": "2025-09-30T01:21:05.128887Z"
+  },
+  {
+    "id": "68806281-0fd8-4959-8058-f50db14280be",
+    "full_name": "Candidate 46 Test",
+    "email": "candidate46@example.com",
+    "phone": "+55 11 99042-2680",
+    "location": "São Paulo, SP",
+    "years_experience": 4,
+    "skills": [
+      ".NET",
+      "Flask",
+      "Node.js",
+      "PostgreSQL",
+      "React",
+      "Spring"
+    ],
+    "pillar_scores": {
+      "Compensation": 5,
+      "Ambiente": 3,
+      "Propósito": 4,
+      "Crescimento": 4
+    },
+    "archetype": "Explorador",
+    "headline": "Frontend Engineer",
+    "created_at": "2025-09-30T01:21:05.128920Z"
+  },
+  {
+    "id": "396bd245-79de-435b-87db-b8e197634db1",
+    "full_name": "Candidate 47 Test",
+    "email": "candidate47@example.com",
+    "phone": "+55 11 97565-9056",
+    "location": "São Paulo, SP",
+    "years_experience": 5,
+    "skills": [
+      "Django",
+      "GCP",
+      "Leadership",
+      "PostgreSQL"
+    ],
+    "pillar_scores": {
+      "Compensation": 5,
+      "Ambiente": 1,
+      "Propósito": 2,
+      "Crescimento": 2
+    },
+    "archetype": "Pragmático",
+    "headline": "Frontend Engineer",
+    "created_at": "2025-09-30T01:21:05.128955Z"
+  },
+  {
+    "id": "3d635ed7-6246-4291-b1f8-30e56f7066dd",
+    "full_name": "Candidate 48 Test",
+    "email": "candidate48@example.com",
+    "phone": "+55 11 98381-8253",
+    "location": "Belo Horizonte, MG",
+    "years_experience": 2,
+    "skills": [
+      "Airflow",
+      "CI/CD",
+      "GCP",
+      "Problem Solving",
+      "Rust"
+    ],
+    "pillar_scores": {
+      "Compensation": 5,
+      "Ambiente": 4,
+      "Propósito": 3,
+      "Crescimento": 5
+    },
+    "archetype": "Pragmático",
+    "headline": "Full-Stack Developer",
+    "created_at": "2025-09-30T01:21:05.128977Z"
+  },
+  {
+    "id": "bf70b846-52c6-4f68-9bb8-b296d9238638",
+    "full_name": "Candidate 49 Test",
+    "email": "candidate49@example.com",
+    "phone": "+55 11 93847-2229",
+    "location": "Rio de Janeiro, RJ",
+    "years_experience": 3,
+    "skills": [
+      "Django",
+      "Figma",
+      "GraphQL",
+      "MongoDB",
+      "Terraform"
+    ],
+    "pillar_scores": {
+      "Compensation": 1,
+      "Ambiente": 4,
+      "Propósito": 4,
+      "Crescimento": 5
+    },
+    "archetype": "Explorador",
+    "headline": "Frontend Engineer",
+    "created_at": "2025-09-30T01:21:05.128997Z"
+  },
+  {
+    "id": "984ac3a4-0e2b-4c67-9699-35fb38541ed9",
+    "full_name": "Candidate 50 Test",
+    "email": "candidate50@example.com",
+    "phone": "+55 11 94241-7965",
+    "location": "São Paulo, SP",
+    "years_experience": 1,
+    "skills": [
+      "CI/CD",
+      "Django",
+      "Excel",
+      "Flask",
+      "PostgreSQL"
+    ],
+    "pillar_scores": {
+      "Compensation": 5,
+      "Ambiente": 2,
+      "Propósito": 2,
+      "Crescimento": 3
+    },
+    "archetype": "Guardião",
+    "headline": "Full-Stack Developer",
+    "created_at": "2025-09-30T01:21:05.129018Z"
+  }
+]

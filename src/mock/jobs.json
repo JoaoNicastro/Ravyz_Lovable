@@ -1,0 +1,457 @@
+[
+  {
+    "id": "83d81bff-e6bb-472c-adef-b54bf2b0e87a",
+    "company_id": "test-company-123",
+    "title": "Cloud Engineer 1",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      "AWS",
+      "GraphQL"
+    ],
+    "pillar_scores": {
+      "Autonomia": 5,
+      "Liderança": 3,
+      "TrabalhoGrupo": 4,
+      "Risco": 1,
+      "Ambição": 4
+    },
+    "archetype": "Gestor",
+    "status": "active",
+    "location": "Curitiba, PR",
+    "created_at": "2025-09-30T01:21:05.129320Z"
+  },
+  {
+    "id": "c5988ad4-7e39-40ba-9746-9d8ce68893ed",
+    "company_id": "test-company-123",
+    "title": "Cloud Engineer 2",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      ".NET",
+      "C#",
+      "Go",
+      "TypeScript"
+    ],
+    "pillar_scores": {
+      "Autonomia": 1,
+      "Liderança": 4,
+      "TrabalhoGrupo": 3,
+      "Risco": 5,
+      "Ambição": 3
+    },
+    "archetype": "Visionário",
+    "status": "active",
+    "location": "Remote",
+    "created_at": "2025-09-30T01:21:05.129402Z"
+  },
+  {
+    "id": "1a6daf57-c467-4f6b-839e-918f9e32399c",
+    "company_id": "test-company-123",
+    "title": "Frontend Developer 3",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      "Python",
+      "Terraform",
+      "TypeScript"
+    ],
+    "pillar_scores": {
+      "Autonomia": 4,
+      "Liderança": 5,
+      "TrabalhoGrupo": 4,
+      "Risco": 3,
+      "Ambição": 2
+    },
+    "archetype": "Criativo",
+    "status": "active",
+    "location": "Curitiba, PR",
+    "created_at": "2025-09-30T01:21:05.129448Z"
+  },
+  {
+    "id": "4feaed96-8fab-4fbb-8619-5bb02f883e3f",
+    "company_id": "test-company-123",
+    "title": "Backend Developer 4",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      ".NET",
+      "AWS",
+      "Docker",
+      "FastAPI",
+      "React"
+    ],
+    "pillar_scores": {
+      "Autonomia": 1,
+      "Liderança": 2,
+      "TrabalhoGrupo": 3,
+      "Risco": 4,
+      "Ambição": 4
+    },
+    "archetype": "Gestor",
+    "status": "active",
+    "location": "Curitiba, PR",
+    "created_at": "2025-09-30T01:21:05.129499Z"
+  },
+  {
+    "id": "cb2b605b-47e8-4ec7-b9ba-9233f639ef97",
+    "company_id": "test-company-123",
+    "title": "Backend Developer 5",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      "C#",
+      "React"
+    ],
+    "pillar_scores": {
+      "Autonomia": 3,
+      "Liderança": 3,
+      "TrabalhoGrupo": 1,
+      "Risco": 4,
+      "Ambição": 5
+    },
+    "archetype": "Visionário",
+    "status": "active",
+    "location": "Curitiba, PR",
+    "created_at": "2025-09-30T01:21:05.129532Z"
+  },
+  {
+    "id": "5973821e-3278-46bc-a5e1-98565a698616",
+    "company_id": "test-company-123",
+    "title": "Data Engineer 6",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      "Docker",
+      "FastAPI",
+      "GraphQL",
+      "Java",
+      "TypeScript"
+    ],
+    "pillar_scores": {
+      "Autonomia": 4,
+      "Liderança": 1,
+      "TrabalhoGrupo": 2,
+      "Risco": 3,
+      "Ambição": 5
+    },
+    "archetype": "Construtor",
+    "status": "active",
+    "location": "Rio de Janeiro, RJ",
+    "created_at": "2025-09-30T01:21:05.129561Z"
+  },
+  {
+    "id": "4f70ed84-9d9e-4b3c-ac7d-3ff8e0b920a9",
+    "company_id": "test-company-123",
+    "title": "Frontend Developer 7",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      ".NET",
+      "Django",
+      "GraphQL",
+      "Node.js",
+      "Python"
+    ],
+    "pillar_scores": {
+      "Autonomia": 2,
+      "Liderança": 3,
+      "TrabalhoGrupo": 5,
+      "Risco": 1,
+      "Ambição": 5
+    },
+    "archetype": "Analista",
+    "status": "active",
+    "location": "Remote",
+    "created_at": "2025-09-30T01:21:05.129581Z"
+  },
+  {
+    "id": "c5c3722f-210b-4a24-b738-2d99bca575ea",
+    "company_id": "test-company-123",
+    "title": "Frontend Developer 8",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      "C#",
+      "Node.js",
+      "Rust"
+    ],
+    "pillar_scores": {
+      "Autonomia": 4,
+      "Liderança": 3,
+      "TrabalhoGrupo": 5,
+      "Risco": 3,
+      "Ambição": 4
+    },
+    "archetype": "Analista",
+    "status": "active",
+    "location": "Curitiba, PR",
+    "created_at": "2025-09-30T01:21:05.129618Z"
+  },
+  {
+    "id": "61630f51-be65-44ad-bd00-40289553f1df",
+    "company_id": "test-company-123",
+    "title": "Frontend Developer 9",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      "C#",
+      "Java",
+      "PostgreSQL"
+    ],
+    "pillar_scores": {
+      "Autonomia": 5,
+      "Liderança": 5,
+      "TrabalhoGrupo": 2,
+      "Risco": 1,
+      "Ambição": 3
+    },
+    "archetype": "Analista",
+    "status": "active",
+    "location": "Rio de Janeiro, RJ",
+    "created_at": "2025-09-30T01:21:05.129661Z"
+  },
+  {
+    "id": "68cc9392-ebad-4d89-a2ab-bb3066877cb8",
+    "company_id": "test-company-123",
+    "title": "Cloud Engineer 10",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      "Go",
+      "GraphQL",
+      "Python",
+      "Spring"
+    ],
+    "pillar_scores": {
+      "Autonomia": 5,
+      "Liderança": 4,
+      "TrabalhoGrupo": 2,
+      "Risco": 4,
+      "Ambição": 5
+    },
+    "archetype": "Analista",
+    "status": "active",
+    "location": "Rio de Janeiro, RJ",
+    "created_at": "2025-09-30T01:21:05.129702Z"
+  },
+  {
+    "id": "dd2f7211-b7ea-4868-a398-1f075a2514f7",
+    "company_id": "test-company-123",
+    "title": "Backend Developer 11",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      ".NET",
+      "C#",
+      "Java",
+      "Rust"
+    ],
+    "pillar_scores": {
+      "Autonomia": 2,
+      "Liderança": 2,
+      "TrabalhoGrupo": 5,
+      "Risco": 4,
+      "Ambição": 2
+    },
+    "archetype": "Analista",
+    "status": "active",
+    "location": "Remote",
+    "created_at": "2025-09-30T01:21:05.129747Z"
+  },
+  {
+    "id": "3e6b2ac1-255c-4559-8326-f0efc1ac4d29",
+    "company_id": "test-company-123",
+    "title": "Frontend Developer 12",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      ".NET",
+      "Django",
+      "Go",
+      "Java"
+    ],
+    "pillar_scores": {
+      "Autonomia": 4,
+      "Liderança": 1,
+      "TrabalhoGrupo": 2,
+      "Risco": 5,
+      "Ambição": 5
+    },
+    "archetype": "Gestor",
+    "status": "active",
+    "location": "Remote",
+    "created_at": "2025-09-30T01:21:05.129795Z"
+  },
+  {
+    "id": "36c7d0c3-05a2-4193-8e7b-38a2c8823b74",
+    "company_id": "test-company-123",
+    "title": "Frontend Developer 13",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      "C#",
+      "FastAPI",
+      "Go",
+      "Node.js",
+      "Python"
+    ],
+    "pillar_scores": {
+      "Autonomia": 4,
+      "Liderança": 2,
+      "TrabalhoGrupo": 1,
+      "Risco": 4,
+      "Ambição": 3
+    },
+    "archetype": "Gestor",
+    "status": "active",
+    "location": "Curitiba, PR",
+    "created_at": "2025-09-30T01:21:05.129814Z"
+  },
+  {
+    "id": "e0850266-f9d4-4db1-9421-7dad850a09c8",
+    "company_id": "test-company-123",
+    "title": "Backend Developer 14",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      "Django",
+      "Java"
+    ],
+    "pillar_scores": {
+      "Autonomia": 4,
+      "Liderança": 5,
+      "TrabalhoGrupo": 1,
+      "Risco": 5,
+      "Ambição": 1
+    },
+    "archetype": "Construtor",
+    "status": "active",
+    "location": "Rio de Janeiro, RJ",
+    "created_at": "2025-09-30T01:21:05.129834Z"
+  },
+  {
+    "id": "6ecb9f99-1501-422d-8a94-8011e9643ab1",
+    "company_id": "test-company-123",
+    "title": "Software Engineer 15",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      "Node.js",
+      "React",
+      "Spring"
+    ],
+    "pillar_scores": {
+      "Autonomia": 4,
+      "Liderança": 2,
+      "TrabalhoGrupo": 3,
+      "Risco": 1,
+      "Ambição": 1
+    },
+    "archetype": "Gestor",
+    "status": "active",
+    "location": "Remote",
+    "created_at": "2025-09-30T01:21:05.129858Z"
+  },
+  {
+    "id": "10738079-5ba8-48e9-9d87-ca6a0fdd5f2c",
+    "company_id": "test-company-123",
+    "title": "Frontend Developer 16",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      "FastAPI",
+      "React",
+      "Rust",
+      "Spring"
+    ],
+    "pillar_scores": {
+      "Autonomia": 5,
+      "Liderança": 4,
+      "TrabalhoGrupo": 5,
+      "Risco": 2,
+      "Ambição": 2
+    },
+    "archetype": "Construtor",
+    "status": "active",
+    "location": "Remote",
+    "created_at": "2025-09-30T01:21:05.130424Z"
+  },
+  {
+    "id": "69690978-dbf0-44b7-873b-8c24f00c080b",
+    "company_id": "test-company-123",
+    "title": "Backend Developer 17",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      ".NET",
+      "Kubernetes",
+      "Node.js",
+      "PostgreSQL",
+      "Rust"
+    ],
+    "pillar_scores": {
+      "Autonomia": 4,
+      "Liderança": 3,
+      "TrabalhoGrupo": 1,
+      "Risco": 4,
+      "Ambição": 3
+    },
+    "archetype": "Criativo",
+    "status": "active",
+    "location": "São Paulo, SP",
+    "created_at": "2025-09-30T01:21:05.130512Z"
+  },
+  {
+    "id": "0708b8f9-a906-405f-8212-3820e6ed2acb",
+    "company_id": "test-company-123",
+    "title": "Cloud Engineer 18",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      "C#",
+      "FastAPI"
+    ],
+    "pillar_scores": {
+      "Autonomia": 3,
+      "Liderança": 4,
+      "TrabalhoGrupo": 3,
+      "Risco": 4,
+      "Ambição": 3
+    },
+    "archetype": "Construtor",
+    "status": "active",
+    "location": "Curitiba, PR",
+    "created_at": "2025-09-30T01:21:05.130556Z"
+  },
+  {
+    "id": "efabe5e9-d7ce-4ab0-b989-71073ffc0243",
+    "company_id": "test-company-123",
+    "title": "Cloud Engineer 19",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      "AWS",
+      "GraphQL",
+      "Java",
+      "Kubernetes",
+      "Node.js"
+    ],
+    "pillar_scores": {
+      "Autonomia": 3,
+      "Liderança": 3,
+      "TrabalhoGrupo": 1,
+      "Risco": 4,
+      "Ambição": 3
+    },
+    "archetype": "Visionário",
+    "status": "active",
+    "location": "Remote",
+    "created_at": "2025-09-30T01:21:05.130615Z"
+  },
+  {
+    "id": "9aa4d75e-88d5-4ed1-a777-aed5fa926bc4",
+    "company_id": "test-company-123",
+    "title": "Frontend Developer 20",
+    "description": "Test job for matching validation.",
+    "requirements": [
+      "Django",
+      "FastAPI",
+      "GraphQL",
+      "Kubernetes",
+      "Node.js"
+    ],
+    "pillar_scores": {
+      "Autonomia": 5,
+      "Liderança": 3,
+      "TrabalhoGrupo": 2,
+      "Risco": 1,
+      "Ambição": 1
+    },
+    "archetype": "Gestor",
+    "status": "active",
+    "location": "Curitiba, PR",
+    "created_at": "2025-09-30T01:21:05.130637Z"
+  }
+]
