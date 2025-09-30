@@ -8,10 +8,20 @@ import { useToast } from '@/hooks/use-toast';
 import { MatchRadarChart } from '@/components/MatchRadarChart';
 import { Notifications } from '@/components/Notifications';
 import { UserDropdown } from '@/components/UserDropdown';
-import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText, Sparkles, Briefcase } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText, Sparkles, Briefcase, Send, Clock } from 'lucide-react';
 import ravyzLogo from '@/assets/ravyz-logo.png';
 import { MatchingEngine, CandidateRavyzData, JobRavyzData } from '@/lib/matching-engine';
 import { mockCandidates, mockJobs, MockCandidate, MockJob } from '@/lib/mock-loader';
+
+interface Application {
+  id: string;
+  job_id: string;
+  job_title: string;
+  company_name: string;
+  applied_at: string;
+  status: 'pending' | 'approved' | 'rejected';
+  location: string;
+}
 
 interface MatchResult {
   candidate_id: string;
@@ -32,6 +42,15 @@ export default function CandidateDashboard() {
   const [candidateProfile, setCandidateProfile] = useState<MockCandidate | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('matches');
+  const [applications, setApplications] = useState<Application[]>([]);
+
+  useEffect(() => {
+    // Load applications from localStorage
+    const stored = localStorage.getItem('candidate_applications');
+    if (stored) {
+      setApplications(JSON.parse(stored));
+    }
+  }, []);
 
   useEffect(() => {
     loadMockData();
@@ -118,12 +137,45 @@ export default function CandidateDashboard() {
     }
   };
 
-  const handleApply = (jobId: string) => {
+  const handleApply = (jobId: string, jobTitle: string, location: string) => {
+    // Check if already applied
+    if (applications.some(app => app.job_id === jobId)) {
+      toast({
+        title: 'Já aplicado',
+        description: 'Você já se candidatou a esta vaga.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const newApplication: Application = {
+      id: crypto.randomUUID(),
+      job_id: jobId,
+      job_title: jobTitle,
+      company_name: 'Empresa Teste',
+      applied_at: new Date().toISOString(),
+      status: 'pending',
+      location,
+    };
+
+    const updated = [...applications, newApplication];
+    setApplications(updated);
+    localStorage.setItem('candidate_applications', JSON.stringify(updated));
+
     toast({
       title: 'Candidatura enviada!',
       description: 'Você se candidatou à vaga com sucesso.',
     });
     console.log('📝 Applied to job:', jobId);
+  };
+
+  const getStatusBadge = (status: Application['status']) => {
+    const variants = {
+      pending: { label: 'Pendente', variant: 'secondary' as const },
+      approved: { label: 'Aprovado', variant: 'default' as const },
+      rejected: { label: 'Rejeitado', variant: 'destructive' as const },
+    };
+    return variants[status];
   };
 
   if (loading) {
@@ -210,18 +262,32 @@ export default function CandidateDashboard() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3">
             <TabsTrigger value="matches">
-              <LayoutDashboard className="w-4 h-4 mr-2" />
-              Vagas Compatíveis ({matches.length})
+              <Sparkles className="w-4 h-4 mr-2" />
+              Matches
             </TabsTrigger>
-            <TabsTrigger value="profile">
-              <FileText className="w-4 h-4 mr-2" />
-              Meu Perfil
+            <TabsTrigger value="jobs">
+              <Briefcase className="w-4 h-4 mr-2" />
+              Vagas ({matches.length})
+            </TabsTrigger>
+            <TabsTrigger value="applications">
+              <Send className="w-4 h-4 mr-2" />
+              Candidaturas ({applications.length})
             </TabsTrigger>
           </TabsList>
 
+          {/* Tab 1: Matches - Análises Detalhadas */}
           <TabsContent value="matches" className="space-y-6 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Análises de Compatibilidade</CardTitle>
+                <CardDescription>
+                  Visualização detalhada dos seus matches com base nos pilares RAVYZ
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
             {matches.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
@@ -230,7 +296,7 @@ export default function CandidateDashboard() {
               </Card>
             ) : (
               <div className="grid gap-6">
-                {matches.map((match) => (
+                {matches.slice(0, 5).map((match) => (
                   <Card key={match.job_id} className="hover:shadow-lg transition-shadow">
                     <CardHeader>
                       <div className="flex items-start justify-between">
@@ -302,32 +368,88 @@ export default function CandidateDashboard() {
                           })}
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-                      {/* Requirements */}
-                      <div>
-                        <h4 className="text-sm font-semibold mb-3">Requisitos da Vaga</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {match.job.requirements.map((req, index) => (
-                            <Badge 
-                              key={index} 
-                              variant={candidateProfile.skills.includes(req) ? "default" : "outline"}
-                            >
-                              {req}
-                            </Badge>
-                          ))}
+          {/* Tab 2: Vagas - Lista de Oportunidades */}
+          <TabsContent value="jobs" className="space-y-6 mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Vagas Recomendadas</CardTitle>
+                <CardDescription>
+                  Oportunidades ordenadas por compatibilidade com seu perfil
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            {matches.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <p className="text-muted-foreground">Nenhuma vaga disponível</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {matches.map((match) => (
+                  <Card key={match.job_id} className="hover:shadow-md transition-shadow">
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg">{match.job.title}</CardTitle>
+                          <CardDescription className="mt-1 flex flex-wrap items-center gap-3 text-sm">
+                            <span className="flex items-center gap-1">
+                              <Building className="w-3 h-3" />
+                              Empresa Teste
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {match.job.location}
+                            </span>
+                          </CardDescription>
                         </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-2xl font-bold text-primary">
+                            {Math.round(match.compatibility_score)}%
+                          </div>
+                          <div className="text-xs text-muted-foreground">match</div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="space-y-4">
+                      {/* Tags */}
+                      <div className="flex flex-wrap gap-2">
+                        {match.job.requirements.slice(0, 5).map((req, index) => (
+                          <Badge 
+                            key={index} 
+                            variant={candidateProfile.skills.includes(req) ? "default" : "outline"}
+                            className="text-xs"
+                          >
+                            {req}
+                          </Badge>
+                        ))}
+                        {match.job.requirements.length > 5 && (
+                          <Badge variant="secondary" className="text-xs">
+                            +{match.job.requirements.length - 5}
+                          </Badge>
+                        )}
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex gap-3 pt-4 border-t">
+                      <div className="flex gap-3">
                         <Button 
                           className="flex-1" 
-                          onClick={() => handleApply(match.job_id)}
+                          onClick={() => handleApply(match.job_id, match.job.title, match.job.location)}
+                          disabled={applications.some(app => app.job_id === match.job_id)}
                         >
-                          <ThumbsUp className="w-4 h-4 mr-2" />
-                          Candidatar-se
+                          <Send className="w-4 h-4 mr-2" />
+                          {applications.some(app => app.job_id === match.job_id) ? 'Já Aplicado' : 'Candidatar-se'}
                         </Button>
-                        <Button variant="outline" className="flex-1">
+                        <Button variant="outline">
                           <FileText className="w-4 h-4 mr-2" />
                           Ver Detalhes
                         </Button>
@@ -339,54 +461,72 @@ export default function CandidateDashboard() {
             )}
           </TabsContent>
 
-          <TabsContent value="profile" className="mt-6">
+          {/* Tab 3: Candidaturas - Histórico */}
+          <TabsContent value="applications" className="space-y-6 mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Suas Informações</CardTitle>
-                <CardDescription>Dados do seu perfil profissional</CardDescription>
+                <CardTitle>Minhas Candidaturas</CardTitle>
+                <CardDescription>
+                  Histórico de vagas em que você se candidatou
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">Informações de Contato</h4>
-                  <div className="space-y-2 text-sm">
-                    <p><span className="text-muted-foreground">Email:</span> {candidateProfile.email}</p>
-                    <p><span className="text-muted-foreground">Telefone:</span> {candidateProfile.phone}</p>
-                    <p><span className="text-muted-foreground">Localização:</span> {candidateProfile.location}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">Scores dos Pilares</h4>
-                  <div className="grid gap-2">
-                    {Object.entries(candidateProfile.pillar_scores).map(([pillar, score]) => (
-                      <div key={pillar} className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground capitalize">{pillar}</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-primary"
-                              style={{ width: `${(score / 5) * 100}%` }}
-                            />
-                          </div>
-                          <span className="w-12 text-right font-medium">{score}/5</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-semibold mb-3">Habilidades</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {candidateProfile.skills.map((skill, index) => (
-                      <Badge key={index} variant="secondary">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
             </Card>
+
+            {applications.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Briefcase className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Você ainda não se candidatou a nenhuma vaga</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4"
+                    onClick={() => setActiveTab('jobs')}
+                  >
+                    Ver Vagas Disponíveis
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {applications.map((app) => {
+                  const statusInfo = getStatusBadge(app.status);
+                  return (
+                    <Card key={app.id}>
+                      <CardHeader>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg">{app.job_title}</CardTitle>
+                            <CardDescription className="mt-1 flex flex-wrap items-center gap-3 text-sm">
+                              <span className="flex items-center gap-1">
+                                <Building className="w-3 h-3" />
+                                {app.company_name}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3 h-3" />
+                                {app.location}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {new Date(app.applied_at).toLocaleDateString('pt-BR')}
+                              </span>
+                            </CardDescription>
+                          </div>
+                          <Badge variant={statusInfo.variant}>
+                            {statusInfo.label}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <Button variant="outline" size="sm">
+                          <FileText className="w-4 h-4 mr-2" />
+                          Ver Detalhes
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
