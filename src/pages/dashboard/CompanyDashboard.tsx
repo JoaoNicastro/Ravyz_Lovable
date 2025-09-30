@@ -13,6 +13,7 @@ import { CheckCircle, XCircle, User, MapPin, Briefcase, LayoutDashboard, Chevron
 import ravyzLogo from '@/assets/ravyz-logo.png';
 import { MatchingEngine, CandidateRavyzData, JobRavyzData } from '@/lib/matching-engine';
 import { mockCandidates, mockJobs, MockCandidate, MockJob, getMockJobsByCompanyId } from '@/lib/mock-loader';
+import { CreateJobDialog } from '@/components/CreateJobDialog';
 
 interface MatchResult {
   candidate_id: string;
@@ -388,6 +389,13 @@ export default function CompanyDashboard() {
           </TabsContent>
 
           <TabsContent value="jobs" className="mt-6">
+            <div className="flex justify-between items-center mb-6">
+              <p className="text-muted-foreground">Gerencie suas vagas publicadas</p>
+              <CreateJobDialog 
+                companyId="test-company-123" 
+                onJobCreated={loadMockData}
+              />
+            </div>
             <div className="grid gap-4">
               {jobs.map((job) => (
                 <Card key={job.id}>
