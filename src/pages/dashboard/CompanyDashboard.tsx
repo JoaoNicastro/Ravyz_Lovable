@@ -13,6 +13,7 @@ import { UserDropdown } from '@/components/UserDropdown';
 import { CheckCircle, XCircle, User, MapPin, Briefcase, LayoutDashboard, Briefcase as BriefcaseIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import ravyzLogo from '@/assets/ravyz-logo.png';
 import { CreateJobDialog } from '@/components/CreateJobDialog';
+import { MatchingEngine, CandidateRavyzData, JobRavyzData } from '@/lib/matching-engine';
 
 interface MatchResult {
   id: string;
@@ -79,32 +80,128 @@ export default function CompanyDashboard() {
       if (jobsError) throw jobsError;
       setJobs(jobsData || []);
 
-      // Get matches for company jobs
-      const { data: matchData, error: matchError } = await supabase
-        .from('matching_results')
-        .select(`
-          *,
-          candidate_profiles (
-            id,
-            headline,
-            location,
-            years_experience,
-            archetype,
-            pillar_scores,
-            avatar_url
-          ),
-          jobs (
-            id,
-            title,
-            archetype,
-            pillar_scores
-          )
-        `)
-        .eq('jobs.company_id', profile.id)
-        .order('calculated_at', { ascending: false });
+      // Get all candidate profiles
+      const { data: candidatesData, error: candidatesError } = await supabase
+        .from('candidate_profiles')
+        .select('*');
 
-      if (matchError) throw matchError;
-      setMatches(matchData || []);
+      if (candidatesError) throw candidatesError;
+
+      // Check for cached matches (not expired)
+      const now = new Date();
+      const jobIds = jobsData?.map(j => j.id) || [];
+      
+      if (jobIds.length > 0) {
+        const { data: cachedMatches, error: cachedError } = await supabase
+          .from('matching_results')
+          .select(`
+            *,
+            candidate_profiles (
+              id,
+              headline,
+              location,
+              years_experience,
+              archetype,
+              pillar_scores,
+              avatar_url
+            ),
+            jobs (
+              id,
+              title,
+              archetype,
+              pillar_scores
+            )
+          `)
+          .in('job_id', jobIds)
+          .gt('expires_at', now.toISOString())
+          .order('match_percentage', { ascending: false });
+
+        if (cachedMatches && cachedMatches.length > 0) {
+          // Use cached matches
+          setMatches(cachedMatches);
+        } else if (candidatesData && candidatesData.length > 0 && jobsData && jobsData.length > 0) {
+          // Calculate new matches using matricial algorithm
+          const matchingEngine = new MatchingEngine();
+          
+          const candidatesRavyzData: CandidateRavyzData[] = candidatesData.map(candidate => ({
+            id: candidate.id,
+            pillar_scores: (candidate.pillar_scores as Record<string, number>) || {},
+            archetype: candidate.archetype || 'Equilibrado'
+          }));
+
+          const jobsRavyzData: JobRavyzData[] = jobsData.map(job => ({
+            id: job.id,
+            pillar_scores: (job.pillar_scores as Record<string, number>) || {},
+            archetype: job.archetype || 'Equilibrado'
+          }));
+
+          // Calculate all matches in batch
+          const matchResults = matchingEngine.calculateAllMatches(candidatesRavyzData, jobsRavyzData);
+
+          // Save matches to database
+          const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+          const matchesToInsert = matchResults.map(result => ({
+            candidate_id: result.candidate_id,
+            job_id: result.job_id,
+            match_percentage: result.compatibility_score,
+            score_breakdown: {
+              ravyz_compatibility: result.compatibility_score,
+              archetype_boost: result.archetype_boost,
+              base_similarity: result.base_similarity
+            },
+            factors_analyzed: {
+              candidate_archetype: result.candidate_archetype,
+              job_archetype: result.job_archetype,
+              pillar_breakdown: result.pillar_breakdown,
+              archetype_boost: result.archetype_boost
+            },
+            explanation: `Match de ${result.compatibility_score}% baseado em compatibilidade comportamental.`,
+            calculated_at: now.toISOString(),
+            expires_at: expiresAt.toISOString()
+          }));
+
+          // Upsert matches
+          const { error: upsertError } = await supabase
+            .from('matching_results')
+            .upsert(matchesToInsert, {
+              onConflict: 'candidate_id,job_id',
+              ignoreDuplicates: false
+            });
+
+          if (upsertError) {
+            console.error('Error saving matches:', upsertError);
+          }
+
+          // Fetch the saved matches with full data
+          const { data: newMatches, error: newMatchError } = await supabase
+            .from('matching_results')
+            .select(`
+              *,
+              candidate_profiles (
+                id,
+                headline,
+                location,
+                years_experience,
+                archetype,
+                pillar_scores,
+                avatar_url
+              ),
+              jobs (
+                id,
+                title,
+                archetype,
+                pillar_scores
+              )
+            `)
+            .in('job_id', jobIds)
+            .order('match_percentage', { ascending: false });
+
+          if (!newMatchError && newMatches) {
+            setMatches(newMatches);
+          }
+        }
+      }
     } catch (error) {
       console.error('Error fetching company data:', error);
       toast({
@@ -169,7 +266,82 @@ export default function CompanyDashboard() {
     setExpandedJobs(newExpanded);
   };
 
-  const handleFeedback = async (matchId: string, candidateId: string, jobId: string, feedback: 'advance' | 'reject') => {
+  const handleInviteCandidate = async (matchId: string, candidateId: string, jobId: string) => {
+    if (!companyProfile) return;
+
+    try {
+      // Check if application already exists
+      const { data: existingApp, error: checkError } = await supabase
+        .from('applications')
+        .select('id')
+        .eq('candidate_id', candidateId)
+        .eq('job_id', jobId)
+        .maybeSingle();
+
+      if (checkError) throw checkError;
+
+      if (existingApp) {
+        toast({
+          title: "Candidato já convidado",
+          description: "Este candidato já foi convidado para esta vaga",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create application with viewed status (company invited)
+      const { error: appError } = await supabase
+        .from('applications')
+        .insert([{
+          candidate_id: candidateId,
+          job_id: jobId,
+          status: 'viewed'
+        }]);
+
+      if (appError) throw appError;
+
+      // Insert feedback
+      const { error: feedbackError } = await supabase
+        .from('match_feedback')
+        .insert({
+          company_id: companyProfile.id,
+          candidate_id: candidateId,
+          job_id: jobId,
+          feedback: 'advance'
+        });
+
+      if (feedbackError) throw feedbackError;
+
+      // Update matching result status
+      const { error: updateError } = await supabase
+        .from('matching_results')
+        .update({ feedback_status: 'advance' })
+        .eq('id', matchId);
+
+      if (updateError) throw updateError;
+
+      // Update local state
+      setMatches(prev => prev.map(match => 
+        match.id === matchId 
+          ? { ...match, feedback_status: 'advance' }
+          : match
+      ));
+
+      toast({
+        title: "Candidato convidado!",
+        description: "O candidato foi convidado para a vaga ✅",
+      });
+    } catch (error) {
+      console.error('Error inviting candidate:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível convidar o candidato",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRejectCandidate = async (matchId: string, candidateId: string, jobId: string) => {
     if (!companyProfile) return;
 
     try {
@@ -180,7 +352,7 @@ export default function CompanyDashboard() {
           company_id: companyProfile.id,
           candidate_id: candidateId,
           job_id: jobId,
-          feedback
+          feedback: 'reject'
         });
 
       if (feedbackError) throw feedbackError;
@@ -188,7 +360,7 @@ export default function CompanyDashboard() {
       // Update matching result status
       const { error: updateError } = await supabase
         .from('matching_results')
-        .update({ feedback_status: feedback })
+        .update({ feedback_status: 'reject' })
         .eq('id', matchId);
 
       if (updateError) throw updateError;
@@ -196,21 +368,19 @@ export default function CompanyDashboard() {
       // Update local state
       setMatches(prev => prev.map(match => 
         match.id === matchId 
-          ? { ...match, feedback_status: feedback }
+          ? { ...match, feedback_status: 'reject' }
           : match
       ));
 
       toast({
-        title: "Feedback enviado!",
-        description: feedback === 'advance' 
-          ? "Candidato aprovado para próxima etapa ✅" 
-          : "Candidato rejeitado ❌",
+        title: "Candidato rejeitado",
+        description: "O feedback foi registrado ❌",
       });
     } catch (error) {
-      console.error('Error submitting feedback:', error);
+      console.error('Error rejecting candidate:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível enviar o feedback",
+        description: "Não foi possível rejeitar o candidato",
         variant: "destructive",
       });
     }
@@ -363,24 +533,22 @@ export default function CompanyDashboard() {
                         ) : (
                           <>
                             <Button
-                              onClick={() => handleFeedback(
+                              onClick={() => handleInviteCandidate(
                                 match.id, 
                                 match.candidate_profiles.id, 
-                                match.jobs.id, 
-                                'advance'
+                                match.jobs.id
                               )}
                               className="flex items-center gap-2"
                             >
                               <CheckCircle className="w-4 h-4" />
-                              Avançar
+                              Convidar
                             </Button>
                             <Button
                               variant="outline"
-                              onClick={() => handleFeedback(
+                              onClick={() => handleRejectCandidate(
                                 match.id, 
                                 match.candidate_profiles.id, 
-                                match.jobs.id, 
-                                'reject'
+                                match.jobs.id
                               )}
                               className="flex items-center gap-2"
                             >
@@ -555,27 +723,25 @@ export default function CompanyDashboard() {
                                           </Badge>
                                         ) : (
                                           <>
-                                            <Button
+                                             <Button
                                               size="sm"
-                                              onClick={() => handleFeedback(
+                                              onClick={() => handleInviteCandidate(
                                                 match.id, 
                                                 match.candidate_profiles.id, 
-                                                job.id, 
-                                                'advance'
+                                                job.id
                                               )}
                                               className="flex items-center gap-1"
                                             >
                                               <CheckCircle className="w-3 h-3" />
-                                              Avançar
+                                              Convidar
                                             </Button>
                                             <Button
                                               size="sm"
                                               variant="outline"
-                                              onClick={() => handleFeedback(
+                                              onClick={() => handleRejectCandidate(
                                                 match.id, 
                                                 match.candidate_profiles.id, 
-                                                job.id, 
-                                                'reject'
+                                                job.id
                                               )}
                                               className="flex items-center gap-1"
                                             >

@@ -11,6 +11,7 @@ import { Notifications } from '@/components/Notifications';
 import { UserDropdown } from '@/components/UserDropdown';
 import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText } from 'lucide-react';
 import ravyzLogo from '@/assets/ravyz-logo.png';
+import { MatchingEngine, CandidateRavyzData, JobRavyzData } from '@/lib/matching-engine';
 
 interface MatchResult {
   id: string;
@@ -98,8 +99,26 @@ export default function CandidateDashboard() {
       if (profileError) throw profileError;
       setCandidateProfile(profile);
 
-      // Get matches
-      const { data: matchData, error: matchError } = await supabase
+      // Get all active jobs with company info
+      const { data: jobsData, error: jobsError } = await supabase
+        .from('jobs')
+        .select(`
+          *,
+          company_profiles (
+            id,
+            company_name,
+            logo_url
+          )
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (jobsError) throw jobsError;
+      setJobs(jobsData || []);
+
+      // Check for cached matches (not expired)
+      const now = new Date();
+      const { data: cachedMatches, error: cachedError } = await supabase
         .from('matching_results')
         .select(`
           *,
@@ -119,17 +138,98 @@ export default function CandidateDashboard() {
           )
         `)
         .eq('candidate_id', profile.id)
-        .order('calculated_at', { ascending: false });
+        .gt('expires_at', now.toISOString())
+        .order('match_percentage', { ascending: false });
 
-      if (matchError) throw matchError;
-      
-      // Transform data to match interface
-      const transformedMatches = matchData?.map(match => ({
-        ...match,
-        job: match.jobs
-      })) || [];
-      
-      setMatches(transformedMatches);
+      if (cachedMatches && cachedMatches.length > 0) {
+        // Use cached matches
+        const transformedMatches = cachedMatches.map(match => ({
+          ...match,
+          job: match.jobs
+        }));
+        setMatches(transformedMatches);
+      } else if (jobsData && jobsData.length > 0) {
+        // Calculate new matches using matricial algorithm
+        const matchingEngine = new MatchingEngine();
+        
+        const candidateData: CandidateRavyzData = {
+          id: profile.id,
+          pillar_scores: (profile.pillar_scores as Record<string, number>) || {},
+          archetype: profile.archetype || 'Equilibrado'
+        };
+
+        const jobsRavyzData: JobRavyzData[] = jobsData.map(job => ({
+          id: job.id,
+          pillar_scores: (job.pillar_scores as Record<string, number>) || {},
+          archetype: job.archetype || 'Equilibrado'
+        }));
+
+        // Calculate all matches in batch
+        const matchResults = matchingEngine.calculateAllMatches([candidateData], jobsRavyzData);
+
+        // Save matches to database
+        const now = new Date();
+        const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+        const matchesToInsert = matchResults.map(result => ({
+          candidate_id: result.candidate_id,
+          job_id: result.job_id,
+          match_percentage: result.compatibility_score,
+          score_breakdown: {
+            ravyz_compatibility: result.compatibility_score,
+            archetype_boost: result.archetype_boost,
+            base_similarity: result.base_similarity
+          },
+          factors_analyzed: {
+            candidate_archetype: result.candidate_archetype,
+            job_archetype: result.job_archetype,
+            pillar_breakdown: result.pillar_breakdown,
+            archetype_boost: result.archetype_boost
+          },
+          explanation: `Match de ${result.compatibility_score}% baseado em compatibilidade comportamental.`,
+          calculated_at: now.toISOString(),
+          expires_at: expiresAt.toISOString()
+        }));
+
+        // Upsert matches
+        const { error: upsertError } = await supabase
+          .from('matching_results')
+          .upsert(matchesToInsert, {
+            onConflict: 'candidate_id,job_id',
+            ignoreDuplicates: false
+          });
+
+        if (upsertError) {
+          console.error('Error saving matches:', upsertError);
+        }
+
+        // Transform and set matches with full job data
+        const transformedMatches = matchResults.map(result => {
+          const job = jobsData.find(j => j.id === result.job_id);
+          return {
+            id: `${result.candidate_id}-${result.job_id}`,
+            match_percentage: result.compatibility_score,
+            score_breakdown: {
+              ravyz_compatibility: result.compatibility_score,
+              archetype_boost: result.archetype_boost
+            },
+            explanation: `Match de ${result.compatibility_score}% baseado em compatibilidade comportamental.`,
+            job: {
+              id: job?.id || '',
+              title: job?.title || '',
+              description: job?.description || '',
+              location: job?.location || '',
+              salary_min: job?.salary_min,
+              salary_max: job?.salary_max,
+              archetype: result.job_archetype,
+              pillar_scores: job?.pillar_scores || {},
+              company_profiles: job?.company_profiles || { company_name: '', logo_url: '' }
+            }
+          };
+        });
+
+        setMatches(transformedMatches);
+      }
 
       // Get applications
       const { data: applicationsData, error: applicationsError } = await supabase
@@ -153,21 +253,6 @@ export default function CandidateDashboard() {
       if (applicationsError) throw applicationsError;
       setApplications(applicationsData || []);
 
-      // Get all active jobs
-      const { data: jobsData, error: jobsError } = await supabase
-        .from('jobs')
-        .select(`
-          *,
-          company_profiles (
-            company_name,
-            logo_url
-          )
-        `)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
-
-      if (jobsError) throw jobsError;
-      setJobs(jobsData || []);
     } catch (error) {
       console.error('Error fetching candidate data:', error);
       toast({
