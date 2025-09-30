@@ -313,6 +313,32 @@ export default function CompanyDashboard() {
                                         />
                                       </div>
 
+                                      {/* Pillar Breakdown */}
+                                      <div>
+                                        <h4 className="text-sm font-semibold mb-3">Detalhamento por Pilar</h4>
+                                        <div className="grid gap-2">
+                                          {Object.entries(match.pillar_breakdown).map(([pillar, score]) => {
+                                            const pillarScore = score as number;
+                                            return (
+                                              <div key={pillar} className="flex items-center justify-between text-sm">
+                                                <span className="text-muted-foreground capitalize">{pillar}</span>
+                                                <div className="flex items-center gap-2">
+                                                  <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
+                                                    <div 
+                                                      className="h-full bg-primary"
+                                                      style={{ width: `${Math.min(100, Math.max(0, pillarScore))}%` }}
+                                                    />
+                                                  </div>
+                                                  <span className="w-12 text-right font-medium">
+                                                    {Math.round(pillarScore)}%
+                                                  </span>
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+
                                       {/* Skills */}
                                       <div>
                                         <h4 className="text-sm font-semibold mb-2">Habilidades</h4>
