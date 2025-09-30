@@ -101,7 +101,9 @@ export default function CompanyDashboard() {
       console.log('\n📊 DEBUG: Raw Match Data');
       const firstJob = companyJobs[0];
       const firstMatch = matchesByJob[firstJob?.id]?.[0];
-      if (firstMatch) {
+      if (firstMatch && firstJob) {
+        console.log('Job pillars:', firstJob.pillar_scores);
+        console.log('Candidate pillars:', firstMatch.candidate.pillar_scores);
         console.log('First match raw score:', firstMatch.compatibility_score);
         console.log('First match pillar_breakdown:', firstMatch.pillar_breakdown);
       }

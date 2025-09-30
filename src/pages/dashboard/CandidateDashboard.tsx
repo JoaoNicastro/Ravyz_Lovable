@@ -90,8 +90,12 @@ export default function CandidateDashboard() {
       setMatches(matchesWithJobData);
 
       console.log('\n📊 DEBUG: Raw Match Data');
-      console.log('First match raw score:', matchesWithJobData[0]?.compatibility_score);
-      console.log('First match pillar_breakdown:', matchesWithJobData[0]?.pillar_breakdown);
+      console.log('Candidate pillars:', candidate.pillar_scores);
+      if (matchesWithJobData[0]) {
+        console.log('First job pillars:', matchesWithJobData[0].job.pillar_scores);
+        console.log('First match raw score:', matchesWithJobData[0].compatibility_score);
+        console.log('First match pillar_breakdown:', matchesWithJobData[0].pillar_breakdown);
+      }
 
       // Log top 5 matches
       console.log('🏆 Top 5 Matches:');

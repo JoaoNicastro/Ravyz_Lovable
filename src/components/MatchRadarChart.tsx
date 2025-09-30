@@ -6,12 +6,30 @@ interface RadarChartProps {
 }
 
 export const MatchRadarChart = ({ candidatePillars, jobPillars }: RadarChartProps) => {
-  // Combine the data for radar chart
-  const data = Object.keys(candidatePillars).map(pillar => ({
-    pillar: pillar.charAt(0).toUpperCase() + pillar.slice(1),
-    candidate: candidatePillars[pillar] || 0,
-    job: jobPillars[pillar] || 0,
+  // Map candidate pillars to job pillars for comparison
+  // Based on MATCH RAVYZ methodology
+  const pillarMappings = [
+    { label: 'Compensação', candidate: 'Compensation', job: 'Ambição' },
+    { label: 'Ambiente', candidate: 'Ambiente', job: 'TrabalhoGrupo' },
+    { label: 'Propósito', candidate: 'Propósito', job: 'Liderança' },
+    { label: 'Crescimento', candidate: 'Crescimento', job: 'Autonomia' },
+  ];
+
+  // Create data array with mapped values
+  const data = pillarMappings.map(({ label, candidate, job }) => ({
+    pillar: label,
+    candidate: candidatePillars[candidate] || 0,
+    job: jobPillars[job] || 0,
   }));
+
+  // Add risk pillar if available in job
+  if (jobPillars['Risco'] !== undefined) {
+    data.push({
+      pillar: 'Risco',
+      candidate: candidatePillars['Crescimento'] || 0, // Growth correlates with risk
+      job: jobPillars['Risco'] || 0,
+    });
+  }
 
   return (
     <div className="w-full h-64">

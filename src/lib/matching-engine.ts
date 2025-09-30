@@ -232,10 +232,6 @@ export class MatchingEngine {
       { candidate: 'Crescimento', job: 'Autonomia', name: 'Crescimento' },
     ];
 
-    console.log('🔍 Calculating pillar breakdown...');
-    console.log('Candidate pillars:', candidatePillars);
-    console.log('Job pillars:', jobPillars);
-
     // Calculate compatibility for each pillar mapping
     pillarMappings.forEach(({ candidate: candidatePillar, job: jobPillar, name }) => {
       const candidateScore = candidatePillars[candidatePillar] || 0;
@@ -247,8 +243,6 @@ export class MatchingEngine {
       // Apply MATCH RAVYZ formula: Compatibility = 100% - (difference * 20)
       const compatibility = Math.max(0, 100 - (difference * 20));
       
-      console.log(`  ${name}: candidate=${candidateScore}, job=${jobScore}, diff=${difference}, compat=${compatibility}%`);
-      
       pillarBreakdown[name as keyof PillarBreakdown] = compatibility;
     });
 
@@ -259,12 +253,9 @@ export class MatchingEngine {
       const difference = Math.abs(candidateRiskTolerance - jobRiskScore);
       const compatibility = Math.max(0, 100 - (difference * 20));
       
-      console.log(`  Risco: candidate=${candidateRiskTolerance}, job=${jobRiskScore}, diff=${difference}, compat=${compatibility}%`);
-      
       pillarBreakdown['Risco' as keyof PillarBreakdown] = compatibility;
     }
 
-    console.log('Final pillar breakdown:', pillarBreakdown);
     return pillarBreakdown;
   }
 
