@@ -7,8 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Upload, FileText, Loader2, Plus, X } from "lucide-react";
+import { Upload, FileText, Loader2 } from "lucide-react";
 import { parseResumeEnhanced, type ParsedResumeData } from "@/lib/enhanced-resume-parser";
 import { toast } from "sonner";
 
@@ -152,127 +151,19 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
   const certifications = form.watch('certifications') || [];
   const projects = form.watch('projects') || [];
 
-  // State for manual input fields
-  const [newExperience, setNewExperience] = useState({ company: '', title: '', start_date: '', end_date: '', description: '' });
-  const [newEducation, setNewEducation] = useState({ institution: '', degree: '', field: '', start_date: '', end_date: '' });
-  const [newHardSkill, setNewHardSkill] = useState('');
-  const [newSoftSkill, setNewSoftSkill] = useState('');
-  const [newLanguage, setNewLanguage] = useState({ name: '', proficiency: '' });
-  const [newCertification, setNewCertification] = useState({ name: '', issuer: '', issue_date: '' });
-  const [newProject, setNewProject] = useState({ name: '', description: '', link: '' });
-
-  const addExperience = () => {
-    if (newExperience.company && newExperience.title) {
-      form.setValue('work_experience', [...workExperience, newExperience]);
-      setNewExperience({ company: '', title: '', start_date: '', end_date: '', description: '' });
-      toast.success('Experiência adicionada');
-    } else {
-      toast.error('Preencha empresa e cargo');
-    }
-  };
-
-  const removeExperience = (idx: number) => {
-    form.setValue('work_experience', workExperience.filter((_, i) => i !== idx));
-    toast.success('Experiência removida');
-  };
-
-  const addEducation = () => {
-    if (newEducation.institution && newEducation.degree) {
-      form.setValue('education', [...education, { ...newEducation, status: 'completed' as const }]);
-      setNewEducation({ institution: '', degree: '', field: '', start_date: '', end_date: '' });
-      toast.success('Formação adicionada');
-    } else {
-      toast.error('Preencha instituição e grau');
-    }
-  };
-
-  const removeEducation = (idx: number) => {
-    form.setValue('education', education.filter((_, i) => i !== idx));
-    toast.success('Formação removida');
-  };
-
-  const addHardSkill = () => {
-    if (newHardSkill.trim()) {
-      form.setValue('hard_skills', [...hardSkills, newHardSkill.trim()]);
-      setNewHardSkill('');
-      toast.success('Habilidade técnica adicionada');
-    }
-  };
-
-  const removeHardSkill = (idx: number) => {
-    form.setValue('hard_skills', hardSkills.filter((_, i) => i !== idx));
-  };
-
-  const addSoftSkill = () => {
-    if (newSoftSkill.trim()) {
-      form.setValue('soft_skills', [...softSkills, newSoftSkill.trim()]);
-      setNewSoftSkill('');
-      toast.success('Habilidade comportamental adicionada');
-    }
-  };
-
-  const removeSoftSkill = (idx: number) => {
-    form.setValue('soft_skills', softSkills.filter((_, i) => i !== idx));
-  };
-
-  const addLanguage = () => {
-    if (newLanguage.name) {
-      form.setValue('languages', [...languages, newLanguage]);
-      setNewLanguage({ name: '', proficiency: '' });
-      toast.success('Idioma adicionado');
-    } else {
-      toast.error('Preencha o nome do idioma');
-    }
-  };
-
-  const removeLanguage = (idx: number) => {
-    form.setValue('languages', languages.filter((_, i) => i !== idx));
-    toast.success('Idioma removido');
-  };
-
-  const addCertification = () => {
-    if (newCertification.name) {
-      form.setValue('certifications', [...certifications, newCertification]);
-      setNewCertification({ name: '', issuer: '', issue_date: '' });
-      toast.success('Certificação adicionada');
-    } else {
-      toast.error('Preencha o nome da certificação');
-    }
-  };
-
-  const removeCertification = (idx: number) => {
-    form.setValue('certifications', certifications.filter((_, i) => i !== idx));
-    toast.success('Certificação removida');
-  };
-
-  const addProject = () => {
-    if (newProject.name) {
-      form.setValue('projects', [...projects, newProject]);
-      setNewProject({ name: '', description: '', link: '' });
-      toast.success('Projeto adicionado');
-    } else {
-      toast.error('Preencha o nome do projeto');
-    }
-  };
-
-  const removeProject = (idx: number) => {
-    form.setValue('projects', projects.filter((_, i) => i !== idx));
-    toast.success('Projeto removido');
-  };
-
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-8">
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-semibold">Informações para Candidatura</h2>
-        <p className="text-muted-foreground">Faça upload do seu currículo para preencher automaticamente ou preencha manualmente os campos abaixo</p>
+        <p className="text-muted-foreground">Faça upload do seu currículo para preencher automaticamente os dados abaixo</p>
       </div>
 
       {/* Resume Upload */}
-      <Card className="border-dashed border-2 bg-muted/20">
+      <Card className="border-dashed border-2">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
+          <CardTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
-            Upload de Currículo (Opcional)
+            Upload de Currículo
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -311,16 +202,16 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="full_name">Nome completo *</Label>
-              <Input id="full_name" {...form.register('full_name')} placeholder="Seu nome completo" />
+              <Input id="full_name" {...form.register('full_name')} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="email">E-mail</Label>
-                <Input id="email" type="email" {...form.register('email')} placeholder="seu@email.com" />
+                <Input id="email" type="email" {...form.register('email')} />
               </div>
               <div>
                 <Label htmlFor="phone">Telefone</Label>
-                <Input id="phone" {...form.register('phone')} placeholder="(11) 99999-9999" />
+                <Input id="phone" {...form.register('phone')} />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -342,414 +233,145 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
             <CardTitle>Resumo Profissional</CardTitle>
           </CardHeader>
           <CardContent>
-            <Label htmlFor="professional_summary">Sobre você (breve resumo)</Label>
-            <Input 
-              id="professional_summary" 
-              {...form.register('professional_summary')} 
-              placeholder="Ex: Desenvolvedor Full Stack com 5 anos de experiência..." 
-              className="mt-2"
-            />
+            <Label htmlFor="professional_summary">Sobre você</Label>
+            <Input id="professional_summary" {...form.register('professional_summary')} placeholder="Breve resumo da sua trajetória profissional" />
           </CardContent>
         </Card>
 
         {/* Experience & Seniority */}
         <Card>
           <CardHeader>
-            <CardTitle>Experiência Profissional</CardTitle>
+            <CardTitle>Experiência</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="years_of_experience">Anos de experiência</Label>
-                <Input 
-                  id="years_of_experience" 
-                  type="number" 
-                  {...form.register('years_of_experience', { valueAsNumber: true })} 
-                  placeholder="Ex: 5"
-                />
+                <Input id="years_of_experience" type="number" {...form.register('years_of_experience', { valueAsNumber: true })} />
               </div>
               <div>
                 <Label htmlFor="seniority">Nível</Label>
-                <Input 
-                  id="seniority" 
-                  {...form.register('seniority')} 
-                  placeholder="Ex: Junior, Pleno, Sênior"
-                />
+                <Input id="seniority" {...form.register('seniority')} placeholder="Entry Level, Junior, Mid-Level, Senior" />
               </div>
-            </div>
-
-            {/* Manual Experience Entry */}
-            <div className="pt-4 border-t space-y-3">
-              <Label className="text-sm font-medium">Adicionar Experiência</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <Input 
-                  placeholder="Empresa *" 
-                  value={newExperience.company}
-                  onChange={(e) => setNewExperience({...newExperience, company: e.target.value})}
-                />
-                <Input 
-                  placeholder="Cargo *" 
-                  value={newExperience.title}
-                  onChange={(e) => setNewExperience({...newExperience, title: e.target.value})}
-                />
-                <Input 
-                  type="date"
-                  placeholder="Data início"
-                  value={newExperience.start_date}
-                  onChange={(e) => setNewExperience({...newExperience, start_date: e.target.value})}
-                />
-                <Input 
-                  type="date"
-                  placeholder="Data fim"
-                  value={newExperience.end_date}
-                  onChange={(e) => setNewExperience({...newExperience, end_date: e.target.value})}
-                />
-              </div>
-              <Textarea 
-                placeholder="Descrição das responsabilidades"
-                value={newExperience.description}
-                onChange={(e) => setNewExperience({...newExperience, description: e.target.value})}
-                rows={2}
-              />
-              <Button type="button" onClick={addExperience} size="sm" className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Experiência
-              </Button>
             </div>
             {workExperience.length > 0 && (
-              <div className="space-y-2 pt-4 border-t">
-                <Label className="text-sm font-medium">Suas Experiências:</Label>
-                <div className="space-y-3">
-                  {workExperience.map((exp, idx) => (
-                    <div key={idx} className="p-3 border rounded-lg bg-muted/30 relative group">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        onClick={() => removeExperience(idx)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                      <p className="font-medium">{exp.title}</p>
-                      <p className="text-sm text-muted-foreground">{exp.company}</p>
-                      {exp.start_date && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {exp.start_date} - {exp.current ? 'Presente' : exp.end_date || 'Presente'}
-                        </p>
-                      )}
-                      {exp.description && <p className="text-sm mt-2">{exp.description}</p>}
-                    </div>
-                  ))}
-                </div>
+              <div className="space-y-2">
+                <Label>Experiências profissionais extraídas</Label>
+                {workExperience.map((exp, idx) => (
+                  <div key={idx} className="p-3 border rounded-md bg-muted/30 space-y-1">
+                    <p className="font-medium">{exp.title} | {exp.company}</p>
+                    {exp.start_date && <p className="text-sm text-muted-foreground">{exp.start_date} - {exp.current ? 'Presente' : exp.end_date}</p>}
+                    {exp.description && <p className="text-sm">{exp.description}</p>}
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
         </Card>
 
         {/* Education */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Formação Acadêmica</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Manual Education Entry */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Adicionar Formação</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <Input 
-                  placeholder="Instituição *" 
-                  value={newEducation.institution}
-                  onChange={(e) => setNewEducation({...newEducation, institution: e.target.value})}
-                />
-                <Input 
-                  placeholder="Grau/Curso *" 
-                  value={newEducation.degree}
-                  onChange={(e) => setNewEducation({...newEducation, degree: e.target.value})}
-                />
-                <Input 
-                  placeholder="Área de estudo" 
-                  value={newEducation.field}
-                  onChange={(e) => setNewEducation({...newEducation, field: e.target.value})}
-                />
-                <div className="grid grid-cols-2 gap-2">
-                  <Input 
-                    type="date"
-                    placeholder="Início"
-                    value={newEducation.start_date}
-                    onChange={(e) => setNewEducation({...newEducation, start_date: e.target.value})}
-                  />
-                  <Input 
-                    type="date"
-                    placeholder="Fim"
-                    value={newEducation.end_date}
-                    onChange={(e) => setNewEducation({...newEducation, end_date: e.target.value})}
-                  />
+        {education.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Formação Acadêmica</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {education.map((edu, idx) => (
+                <div key={idx} className="p-3 border rounded-md bg-muted/30">
+                  <p className="font-medium">{edu.degree} {edu.field && `em ${edu.field}`}</p>
+                  <p className="text-sm text-muted-foreground">{edu.institution}</p>
+                  {edu.start_date && <p className="text-sm text-muted-foreground">{edu.start_date} - {edu.status === 'in_progress' ? 'Em andamento' : edu.end_date}</p>}
                 </div>
-              </div>
-              <Button type="button" onClick={addEducation} size="sm" className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Formação
-              </Button>
-            </div>
-
-            {education.length > 0 && (
-              <div className="space-y-3 pt-4 border-t">
-                <Label className="text-sm font-medium">Suas Formações:</Label>
-                {education.map((edu, idx) => (
-                  <div key={idx} className="p-3 border rounded-lg bg-muted/30 relative group">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                      onClick={() => removeEducation(idx)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                    <p className="font-medium">{edu.degree}</p>
-                    {edu.field && <p className="text-sm text-muted-foreground">{edu.field}</p>}
-                    <p className="text-sm text-muted-foreground">{edu.institution}</p>
-                    {edu.start_date && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {edu.start_date} - {edu.status === 'in_progress' ? 'Em andamento' : edu.end_date || 'Concluído'}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Skills */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Habilidades</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Hard Skills */}
-            <div>
-              <Label className="text-sm font-medium">Hard Skills (Técnicas)</Label>
-              <div className="flex gap-2 mt-2">
-                <Input 
-                  placeholder="Ex: React, Python, SQL..."
-                  value={newHardSkill}
-                  onChange={(e) => setNewHardSkill(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addHardSkill())}
-                />
-                <Button type="button" onClick={addHardSkill} size="sm">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
+        {(hardSkills.length > 0 || softSkills.length > 0) && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Habilidades</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               {hardSkills.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2 p-3 border rounded-lg bg-muted/30">
-                  {hardSkills.map((skill, idx) => (
-                    <Badge key={idx} variant="secondary" className="cursor-pointer" onClick={() => removeHardSkill(idx)}>
-                      {skill}
-                      <X className="h-3 w-3 ml-1" />
-                    </Badge>
-                  ))}
+                <div>
+                  <Label>Hard Skills (Técnicas)</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {hardSkills.map((skill, idx) => (
+                      <Badge key={idx} variant="secondary">{skill}</Badge>
+                    ))}
+                  </div>
                 </div>
               )}
-            </div>
-
-            {/* Soft Skills */}
-            <div>
-              <Label className="text-sm font-medium">Soft Skills (Comportamentais)</Label>
-              <div className="flex gap-2 mt-2">
-                <Input 
-                  placeholder="Ex: Liderança, Comunicação..."
-                  value={newSoftSkill}
-                  onChange={(e) => setNewSoftSkill(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSoftSkill())}
-                />
-                <Button type="button" onClick={addSoftSkill} size="sm">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
               {softSkills.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2 p-3 border rounded-lg bg-muted/30">
-                  {softSkills.map((skill, idx) => (
-                    <Badge key={idx} variant="outline" className="cursor-pointer" onClick={() => removeSoftSkill(idx)}>
-                      {skill}
-                      <X className="h-3 w-3 ml-1" />
-                    </Badge>
-                  ))}
+                <div>
+                  <Label>Soft Skills (Comportamentais)</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {softSkills.map((skill, idx) => (
+                      <Badge key={idx} variant="outline">{skill}</Badge>
+                    ))}
+                  </div>
                 </div>
               )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Languages */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Idiomas</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Manual Language Entry */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Adicionar Idioma</Label>
-              <div className="flex gap-2">
-                <Input 
-                  placeholder="Idioma *" 
-                  value={newLanguage.name}
-                  onChange={(e) => setNewLanguage({...newLanguage, name: e.target.value})}
-                  className="flex-1"
-                />
-                <Input 
-                  placeholder="Nível (Ex: Fluente)" 
-                  value={newLanguage.proficiency}
-                  onChange={(e) => setNewLanguage({...newLanguage, proficiency: e.target.value})}
-                  className="flex-1"
-                />
-                <Button type="button" onClick={addLanguage} size="sm">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {languages.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-4 border-t">
+        {languages.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Idiomas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {languages.map((lang, idx) => (
-                  <div key={idx} className="p-3 border rounded-lg bg-muted/30 relative group">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-1 right-1 h-5 w-5 p-0 opacity-0 group-hover:opacity-100"
-                      onClick={() => removeLanguage(idx)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                    <p className="font-medium text-sm">{lang.name}</p>
-                    {lang.proficiency && <p className="text-xs text-muted-foreground">{lang.proficiency}</p>}
+                  <div key={idx} className="p-2 border rounded-md">
+                    <p className="font-medium">{lang.name}</p>
+                    {lang.proficiency && <p className="text-sm text-muted-foreground">{lang.proficiency}</p>}
                   </div>
                 ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Certifications */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Certificações</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Manual Certification Entry */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Adicionar Certificação</Label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                <Input 
-                  placeholder="Nome da certificação *" 
-                  value={newCertification.name}
-                  onChange={(e) => setNewCertification({...newCertification, name: e.target.value})}
-                />
-                <Input 
-                  placeholder="Organização emissora" 
-                  value={newCertification.issuer}
-                  onChange={(e) => setNewCertification({...newCertification, issuer: e.target.value})}
-                />
-                <Input 
-                  type="date"
-                  placeholder="Data de emissão"
-                  value={newCertification.issue_date}
-                  onChange={(e) => setNewCertification({...newCertification, issue_date: e.target.value})}
-                />
-              </div>
-              <Button type="button" onClick={addCertification} size="sm" className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Certificação
-              </Button>
-            </div>
-
-            {certifications.length > 0 && (
-              <div className="space-y-2 pt-4 border-t">
-                {certifications.map((cert, idx) => (
-                  <div key={idx} className="p-3 border rounded-lg bg-muted/30 relative group">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                      onClick={() => removeCertification(idx)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                    <p className="font-medium text-sm">{cert.name}</p>
-                    {cert.issuer && <p className="text-xs text-muted-foreground">{cert.issuer}</p>}
-                    {cert.issue_date && <p className="text-xs text-muted-foreground">Emitido em: {cert.issue_date}</p>}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {certifications.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Certificações</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {certifications.map((cert, idx) => (
+                <div key={idx} className="p-2 border rounded-md">
+                  <p className="font-medium">{cert.name}</p>
+                  {cert.issuer && <p className="text-sm text-muted-foreground">{cert.issuer}</p>}
+                  {cert.issue_date && <p className="text-xs text-muted-foreground">{cert.issue_date}</p>}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Projects */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Projetos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Manual Project Entry */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Adicionar Projeto</Label>
-              <Input 
-                placeholder="Nome do projeto *" 
-                value={newProject.name}
-                onChange={(e) => setNewProject({...newProject, name: e.target.value})}
-              />
-              <Textarea 
-                placeholder="Descrição do projeto"
-                value={newProject.description}
-                onChange={(e) => setNewProject({...newProject, description: e.target.value})}
-                rows={2}
-              />
-              <Input 
-                placeholder="Link (GitHub, site, etc.)" 
-                value={newProject.link}
-                onChange={(e) => setNewProject({...newProject, link: e.target.value})}
-              />
-              <Button type="button" onClick={addProject} size="sm" className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Projeto
-              </Button>
-            </div>
-
-            {projects.length > 0 && (
-              <div className="space-y-3 pt-4 border-t">
-                {projects.map((proj, idx) => (
-                  <div key={idx} className="p-3 border rounded-lg bg-muted/30 relative group">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                      onClick={() => removeProject(idx)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                    <p className="font-medium">{proj.name}</p>
-                    {proj.description && <p className="text-sm mt-1">{proj.description}</p>}
-                    {proj.link && (
-                      <a 
-                        href={proj.link} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-xs text-primary hover:underline mt-1 inline-block"
-                      >
-                        {proj.link}
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {projects.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Projetos</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {projects.map((proj, idx) => (
+                <div key={idx} className="p-3 border rounded-md bg-muted/30">
+                  <p className="font-medium">{proj.name}</p>
+                  {proj.description && <p className="text-sm">{proj.description}</p>}
+                  {proj.link && <a href={proj.link} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">{proj.link}</a>}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Links */}
         <Card>
@@ -759,38 +381,22 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
           <CardContent className="space-y-3">
             <div>
               <Label htmlFor="linkedin_url">LinkedIn</Label>
-              <Input 
-                id="linkedin_url" 
-                {...form.register('linkedin_url')} 
-                placeholder="https://linkedin.com/in/seu-perfil" 
-              />
+              <Input id="linkedin_url" {...form.register('linkedin_url')} placeholder="https://linkedin.com/in/..." />
             </div>
             <div>
               <Label htmlFor="github_url">GitHub</Label>
-              <Input 
-                id="github_url" 
-                {...form.register('github_url')} 
-                placeholder="https://github.com/seu-usuario" 
-              />
+              <Input id="github_url" {...form.register('github_url')} placeholder="https://github.com/..." />
             </div>
             <div>
               <Label htmlFor="portfolio_url">Portfolio / Site Pessoal</Label>
-              <Input 
-                id="portfolio_url" 
-                {...form.register('portfolio_url')} 
-                placeholder="https://seu-portfolio.com" 
-              />
+              <Input id="portfolio_url" {...form.register('portfolio_url')} placeholder="https://..." />
             </div>
           </CardContent>
         </Card>
 
         <div className="flex justify-between pt-4">
-          <Button variant="outline" type="button" onClick={onBack} disabled={isLoading}>
-            Voltar
-          </Button>
-          <Button type="submit" disabled={form.formState.isSubmitting || isLoading}>
-            Continuar
-          </Button>
+          <Button variant="outline" type="button" onClick={onBack} disabled={isLoading}>Voltar</Button>
+          <Button type="submit" disabled={form.formState.isSubmitting || isLoading}>Continuar</Button>
         </div>
       </form>
     </div>
