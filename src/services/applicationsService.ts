@@ -64,17 +64,50 @@ export async function getCurrentCandidateProfileId(): Promise<string | null> {
  */
 export async function applyToJob(jobId: string): Promise<{ success: boolean; error?: string }> {
   try {
+    console.log('📝 Starting application process for job:', jobId);
+
     // Get candidate profile ID
     const candidateId = await getCurrentCandidateProfileId();
     
     if (!candidateId) {
+      console.error('❌ No candidate profile found');
       return {
         success: false,
-        error: 'Perfil de candidato não encontrado. Complete seu perfil primeiro.'
+        error: 'Seu perfil de candidato ainda não está completo. Complete seu perfil primeiro.'
       };
     }
 
-    console.log('📝 Applying to job:', jobId, 'with candidate:', candidateId);
+    console.log('✅ Candidate ID found:', candidateId);
+
+    // Validate that the job exists in Supabase
+    const { data: job, error: jobError } = await supabase
+      .from('jobs')
+      .select('id, title, status')
+      .eq('id', jobId)
+      .maybeSingle();
+
+    if (jobError) {
+      console.error('❌ Error checking job existence:', jobError);
+      throw jobError;
+    }
+
+    if (!job) {
+      console.error('❌ Job not found in Supabase:', jobId);
+      return {
+        success: false,
+        error: 'Vaga não encontrada. Esta vaga pode estar usando dados de demonstração que ainda não foram cadastrados no sistema.'
+      };
+    }
+
+    if (job.status !== 'active') {
+      console.error('❌ Job is not active:', job.status);
+      return {
+        success: false,
+        error: 'Esta vaga não está mais disponível para candidaturas.'
+      };
+    }
+
+    console.log('✅ Job validated:', job.title);
 
     // Check if already applied
     const { data: existingApplication, error: checkError } = await supabase
@@ -90,6 +123,7 @@ export async function applyToJob(jobId: string): Promise<{ success: boolean; err
     }
 
     if (existingApplication) {
+      console.log('⚠️ Already applied to this job');
       return {
         success: false,
         error: 'Você já se candidatou a esta vaga.'
@@ -97,6 +131,8 @@ export async function applyToJob(jobId: string): Promise<{ success: boolean; err
     }
 
     // Insert application
+    console.log('💾 Inserting application:', { candidate_id: candidateId, job_id: jobId });
+    
     const { data, error } = await supabase
       .from('applications')
       .insert({
@@ -109,6 +145,12 @@ export async function applyToJob(jobId: string): Promise<{ success: boolean; err
 
     if (error) {
       console.error('❌ Error inserting application:', error);
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
       throw error;
     }
 
@@ -122,9 +164,11 @@ export async function applyToJob(jobId: string): Promise<{ success: boolean; err
     let errorMessage = 'Não foi possível enviar a candidatura';
     
     if (error.code === 'PGRST116') {
-      errorMessage = 'Vaga não encontrada';
+      errorMessage = 'Vaga não encontrada no sistema';
     } else if (error.code === '23503') {
-      errorMessage = 'Perfil ou vaga inválidos';
+      errorMessage = 'Erro de validação: perfil de candidato ou vaga inválidos. Verifique se seu perfil está completo.';
+    } else if (error.code === '42501') {
+      errorMessage = 'Você não tem permissão para realizar esta ação. Verifique se está logado corretamente.';
     } else if (error.message) {
       errorMessage = error.message;
     }
