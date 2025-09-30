@@ -99,6 +99,27 @@ export function MatchCard({ match, onApply, onSave, onViewDetails }: MatchCardPr
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* Compatibility Explanation - Highlight Section */}
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-semibold text-foreground">
+              Por que você foi compatível com esta vaga
+            </h4>
+            <Badge className="bg-primary text-primary-foreground font-bold">
+              {match.match_percentage}% Compatibilidade
+            </Badge>
+          </div>
+          
+          <div className="space-y-2">
+            {match.match_reasons.slice(0, 3).map((reason, index) => (
+              <div key={index} className="flex items-start gap-2">
+                <CheckCircle2 className="h-4 w-4 text-[#16a34a] shrink-0 mt-0.5" />
+                <p className="text-sm text-foreground">{reason}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="grid md:grid-cols-[1fr,320px] gap-6">
           {/* Left Column */}
           <div className="space-y-4">

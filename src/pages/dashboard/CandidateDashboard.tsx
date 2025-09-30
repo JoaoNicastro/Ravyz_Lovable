@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { MatchCard } from '@/components/MatchCard';
 import { Notifications } from '@/components/Notifications';
 import { UserDropdown } from '@/components/UserDropdown';
-import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText, Sparkles, Briefcase, Send, Clock, Heart } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText, Sparkles, Briefcase, Send, Clock, Heart, CheckCircle2 } from 'lucide-react';
 import ravyzLogo from '@/assets/ravyz-logo.png';
 import { MatchingEngine, CandidateRavyzData, JobRavyzData } from '@/lib/matching-engine';
 import { mockCandidates, mockJobs, MockCandidate, MockJob } from '@/lib/mock-loader';
@@ -427,6 +427,38 @@ export default function CandidateDashboard() {
                         <Badge variant="outline" className="text-sm">
                           Vaga: {match.job_archetype}
                         </Badge>
+                      </div>
+
+                      {/* Compatibility Explanation */}
+                      <div className="space-y-3 border-t border-border/50 pt-4">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-semibold text-foreground">
+                            Por que você foi compatível com esta vaga
+                          </h4>
+                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-bold">
+                            {Math.round(match.compatibility_score)}% Match
+                          </Badge>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          {Object.entries(match.pillar_breakdown).slice(0, 3).map(([pillar, score]) => {
+                            const pillarScore = score as number;
+                            const reason = pillarScore >= 80 
+                              ? `Alinhamento forte em ${pillar}`
+                              : pillarScore >= 60
+                              ? `Boa compatibilidade em ${pillar}`
+                              : `Compatibilidade em ${pillar}`;
+                            
+                            return (
+                              <div key={pillar} className="flex items-start gap-2">
+                                <CheckCircle2 className="h-4 w-4 text-[#16a34a] shrink-0 mt-0.5" />
+                                <p className="text-sm text-foreground">
+                                  {reason} ({Math.round(pillarScore)}%)
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
 
                       <div className="flex items-center justify-between py-2">
