@@ -6,12 +6,15 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { MatchRadarChart } from '@/components/MatchRadarChart';
+import { MatchCard } from '@/components/MatchCard';
 import { Notifications } from '@/components/Notifications';
 import { UserDropdown } from '@/components/UserDropdown';
 import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText, Sparkles, Briefcase, Send, Clock } from 'lucide-react';
 import ravyzLogo from '@/assets/ravyz-logo.png';
 import { MatchingEngine, CandidateRavyzData, JobRavyzData } from '@/lib/matching-engine';
 import { mockCandidates, mockJobs, MockCandidate, MockJob } from '@/lib/mock-loader';
+import { getCandidateMatches, MatchData } from '@/services/matchingService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Application {
   id: string;
@@ -39,7 +42,9 @@ export default function CandidateDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [matches, setMatches] = useState<MatchResult[]>([]);
+  const [detailedMatches, setDetailedMatches] = useState<MatchData[]>([]);
   const [candidateProfile, setCandidateProfile] = useState<MockCandidate | null>(null);
+  const [candidateProfileId, setCandidateProfileId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('matches');
   const [applications, setApplications] = useState<Application[]>([]);
@@ -50,11 +55,52 @@ export default function CandidateDashboard() {
     if (stored) {
       setApplications(JSON.parse(stored));
     }
-  }, []);
+
+    // Load candidate profile ID from Supabase
+    loadCandidateProfileId();
+  }, [user]);
 
   useEffect(() => {
     loadMockData();
   }, []);
+
+  useEffect(() => {
+    // Load detailed matches from Supabase if we have a candidate profile ID
+    if (candidateProfileId) {
+      loadDetailedMatches();
+    }
+  }, [candidateProfileId]);
+
+  const loadCandidateProfileId = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('candidate_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) {
+        setCandidateProfileId(data.id);
+      }
+    } catch (error) {
+      console.error('Error loading candidate profile ID:', error);
+    }
+  };
+
+  const loadDetailedMatches = async () => {
+    if (!candidateProfileId) return;
+
+    try {
+      const matchesData = await getCandidateMatches(candidateProfileId);
+      setDetailedMatches(matchesData);
+      console.log('✅ Loaded detailed matches from Supabase:', matchesData.length);
+    } catch (error) {
+      console.error('Error loading detailed matches:', error);
+    }
+  };
 
   const loadMockData = async () => {
     try {
@@ -169,6 +215,30 @@ export default function CandidateDashboard() {
     console.log('📝 Applied to job:', jobId);
   };
 
+  // Wrapper for MatchCard component
+  const handleApplyFromMatch = (jobId: string) => {
+    const match = detailedMatches.find(m => m.job_id === jobId);
+    if (match) {
+      handleApply(jobId, match.job_title, match.location);
+    }
+  };
+
+  const handleSaveJob = (jobId: string) => {
+    toast({
+      title: 'Vaga salva!',
+      description: 'A vaga foi adicionada aos seus favoritos',
+    });
+    console.log('💾 Saved job:', jobId);
+  };
+
+  const handleViewDetails = (jobId: string) => {
+    toast({
+      title: 'Detalhes da vaga',
+      description: 'Funcionalidade em desenvolvimento',
+    });
+    console.log('👁️ View details:', jobId);
+  };
+
   const getStatusBadge = (status: Application['status']) => {
     const variants = {
       pending: { label: 'Pendente', variant: 'secondary' as const },
@@ -277,24 +347,42 @@ export default function CandidateDashboard() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Tab 1: Matches - Análises Detalhadas */}
+          {/* Tab 1: Matches - Cartões Detalhados */}
           <TabsContent value="matches" className="space-y-6 mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Análises de Compatibilidade</CardTitle>
+                <CardTitle>Seus Melhores Matches</CardTitle>
                 <CardDescription>
-                  Visualização detalhada dos seus matches com base nos pilares RAVYZ
+                  Vagas mais compatíveis com seu perfil, ordenadas por compatibilidade
                 </CardDescription>
               </CardHeader>
             </Card>
 
-            {matches.length === 0 ? (
+            {detailedMatches.length === 0 && matches.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
+                  <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground">Nenhuma vaga compatível encontrada</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Complete seu perfil para receber recomendações personalizadas
+                  </p>
                 </CardContent>
               </Card>
+            ) : detailedMatches.length > 0 ? (
+              // Show detailed match cards from Supabase
+              <div className="space-y-6">
+                {detailedMatches.map((match) => (
+                  <MatchCard
+                    key={match.job_id}
+                    match={match}
+                    onApply={handleApplyFromMatch}
+                    onSave={handleSaveJob}
+                    onViewDetails={handleViewDetails}
+                  />
+                ))}
+              </div>
             ) : (
+              // Fallback to original match display with radar charts
               <div className="grid gap-6">
                 {matches.slice(0, 5).map((match) => (
                   <Card key={match.job_id} className="hover:shadow-lg transition-shadow">
