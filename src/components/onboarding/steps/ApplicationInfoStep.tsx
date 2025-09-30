@@ -695,34 +695,47 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Manual Project Entry */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Adicionar Projeto</Label>
-              <Input 
-                placeholder="Nome do projeto *" 
-                value={newProject.name}
-                onChange={(e) => setNewProject({...newProject, name: e.target.value})}
-              />
-              <Textarea 
-                placeholder="Descrição do projeto"
-                value={newProject.description}
-                onChange={(e) => setNewProject({...newProject, description: e.target.value})}
-                rows={2}
-              />
-              <Input 
-                placeholder="Link (GitHub, site, etc.)" 
-                value={newProject.link}
-                onChange={(e) => setNewProject({...newProject, link: e.target.value})}
-              />
-              <Button type="button" onClick={addProject} size="sm" className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Adicionar Projeto
-              </Button>
+            <div>
+              <Label className="text-sm font-medium mb-3 block">Adicionar Projeto</Label>
+              <Card className="p-4 bg-muted/30">
+                <div className="space-y-3">
+                  <Input 
+                    placeholder="Nome do projeto *" 
+                    value={newProject.name}
+                    onChange={(e) => setNewProject({...newProject, name: e.target.value})}
+                  />
+                  <div>
+                    <Label htmlFor="project-description" className="text-xs text-muted-foreground">Descrição</Label>
+                    <Textarea 
+                      id="project-description"
+                      placeholder="Descreva o projeto, tecnologias usadas, resultados..."
+                      value={newProject.description}
+                      onChange={(e) => setNewProject({...newProject, description: e.target.value})}
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="project-link" className="text-xs text-muted-foreground">Link (opcional)</Label>
+                    <Input 
+                      id="project-link"
+                      placeholder="GitHub, site, demo, etc." 
+                      value={newProject.link}
+                      onChange={(e) => setNewProject({...newProject, link: e.target.value})}
+                    />
+                  </div>
+                  <Button type="button" onClick={addProject} size="sm" className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Projeto
+                  </Button>
+                </div>
+              </Card>
             </div>
 
             {projects.length > 0 && (
               <div className="space-y-3 pt-4 border-t">
+                <Label className="text-sm font-medium">Seus Projetos:</Label>
                 {projects.map((proj, idx) => (
-                  <div key={idx} className="p-3 border rounded-lg bg-muted/30 relative group">
+                  <Card key={idx} className="p-4 bg-muted/30 relative group">
                     <Button
                       type="button"
                       variant="ghost"
@@ -732,19 +745,21 @@ const ApplicationInfoStep: React.FC<StepProps> = ({ onNext, onBack, isLoading = 
                     >
                       <X className="h-4 w-4" />
                     </Button>
-                    <p className="font-medium">{proj.name}</p>
-                    {proj.description && <p className="text-sm mt-1">{proj.description}</p>}
-                    {proj.link && (
-                      <a 
-                        href={proj.link} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-xs text-primary hover:underline mt-1 inline-block"
-                      >
-                        {proj.link}
-                      </a>
-                    )}
-                  </div>
+                    <div className="space-y-2 pr-8">
+                      <p className="font-semibold text-base">{proj.name}</p>
+                      {proj.description && <p className="text-sm leading-relaxed">{proj.description}</p>}
+                      {proj.link && (
+                        <a 
+                          href={proj.link} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-xs text-primary hover:underline inline-block"
+                        >
+                          {proj.link}
+                        </a>
+                      )}
+                    </div>
+                  </Card>
                 ))}
               </div>
             )}
