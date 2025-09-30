@@ -2,7 +2,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Clock, Users, TrendingUp, CheckCircle2, Heart, Eye, Building, MapPin, DollarSign } from 'lucide-react';
+import { Clock, Users, TrendingUp, CheckCircle2, Heart, Building, MapPin, DollarSign, ChevronDown } from 'lucide-react';
 import { MatchData } from '@/services/matchingService';
 
 interface MatchCardProps {
@@ -35,11 +35,13 @@ export function MatchCard({ match, onApply, onSave, onViewDetails }: MatchCardPr
     return null;
   };
 
-  // Get competition color
-  const getCompetitionColor = (level: string) => {
-    if (level === 'Alta') return 'text-[#dc2626]';
-    if (level === 'Moderada') return 'text-[#f59e0b]';
-    return 'text-[#16a34a]';
+  // Get competition badge
+  const getCompetitionBadge = () => {
+    const level = match.job_stats.competition_level;
+    if (level === 'Baixa') {
+      return <Badge variant="outline" className="bg-[#3b82f6]/10 text-[#3b82f6] border-[#3b82f6]/20">🔵 Moderada</Badge>;
+    }
+    return <Badge variant="outline" className="bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/20">🟠 Competição Alta</Badge>;
   };
 
   // Extract requirement tags
@@ -49,48 +51,41 @@ export function MatchCard({ match, onApply, onSave, onViewDetails }: MatchCardPr
     if (match.requirements?.experience_years) {
       tags.push(`${match.requirements.experience_years}+ anos`);
     }
+    if (match.requirements?.industry) {
+      tags.push(match.requirements.industry);
+    }
     if (match.requirements?.seniority) {
       tags.push(match.requirements.seniority);
     }
-    if (match.requirements?.skills && Array.isArray(match.requirements.skills)) {
-      tags.push(...match.requirements.skills.slice(0, 2));
-    }
     
-    return tags.length > 0 ? tags : ['Experiência relevante', 'Skills técnicas'];
+    return tags.length > 0 ? tags : ['5+ anos', 'Fintech', 'Liderança'];
   };
 
   return (
     <Card className="hover:shadow-lg transition-all duration-300 border-border/50">
-      <CardHeader className="pb-4">
+      <CardHeader className="pb-3">
+        {/* Header with title and badges */}
         <div className="flex items-start justify-between gap-4">
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
               <h3 className="text-2xl font-bold text-foreground">{match.job_title}</h3>
               <Badge className={getMatchBadgeColor(match.match_percentage)}>
                 {match.match_percentage}% Match
               </Badge>
             </div>
             
-            <div className="flex items-center gap-4 text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Building className="h-4 w-4" />
-                <span>{match.company_name}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                <span>{match.location}</span>
-              </div>
-            </div>
+            <p className="text-muted-foreground mb-1">
+              {match.company_name} • {match.location}
+            </p>
             
             {formatSalary() && (
-              <div className="flex items-center gap-1 text-foreground font-medium">
-                <DollarSign className="h-4 w-4" />
-                <span>{formatSalary()}</span>
-              </div>
+              <p className="text-foreground font-medium">
+                {formatSalary()}
+              </p>
             )}
           </div>
 
-          <div className="text-right space-y-2">
+          <div className="text-right space-y-1">
             <Badge className={getProbabilityBadgeColor(match.interview_probability)}>
               {match.interview_probability}% Probabilidade
             </Badge>
@@ -103,16 +98,16 @@ export function MatchCard({ match, onApply, onSave, onViewDetails }: MatchCardPr
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-6">
-        <div className="grid md:grid-cols-[1fr,300px] gap-6">
+      <CardContent className="space-y-4">
+        <div className="grid md:grid-cols-[1fr,320px] gap-6">
           {/* Left Column */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Requirements */}
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3">Requisitos</h4>
+              <h4 className="text-sm font-semibold text-foreground mb-2">Requisitos</h4>
               <div className="flex flex-wrap gap-2">
                 {getRequirementTags().map((tag, index) => (
-                  <Badge key={index} variant="outline" className="bg-muted">
+                  <Badge key={index} variant="outline" className="bg-background border-border">
                     {tag}
                   </Badge>
                 ))}
@@ -121,12 +116,12 @@ export function MatchCard({ match, onApply, onSave, onViewDetails }: MatchCardPr
 
             {/* Match Reasons */}
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3">Por que é um bom match:</h4>
-              <div className="space-y-2">
+              <h4 className="text-sm font-semibold text-foreground mb-2">Por que é um bom match:</h4>
+              <div className="space-y-1.5">
                 {match.match_reasons.map((reason, index) => (
                   <div key={index} className="flex items-start gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-[#16a34a] shrink-0 mt-0.5" />
-                    <p className="text-sm text-muted-foreground">{reason}</p>
+                    <CheckCircle2 className="h-4 w-4 text-[#16a34a] shrink-0 mt-0.5" />
+                    <p className="text-sm text-foreground">{reason}</p>
                   </div>
                 ))}
               </div>
@@ -134,10 +129,10 @@ export function MatchCard({ match, onApply, onSave, onViewDetails }: MatchCardPr
 
             {/* Benefits */}
             <div>
-              <h4 className="text-sm font-semibold text-foreground mb-3">Benefícios</h4>
+              <h4 className="text-sm font-semibold text-foreground mb-2">Benefícios</h4>
               <div className="flex flex-wrap gap-2">
                 {match.benefits.map((benefit, index) => (
-                  <Badge key={index} variant="outline" className="bg-primary/5 border-primary/20">
+                  <Badge key={index} variant="outline" className="bg-background border-border">
                     {benefit}
                   </Badge>
                 ))}
@@ -146,18 +141,21 @@ export function MatchCard({ match, onApply, onSave, onViewDetails }: MatchCardPr
           </div>
 
           {/* Right Column - Statistics */}
-          <div className="bg-muted/30 rounded-lg p-4 space-y-4 h-fit">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-foreground">Estatísticas da Vaga</h4>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <div className="bg-muted/30 rounded-lg p-4 space-y-3 h-fit">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Estatísticas da Vaga
+              </h4>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </div>
             
-            <div className="text-sm text-muted-foreground">Dados do processo seletivo</div>
+            <p className="text-xs text-muted-foreground mb-3">Dados do processo seletivo</p>
 
-            <div className="grid grid-cols-2 gap-4 py-2">
+            <div className="grid grid-cols-2 gap-3 py-2">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 mb-1">
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <Users className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-2xl font-bold text-foreground">
                     {match.job_stats.total_candidates}
                   </span>
@@ -167,7 +165,7 @@ export function MatchCard({ match, onApply, onSave, onViewDetails }: MatchCardPr
               
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 mb-1">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="text-2xl font-bold text-foreground">
                     {match.job_stats.days_open}
                   </span>
@@ -178,46 +176,37 @@ export function MatchCard({ match, onApply, onSave, onViewDetails }: MatchCardPr
 
             <div className="space-y-3">
               <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Taxa de Entrevista</span>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="text-foreground">Taxa de Entrevista</span>
                   <span className="font-medium text-foreground">{match.job_stats.interview_rate}%</span>
                 </div>
                 <Progress 
                   value={match.job_stats.interview_rate} 
-                  className="h-2"
+                  className="h-1.5"
                 />
               </div>
 
               <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Taxa de Contratação</span>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="text-foreground">Taxa de Contratação</span>
                   <span className="font-medium text-foreground">{match.job_stats.hire_rate}%</span>
                 </div>
                 <Progress 
                   value={match.job_stats.hire_rate} 
-                  className="h-2"
+                  className="h-1.5"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-border/50">
-              <Badge 
-                variant="outline" 
-                className={`${
-                  match.job_stats.competition_level === 'Baixa' 
-                    ? 'bg-[#16a34a]/10 border-[#16a34a]/20 text-[#16a34a]' 
-                    : 'bg-[#f59e0b]/10 border-[#f59e0b]/20 text-[#f59e0b]'
-                }`}
-              >
-                {match.job_stats.competition_level === 'Baixa' ? '🟢 Moderada' : '🟠 Competição Alta'}
-              </Badge>
+            <div className="flex items-center justify-center gap-2 pt-2 border-t border-border/50">
+              {getCompetitionBadge()}
             </div>
           </div>
         </div>
       </CardContent>
 
       <CardFooter className="flex items-center justify-between border-t border-border/50 pt-4">
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <span>Publicada {match.job_stats.days_open} dias atrás</span>
           <span>•</span>
           <span>Competição {match.job_stats.competition_level}</span>
@@ -227,7 +216,7 @@ export function MatchCard({ match, onApply, onSave, onViewDetails }: MatchCardPr
 
         <div className="flex items-center gap-2">
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => onSave(match.job_id)}
             className="gap-2"
@@ -236,18 +225,9 @@ export function MatchCard({ match, onApply, onSave, onViewDetails }: MatchCardPr
             Salvar
           </Button>
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onViewDetails(match.job_id)}
-            className="gap-2"
-          >
-            <Eye className="h-4 w-4" />
-            Ver Detalhes
-          </Button>
-          <Button
             size="sm"
             onClick={() => onApply(match.job_id)}
-            className="bg-gradient-primary hover:shadow-glow gap-2"
+            className="bg-primary hover:bg-primary/90"
           >
             Candidatar-se
           </Button>

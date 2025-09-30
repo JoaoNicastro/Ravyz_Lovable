@@ -5,11 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { MatchRadarChart } from '@/components/MatchRadarChart';
 import { MatchCard } from '@/components/MatchCard';
 import { Notifications } from '@/components/Notifications';
 import { UserDropdown } from '@/components/UserDropdown';
-import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText, Sparkles, Briefcase, Send, Clock } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText, Sparkles, Briefcase, Send, Clock, Heart } from 'lucide-react';
 import ravyzLogo from '@/assets/ravyz-logo.png';
 import { MatchingEngine, CandidateRavyzData, JobRavyzData } from '@/lib/matching-engine';
 import { mockCandidates, mockJobs, MockCandidate, MockJob } from '@/lib/mock-loader';
@@ -382,79 +381,71 @@ export default function CandidateDashboard() {
                 ))}
               </div>
             ) : (
-              // Fallback to original match display with radar charts
-              <div className="grid gap-6">
+              // Fallback: show simplified cards without detailed data
+              <div className="space-y-6">
                 {matches.slice(0, 5).map((match) => (
                   <Card key={match.job_id} className="hover:shadow-lg transition-shadow">
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <CardTitle className="text-xl">{match.job.title}</CardTitle>
-                          <CardDescription className="mt-2 flex items-center gap-4 text-base">
+                          <div className="flex items-center gap-3 mb-2">
+                            <CardTitle className="text-2xl">{match.job.title}</CardTitle>
+                            <Badge className={
+                              match.compatibility_score >= 80 
+                                ? 'bg-[#16a34a] text-white' 
+                                : match.compatibility_score >= 50 
+                                ? 'bg-[#facc15] text-black' 
+                                : 'bg-[#dc2626] text-white'
+                            }>
+                              {Math.round(match.compatibility_score)}% Match
+                            </Badge>
+                          </div>
+                          <CardDescription className="flex items-center gap-3 text-base">
                             <span className="flex items-center gap-1">
                               <Building className="w-4 h-4" />
-                              Empresa Teste
+                              Empresa
                             </span>
+                            <span>•</span>
                             <span className="flex items-center gap-1">
                               <MapPin className="w-4 h-4" />
                               {match.job.location}
                             </span>
                           </CardDescription>
                         </div>
-                        <div className="text-right">
-                          <div className="text-4xl font-bold text-primary">
-                            {Math.round(match.compatibility_score)}%
-                          </div>
-                          <div className="text-sm text-muted-foreground">Compatibilidade</div>
-                        </div>
+                        <Badge variant="outline" className="text-sm">
+                          {match.candidate_archetype}
+                        </Badge>
                       </div>
                     </CardHeader>
                     
-                    <CardContent className="space-y-6">
-                      {/* Archetypes */}
-                      <div className="flex items-center justify-center gap-4 p-4 bg-muted/50 rounded-lg">
-                        <Badge variant="outline" className="text-base px-4 py-2">
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-center gap-4 p-3 bg-muted/30 rounded-lg">
+                        <Badge variant="outline" className="text-sm">
                           Você: {match.candidate_archetype}
                         </Badge>
-                        <span className="text-muted-foreground">vs</span>
-                        <Badge variant="outline" className="text-base px-4 py-2">
+                        <span className="text-muted-foreground text-sm">vs</span>
+                        <Badge variant="outline" className="text-sm">
                           Vaga: {match.job_archetype}
                         </Badge>
                       </div>
 
-                      {/* Radar Chart */}
-                      <div>
-                        <h4 className="text-sm font-semibold mb-4">Análise de Pilares</h4>
-                        <MatchRadarChart 
-                          candidatePillars={candidateProfile.pillar_scores}
-                          jobPillars={match.job.pillar_scores}
-                        />
-                      </div>
-
-                      {/* Pillar Breakdown */}
-                      <div>
-                        <h4 className="text-sm font-semibold mb-3">Detalhamento por Pilar</h4>
-                        <div className="grid gap-2">
-                          {Object.entries(match.pillar_breakdown).map(([pillar, score]) => {
-                            const pillarScore = score as number;
-                            return (
-                              <div key={pillar} className="flex items-center justify-between text-sm">
-                                <span className="text-muted-foreground capitalize">{pillar}</span>
-                                <div className="flex items-center gap-2">
-                                  <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
-                                    <div 
-                                      className="h-full bg-primary"
-                                      style={{ width: `${Math.min(100, Math.max(0, pillarScore))}%` }}
-                                    />
-                                  </div>
-                                  <span className="w-12 text-right font-medium">
-                                    {Math.round(pillarScore)}%
-                                  </span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
+                      <div className="flex items-center justify-between py-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSaveJob(match.job_id)}
+                          className="gap-2"
+                        >
+                          <Heart className="h-4 w-4" />
+                          Salvar
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => handleApply(match.job_id, match.job.title, match.job.location)}
+                          className="bg-gradient-primary hover:shadow-glow gap-2"
+                        >
+                          Candidatar-se
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
