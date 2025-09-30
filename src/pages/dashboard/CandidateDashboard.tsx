@@ -14,30 +14,11 @@ import ravyzLogo from '@/assets/ravyz-logo.png';
 import { MatchingEngine, CandidateRavyzData, JobRavyzData } from '@/lib/matching-engine';
 import { mockCandidates, mockJobs, MockCandidate, MockJob } from '@/lib/mock-loader';
 import { getCandidateMatches, MatchData } from '@/services/matchingService';
+import { applyToJob, getCandidateApplications, ApplicationData } from '@/services/applicationsService';
 import { supabase } from '@/integrations/supabase/client';
 
-interface Application {
-  id: string;
-  job_id: string;
-  applied_at: string;
-  status: 'applied' | 'viewed' | 'interview_scheduled' | 'accepted' | 'rejected';
-  jobs?: {
-    id: string;
-    title: string;
-    description: string;
-    location: string;
-    salary_min: number;
-    salary_max: number;
-    requirements: any;
-    created_at: string;
-    company_profiles?: {
-      id: string;
-      company_name: string;
-      description: string;
-      industry: string;
-    };
-  };
-}
+// Use ApplicationData from the service
+type Application = ApplicationData;
 
 interface MatchResult {
   candidate_id: string;
@@ -110,35 +91,15 @@ export default function CandidateDashboard() {
     if (!candidateProfileId) return;
 
     try {
-      const { data, error } = await supabase
-        .from('applications')
-        .select(`
-          *,
-          jobs (
-            id,
-            title,
-            description,
-            location,
-            salary_min,
-            salary_max,
-            requirements,
-            created_at,
-            company_profiles:company_id (
-              id,
-              company_name,
-              description,
-              industry
-            )
-          )
-        `)
-        .eq('candidate_id', candidateProfileId)
-        .order('applied_at', { ascending: false });
-
-      if (error) throw error;
-      setApplications(data || []);
-      console.log('✅ Loaded applications from Supabase:', data?.length);
+      const apps = await getCandidateApplications();
+      setApplications(apps);
     } catch (error) {
       console.error('Error loading applications:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar candidaturas',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -236,40 +197,12 @@ export default function CandidateDashboard() {
   };
 
   const handleApply = async (jobId: string, jobTitle: string, location: string) => {
-    if (!candidateProfileId) {
-      toast({
-        title: 'Erro',
-        description: 'Perfil de candidato não encontrado',
-        variant: 'destructive',
-      });
-      return;
-    }
+    console.log('🚀 Starting application process for job:', jobId);
 
-    // Check if already applied
-    if (applications.some(app => app.job_id === jobId)) {
-      toast({
-        title: 'Já aplicado',
-        description: 'Você já se candidatou a esta vaga.',
-        variant: 'destructive',
-      });
-      return;
-    }
+    const result = await applyToJob(jobId);
 
-    try {
-      // Save to Supabase
-      const { data, error } = await supabase
-        .from('applications')
-        .insert({
-          candidate_id: candidateProfileId,
-          job_id: jobId,
-          status: 'applied',
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Reload applications from Supabase to get complete data
+    if (result.success) {
+      // Reload applications to show the new one
       await loadApplications();
 
       toast({
@@ -280,14 +213,14 @@ export default function CandidateDashboard() {
       // Switch to applications tab
       setActiveTab('applications');
       
-      console.log('📝 Applied to job:', jobId);
-    } catch (error) {
-      console.error('Error applying to job:', error);
+      console.log('✅ Application successful for job:', jobId);
+    } else {
       toast({
-        title: 'Erro',
-        description: 'Não foi possível enviar a candidatura',
+        title: 'Erro ao candidatar',
+        description: result.error || 'Não foi possível enviar a candidatura',
         variant: 'destructive',
       });
+      console.error('❌ Application failed:', result.error);
     }
   };
 
