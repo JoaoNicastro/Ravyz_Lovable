@@ -19,11 +19,24 @@ import { supabase } from '@/integrations/supabase/client';
 interface Application {
   id: string;
   job_id: string;
-  job_title: string;
-  company_name: string;
   applied_at: string;
-  status: 'pending' | 'approved' | 'rejected';
-  location: string;
+  status: 'applied' | 'viewed' | 'interview_scheduled' | 'accepted' | 'rejected';
+  jobs?: {
+    id: string;
+    title: string;
+    description: string;
+    location: string;
+    salary_min: number;
+    salary_max: number;
+    requirements: any;
+    created_at: string;
+    company_profiles?: {
+      id: string;
+      company_name: string;
+      description: string;
+      industry: string;
+    };
+  };
 }
 
 interface MatchResult {
@@ -52,15 +65,16 @@ export default function CandidateDashboard() {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
   useEffect(() => {
-    // Load applications from localStorage
-    const stored = localStorage.getItem('candidate_applications');
-    if (stored) {
-      setApplications(JSON.parse(stored));
-    }
-
     // Load candidate profile ID from Supabase
     loadCandidateProfileId();
   }, [user]);
+
+  useEffect(() => {
+    // Load applications from Supabase when we have candidate profile ID
+    if (candidateProfileId) {
+      loadApplications();
+    }
+  }, [candidateProfileId]);
 
   useEffect(() => {
     loadMockData();
@@ -89,6 +103,42 @@ export default function CandidateDashboard() {
       }
     } catch (error) {
       console.error('Error loading candidate profile ID:', error);
+    }
+  };
+
+  const loadApplications = async () => {
+    if (!candidateProfileId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('applications')
+        .select(`
+          *,
+          jobs (
+            id,
+            title,
+            description,
+            location,
+            salary_min,
+            salary_max,
+            requirements,
+            created_at,
+            company_profiles:company_id (
+              id,
+              company_name,
+              description,
+              industry
+            )
+          )
+        `)
+        .eq('candidate_id', candidateProfileId)
+        .order('applied_at', { ascending: false });
+
+      if (error) throw error;
+      setApplications(data || []);
+      console.log('✅ Loaded applications from Supabase:', data?.length);
+    } catch (error) {
+      console.error('Error loading applications:', error);
     }
   };
 
@@ -219,19 +269,8 @@ export default function CandidateDashboard() {
 
       if (error) throw error;
 
-      const newApplication: Application = {
-        id: data.id,
-        job_id: jobId,
-        job_title: jobTitle,
-        company_name: 'Empresa',
-        applied_at: new Date().toISOString(),
-        status: 'pending',
-        location,
-      };
-
-      const updated = [...applications, newApplication];
-      setApplications(updated);
-      localStorage.setItem('candidate_applications', JSON.stringify(updated));
+      // Reload applications from Supabase to get complete data
+      await loadApplications();
 
       toast({
         title: 'Candidatura enviada!',
@@ -300,9 +339,11 @@ export default function CandidateDashboard() {
 
   const getStatusBadge = (status: Application['status']) => {
     const variants = {
-      pending: { label: 'Pendente', variant: 'secondary' as const },
-      approved: { label: 'Aprovado', variant: 'default' as const },
-      rejected: { label: 'Rejeitado', variant: 'destructive' as const },
+      applied: { label: 'Enviada', variant: 'secondary' as const },
+      viewed: { label: 'Visualizada', variant: 'secondary' as const },
+      interview_scheduled: { label: 'Entrevista Agendada', variant: 'default' as const },
+      accepted: { label: 'Aceita', variant: 'default' as const },
+      rejected: { label: 'Rejeitada', variant: 'destructive' as const },
     };
     return variants[status];
   };
@@ -572,30 +613,30 @@ export default function CandidateDashboard() {
                 {applications.map((app) => {
                   const statusInfo = getStatusBadge(app.status);
                   return (
-                    <Card key={app.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <CardTitle className="text-xl">{app.job_title}</CardTitle>
-                              <Badge variant={statusInfo.variant}>
-                                {statusInfo.label}
-                              </Badge>
-                            </div>
-                            <CardDescription className="flex flex-wrap items-center gap-3 text-sm">
-                              <span className="flex items-center gap-1">
-                                <Building className="w-4 h-4" />
-                                {app.company_name}
-                              </span>
-                              <span>•</span>
-                              <span className="flex items-center gap-1">
-                                <MapPin className="w-4 h-4" />
-                                {app.location}
-                              </span>
-                            </CardDescription>
-                          </div>
-                        </div>
-                      </CardHeader>
+                     <Card key={app.id} className="hover:shadow-lg transition-shadow">
+                       <CardHeader>
+                         <div className="flex items-start justify-between gap-4">
+                           <div className="flex-1">
+                             <div className="flex items-center gap-3 mb-2">
+                               <CardTitle className="text-xl">{app.jobs?.title || 'Vaga'}</CardTitle>
+                               <Badge variant={statusInfo.variant}>
+                                 {statusInfo.label}
+                               </Badge>
+                             </div>
+                             <CardDescription className="flex flex-wrap items-center gap-3 text-sm">
+                               <span className="flex items-center gap-1">
+                                 <Building className="w-4 h-4" />
+                                 {app.jobs?.company_profiles?.company_name || 'Empresa'}
+                               </span>
+                               <span>•</span>
+                               <span className="flex items-center gap-1">
+                                 <MapPin className="w-4 h-4" />
+                                 {app.jobs?.location || 'Remote'}
+                               </span>
+                             </CardDescription>
+                           </div>
+                         </div>
+                       </CardHeader>
                       
                       <CardContent className="space-y-4">
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
