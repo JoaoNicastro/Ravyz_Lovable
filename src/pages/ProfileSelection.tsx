@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,8 +12,28 @@ import ravyzLogo from "@/assets/ravyz-logo.png";
 const ProfileSelection = () => {
   const [selectedProfile, setSelectedProfile] = useState<'candidate' | 'company' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isProcessingAuth, setIsProcessingAuth] = useState(true);
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+
+  // Detectar se usuário chegou aqui via confirmação de email
+  useEffect(() => {
+    const checkAuthFromEmail = async () => {
+      // Verificar se há hash na URL (token de confirmação)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      
+      if (accessToken) {
+        console.log('🔐 Token detectado na URL, processando autenticação...');
+        // Aguardar um momento para o Supabase processar o token
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+      
+      setIsProcessingAuth(false);
+    };
+
+    checkAuthFromEmail();
+  }, []);
 
   const handleProfileSelect = async () => {
     if (!selectedProfile) {
@@ -106,10 +126,15 @@ const ProfileSelection = () => {
   };
 
   // Loading state enquanto verifica autenticação
-  if (authLoading) {
+  if (authLoading || isProcessingAuth) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        <div className="space-y-4 text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="text-muted-foreground">
+            {isProcessingAuth ? 'Confirmando sua conta...' : 'Carregando...'}
+          </p>
+        </div>
       </div>
     );
   }
