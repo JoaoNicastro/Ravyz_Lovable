@@ -31,6 +31,15 @@ export interface MatchData {
  */
 export async function getCandidateMatches(candidateId: string): Promise<MatchData[]> {
   try {
+    // Fetch candidate profile to get preferred roles/interests
+    const { data: candidateProfile, error: candidateError } = await supabase
+      .from('candidate_profiles')
+      .select('preferred_roles')
+      .eq('id', candidateId)
+      .single();
+
+    if (candidateError) throw candidateError;
+
     // Fetch matching results with job and company data
     const { data: matches, error: matchError } = await supabase
       .from('matching_results')
@@ -54,15 +63,42 @@ export async function getCandidateMatches(candidateId: string): Promise<MatchDat
         )
       `)
       .eq('candidate_id', candidateId)
+      .gte('match_percentage', 75)
       .order('match_percentage', { ascending: false })
-      .limit(5);
+      .limit(20);
 
     if (matchError) throw matchError;
     if (!matches) return [];
 
+    // Extract candidate's preferred roles/areas
+    const candidateInterests = Array.isArray(candidateProfile?.preferred_roles) 
+      ? candidateProfile.preferred_roles as string[]
+      : [];
+    
+    // Filter matches by candidate's area of interest
+    const filteredMatches = matches.filter((match: any) => {
+      const job = match.jobs;
+      if (!job) return false;
+
+      // If no interests specified, show all matches >= 75%
+      if (candidateInterests.length === 0) return true;
+
+      // Check if job title or requirements match candidate interests
+      const jobTitle = job.title?.toLowerCase() || '';
+      const jobDescription = job.description?.toLowerCase() || '';
+      const jobRequirements = JSON.stringify(job.requirements || {}).toLowerCase();
+
+      return candidateInterests.some((interest: string) => {
+        const interestLower = interest.toLowerCase();
+        return jobTitle.includes(interestLower) || 
+               jobDescription.includes(interestLower) ||
+               jobRequirements.includes(interestLower);
+      });
+    }).slice(0, 5);
+
     // Transform data to match interface
     const matchesData: MatchData[] = await Promise.all(
-      matches.map(async (match: any) => {
+      filteredMatches.map(async (match: any) => {
         const job = match.jobs;
         const company = job?.company_profiles;
 
