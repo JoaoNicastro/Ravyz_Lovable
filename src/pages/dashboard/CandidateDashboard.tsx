@@ -74,13 +74,23 @@ export default function CandidateDashboard() {
     try {
       const { data, error } = await supabase
         .from('candidate_profiles')
-        .select('id')
+        .select('id, preferred_roles')
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (error) throw error;
       if (data) {
         setCandidateProfileId(data.id);
+        // Store preferred roles in candidate profile for mock data filtering
+        if (candidateProfile) {
+          const preferredRoles = Array.isArray(data.preferred_roles) 
+            ? data.preferred_roles as string[] 
+            : [];
+          setCandidateProfile({
+            ...candidateProfile,
+            preferred_roles: preferredRoles
+          });
+        }
       }
     } catch (error) {
       console.error('Error loading candidate profile ID:', error);
@@ -150,7 +160,7 @@ export default function CandidateDashboard() {
 
       console.log(`✅ Generated ${allMatches.length} matches`);
       
-      // Transform and sort matches
+      // Transform and filter matches
       const matchesWithJobData = allMatches
         .map(match => {
           const job = mockJobs.find(j => j.id === match.job_id);
@@ -162,6 +172,26 @@ export default function CandidateDashboard() {
           };
         })
         .filter((m): m is MatchResult => m !== null)
+        .filter(match => {
+          // Filter 1: Only show matches >= 75%
+          if (match.compatibility_score < 75) {
+            return false;
+          }
+
+          // Filter 2: If candidate has preferred_roles, check if job matches
+          if (candidate.preferred_roles && candidate.preferred_roles.length > 0) {
+            const jobTitle = match.job.title.toLowerCase();
+            const jobRequirements = JSON.stringify(match.job.requirements).toLowerCase();
+            
+            return candidate.preferred_roles.some((role) => {
+              const roleLower = role.toLowerCase();
+              return jobTitle.includes(roleLower) || jobRequirements.includes(roleLower);
+            });
+          }
+
+          // If no preferred_roles, show all matches >= 75%
+          return true;
+        })
         .sort((a, b) => b.compatibility_score - a.compatibility_score)
         .slice(0, 10); // Top 10 matches
 

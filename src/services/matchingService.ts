@@ -27,10 +27,23 @@ export interface MatchData {
 /**
  * Get candidate matches from Supabase
  * @param candidateId - ID of the candidate profile
- * @returns Array of match data with job and company details
+ * @returns Array of match data with job and company details (filtered by match_score >= 75% and preferred roles)
  */
 export async function getCandidateMatches(candidateId: string): Promise<MatchData[]> {
   try {
+    // First, fetch the candidate's preferred roles
+    const { data: candidateProfile, error: profileError } = await supabase
+      .from('candidate_profiles')
+      .select('preferred_roles')
+      .eq('id', candidateId)
+      .maybeSingle();
+
+    if (profileError) throw profileError;
+    
+    const preferredRoles = Array.isArray(candidateProfile?.preferred_roles) 
+      ? candidateProfile.preferred_roles as string[]
+      : [];
+
     // Fetch matching results with job and company data
     const { data: matches, error: matchError } = await supabase
       .from('matching_results')
@@ -54,8 +67,8 @@ export async function getCandidateMatches(candidateId: string): Promise<MatchDat
         )
       `)
       .eq('candidate_id', candidateId)
-      .order('match_percentage', { ascending: false })
-      .limit(5);
+      .gte('match_percentage', 75) // Filter: only matches >= 75%
+      .order('match_percentage', { ascending: false });
 
     if (matchError) throw matchError;
     if (!matches) return [];
@@ -100,7 +113,24 @@ export async function getCandidateMatches(candidateId: string): Promise<MatchDat
       })
     );
 
-    return matchesData;
+    // Filter by preferred roles if available
+    const filteredMatches = matchesData.filter(match => {
+      if (!preferredRoles || preferredRoles.length === 0) {
+        // If no preferred roles, show all matches >= 75%
+        return true;
+      }
+
+      // Check if job title or requirements match any preferred role
+      const jobTitle = match.job_title.toLowerCase();
+      const jobRequirements = JSON.stringify(match.requirements).toLowerCase();
+      
+      return preferredRoles.some((role) => {
+        const roleLower = role.toLowerCase();
+        return jobTitle.includes(roleLower) || jobRequirements.includes(roleLower);
+      });
+    });
+
+    return filteredMatches;
   } catch (error) {
     console.error('Error fetching candidate matches:', error);
     return [];
