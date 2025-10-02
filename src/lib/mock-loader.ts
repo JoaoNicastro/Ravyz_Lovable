@@ -13,7 +13,6 @@ export interface MockCandidate {
   archetype: string;
   headline: string;
   created_at: string;
-  preferred_roles?: string[];
 }
 
 export interface MockJob {
