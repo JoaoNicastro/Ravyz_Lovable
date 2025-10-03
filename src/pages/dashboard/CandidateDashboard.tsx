@@ -438,47 +438,44 @@ export default function CandidateDashboard() {
               </Card>
             </div>
 
-            {/* Skills and Activity Section */}
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Skills Highlight Card */}
-              <SkillsHighlightCard />
+            {/* Skills Highlight Card - Full Width */}
+            <SkillsHighlightCard />
 
-              {/* Recent Activity Section */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Atividade Recente</CardTitle>
-                  <CardDescription>Suas últimas interações na plataforma</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {applications.length === 0 ? (
-                      <p className="text-center text-muted-foreground py-8">
-                        Nenhuma atividade recente
-                      </p>
-                    ) : (
-                      applications.slice(0, 5).map((app) => (
-                        <div key={app.id} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                              <Send className="w-5 h-5 text-primary" />
-                            </div>
-                            <div>
-                              <p className="font-medium">Candidatura enviada</p>
-                              <p className="text-sm text-muted-foreground">
-                                {new Date(app.applied_at).toLocaleDateString('pt-BR')}
-                              </p>
-                            </div>
+            {/* Recent Activity Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Atividade Recente</CardTitle>
+                <CardDescription>Suas últimas interações na plataforma</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {applications.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      Nenhuma atividade recente
+                    </p>
+                  ) : (
+                    applications.slice(0, 5).map((app) => (
+                      <div key={app.id} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Send className="w-5 h-5 text-primary" />
                           </div>
-                          <Badge variant={getStatusBadge(app.status).variant}>
-                            {getStatusBadge(app.status).label}
-                          </Badge>
+                          <div>
+                            <p className="font-medium">Candidatura enviada</p>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(app.applied_at).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
                         </div>
-                      ))
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                        <Badge variant={getStatusBadge(app.status).variant}>
+                          {getStatusBadge(app.status).label}
+                        </Badge>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
 
             {/* Market Position Card - Full Width */}
             <MarketPositionCard />
