@@ -39,6 +39,7 @@ export default function CandidateDashboard() {
   const [detailedMatches, setDetailedMatches] = useState<MatchData[]>([]);
   const [candidateProfile, setCandidateProfile] = useState<MockCandidate | null>(null);
   const [candidateProfileId, setCandidateProfileId] = useState<string | null>(null);
+  const [supabaseProfile, setSupabaseProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('matches');
   const [applications, setApplications] = useState<Application[]>([]);
@@ -74,13 +75,14 @@ export default function CandidateDashboard() {
     try {
       const { data, error } = await supabase
         .from('candidate_profiles')
-        .select('id')
+        .select('id, preferences')
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (error) throw error;
       if (data) {
         setCandidateProfileId(data.id);
+        setSupabaseProfile(data);
       }
     } catch (error) {
       console.error('Error loading candidate profile ID:', error);
@@ -382,7 +384,7 @@ export default function CandidateDashboard() {
 
           {/* Tab 0: Dashboard Overview */}
           <TabsContent value="dashboard" className="space-y-6 mt-6">
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -416,6 +418,20 @@ export default function CandidateDashboard() {
                 <CardContent>
                   <div className="text-3xl font-bold">{candidateProfile?.archetype}</div>
                   <p className="text-xs text-muted-foreground mt-1">Arquétipo</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Cargo dos Sonhos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xl font-bold line-clamp-2">
+                    {(supabaseProfile?.preferences as any)?.desired_role || "Não definido"}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Cargo ideal</p>
                 </CardContent>
               </Card>
             </div>
