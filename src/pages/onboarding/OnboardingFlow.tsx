@@ -70,7 +70,7 @@ const STEPS: StepData[] = [
 ];
 
 const OnboardingFlow = () => {
-  const [currentStep, setCurrentStep] = useState(5);
+  const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [stepData, setStepData] = useState<Record<string, any>>({});
   const navigate = useNavigate();
