@@ -10,6 +10,7 @@ import { Notifications } from '@/components/Notifications';
 import { UserDropdown } from '@/components/UserDropdown';
 import { SkillsHighlightCard } from '@/components/SkillsHighlightCard';
 import { MarketPositionCard } from '@/components/MarketPositionCard';
+import { DreamJobCard } from '@/components/DreamJobCard';
 import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText, Sparkles, Briefcase, Send, Clock, Heart, CheckCircle2, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ravyzLogo from '@/assets/ravyz-logo.png';
@@ -423,20 +424,19 @@ export default function CandidateDashboard() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Cargo dos Sonhos
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-xl font-bold line-clamp-2">
-                    {(supabaseProfile?.preferences as any)?.desired_role || "Não definido"}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">Cargo ideal</p>
-                </CardContent>
-              </Card>
+              {/* Dream Job Card - moved below to full width */}
             </div>
+
+            {/* Dream Job Card - Full Width */}
+            <DreamJobCard 
+              desiredPosition={(supabaseProfile?.preferences as any)?.desired_role || "Head of Product"}
+              salaryRange={{
+                min: (supabaseProfile?.preferences as any)?.salary_min || 18000,
+                max: (supabaseProfile?.preferences as any)?.salary_max || 28000
+              }}
+              industries={(supabaseProfile?.preferences as any)?.industry_interests || ["Tecnologia", "Fintech", "E-commerce"]}
+              values={["Inovação", "Work-life balance", "Crescimento profissional", "Diversidade"]}
+            />
 
             {/* Skills Highlight Card - Full Width */}
             <SkillsHighlightCard />
