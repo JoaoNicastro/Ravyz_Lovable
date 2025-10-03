@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { MatchCard } from '@/components/MatchCard';
 import { Notifications } from '@/components/Notifications';
 import { UserDropdown } from '@/components/UserDropdown';
+import { SkillsHighlightCard } from '@/components/SkillsHighlightCard';
 import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText, Sparkles, Briefcase, Send, Clock, Heart, CheckCircle2, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ravyzLogo from '@/assets/ravyz-logo.png';
@@ -436,40 +437,47 @@ export default function CandidateDashboard() {
               </Card>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Atividade Recente</CardTitle>
-                <CardDescription>Suas últimas interações na plataforma</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {applications.length === 0 ? (
-                    <p className="text-center text-muted-foreground py-8">
-                      Nenhuma atividade recente
-                    </p>
-                  ) : (
-                    applications.slice(0, 5).map((app) => (
-                      <div key={app.id} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <Send className="w-5 h-5 text-primary" />
+            {/* Skills and Activity Section */}
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Skills Highlight Card */}
+              <SkillsHighlightCard />
+
+              {/* Recent Activity Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Atividade Recente</CardTitle>
+                  <CardDescription>Suas últimas interações na plataforma</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {applications.length === 0 ? (
+                      <p className="text-center text-muted-foreground py-8">
+                        Nenhuma atividade recente
+                      </p>
+                    ) : (
+                      applications.slice(0, 5).map((app) => (
+                        <div key={app.id} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <Send className="w-5 h-5 text-primary" />
+                            </div>
+                            <div>
+                              <p className="font-medium">Candidatura enviada</p>
+                              <p className="text-sm text-muted-foreground">
+                                {new Date(app.applied_at).toLocaleDateString('pt-BR')}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium">Candidatura enviada</p>
-                            <p className="text-sm text-muted-foreground">
-                              {new Date(app.applied_at).toLocaleDateString('pt-BR')}
-                            </p>
-                          </div>
+                          <Badge variant={getStatusBadge(app.status).variant}>
+                            {getStatusBadge(app.status).label}
+                          </Badge>
                         </div>
-                        <Badge variant={getStatusBadge(app.status).variant}>
-                          {getStatusBadge(app.status).label}
-                        </Badge>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Tab 1: Matches - Cartões Detalhados */}
