@@ -225,8 +225,12 @@ export default function CompanyDashboard() {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
-            <TabsTrigger value="matches">
+            <TabsTrigger value="dashboard">
               <LayoutDashboard className="w-4 h-4 mr-2" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger value="matches">
+              <User className="w-4 h-4 mr-2" />
               Candidatos Compatíveis
             </TabsTrigger>
             <TabsTrigger value="jobs">
@@ -234,6 +238,98 @@ export default function CompanyDashboard() {
               Minhas Vagas ({jobs.length})
             </TabsTrigger>
           </TabsList>
+
+          {/* Tab 0: Dashboard Overview */}
+          <TabsContent value="dashboard" className="space-y-6 mt-6">
+            <div className="grid gap-6 md:grid-cols-3">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Vagas Ativas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{jobs.length}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Publicadas</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Candidatos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">
+                    {Object.values(jobMatches).reduce((sum, matches) => sum + matches.length, 0)}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Compatíveis</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Top Match
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">
+                    {Math.round(Object.values(jobMatches).flat()[0]?.compatibility_score || 0)}%
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">Melhor compatibilidade</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Vagas com Mais Candidatos</CardTitle>
+                <CardDescription>Ranking das vagas por número de matches</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {jobs.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      Nenhuma vaga cadastrada
+                    </p>
+                  ) : (
+                    jobs
+                      .sort((a, b) => (jobMatches[b.id]?.length || 0) - (jobMatches[a.id]?.length || 0))
+                      .slice(0, 5)
+                      .map((job) => {
+                        const matchCount = jobMatches[job.id]?.length || 0;
+                        const topMatch = jobMatches[job.id]?.[0];
+                        
+                        return (
+                          <div key={job.id} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
+                            <div className="flex-1">
+                              <p className="font-medium">{job.title}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-muted-foreground flex items-center gap-1">
+                                  <MapPin className="w-3 h-3" />
+                                  {job.location}
+                                </span>
+                                {topMatch && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Top: {Math.round(topMatch.compatibility_score)}%
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-primary">{matchCount}</div>
+                              <div className="text-xs text-muted-foreground">candidatos</div>
+                            </div>
+                          </div>
+                        );
+                      })
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="matches" className="space-y-6 mt-6">
             {jobs.length === 0 ? (

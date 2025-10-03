@@ -365,7 +365,11 @@ export default function CandidateDashboard() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-2xl grid-cols-3">
+            <TabsTrigger value="dashboard">
+              <LayoutDashboard className="w-4 h-4 mr-2" />
+              Dashboard
+            </TabsTrigger>
             <TabsTrigger value="matches">
               <Sparkles className="w-4 h-4 mr-2" />
               Matches
@@ -375,6 +379,82 @@ export default function CandidateDashboard() {
               Candidaturas ({applications.length})
             </TabsTrigger>
           </TabsList>
+
+          {/* Tab 0: Dashboard Overview */}
+          <TabsContent value="dashboard" className="space-y-6 mt-6">
+            <div className="grid gap-6 md:grid-cols-3">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Matches Ativos
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{detailedMatches.length || matches.length}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Vagas compatíveis</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Candidaturas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{applications.length}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Enviadas</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Perfil
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{candidateProfile?.archetype}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Arquétipo</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Atividade Recente</CardTitle>
+                <CardDescription>Suas últimas interações na plataforma</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {applications.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-8">
+                      Nenhuma atividade recente
+                    </p>
+                  ) : (
+                    applications.slice(0, 5).map((app) => (
+                      <div key={app.id} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Send className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium">Candidatura enviada</p>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(app.applied_at).toLocaleDateString('pt-BR')}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge variant={getStatusBadge(app.status).variant}>
+                          {getStatusBadge(app.status).label}
+                        </Badge>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Tab 1: Matches - Cartões Detalhados */}
           <TabsContent value="matches" className="space-y-6 mt-6">
