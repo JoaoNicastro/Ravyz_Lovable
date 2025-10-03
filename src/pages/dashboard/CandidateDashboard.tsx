@@ -9,6 +9,7 @@ import { MatchCard } from '@/components/MatchCard';
 import { Notifications } from '@/components/Notifications';
 import { UserDropdown } from '@/components/UserDropdown';
 import { SkillsHighlightCard } from '@/components/SkillsHighlightCard';
+import { MarketPositionCard } from '@/components/MarketPositionCard';
 import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText, Sparkles, Briefcase, Send, Clock, Heart, CheckCircle2, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ravyzLogo from '@/assets/ravyz-logo.png';
@@ -478,6 +479,9 @@ export default function CandidateDashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Market Position Card - Full Width */}
+            <MarketPositionCard />
           </TabsContent>
 
           {/* Tab 1: Matches - Cartões Detalhados */}
