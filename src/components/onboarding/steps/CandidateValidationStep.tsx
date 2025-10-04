@@ -12,20 +12,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const validationSchema = z.object({
-  workStyle: z.enum(["independent", "collaborative", "mixed"], {
-    required_error: "Selecione seu estilo de trabalho preferido",
+  workPace: z.enum(["urgent", "dynamic", "balanced", "calm", "relaxed"], {
+    required_error: "Selecione seu ritmo de trabalho preferido",
   }),
-  workEnvironment: z.enum(["quiet", "dynamic", "flexible"], {
-    required_error: "Selecione o ambiente de trabalho preferido",
-  }),
-  communication: z.enum(["direct", "diplomatic", "analytical"], {
-    required_error: "Selecione seu estilo de comunicação",
-  }),
-  decisionMaking: z.enum(["quick", "deliberate", "collaborative"], {
+  decisionMaking: z.enum(["intuitive", "basicData", "balanced", "detailedData", "exhaustive"], {
     required_error: "Selecione como você toma decisões",
   }),
-  workLifeBalance: z.enum(["high", "moderate", "flexible"], {
-    required_error: "Selecione a importância do equilíbrio vida-trabalho",
+  communication: z.enum(["direct", "contextual", "balanced", "detailed", "formal"], {
+    required_error: "Selecione seu estilo de comunicação",
+  }),
+  learningStyle: z.enum(["practice", "theoryPractice", "mentorship", "theoryFirst", "structured"], {
+    required_error: "Selecione sua forma preferida de aprendizado",
   }),
 });
 
@@ -40,48 +37,47 @@ interface StepProps {
 
 const questions = [
   {
-    key: "workStyle" as keyof ValidationData,
-    label: "Qual é seu estilo de trabalho preferido?",
+    key: "workPace" as keyof ValidationData,
+    label: "Seu ritmo e estilo de trabalho ideal",
     options: [
-      { value: "independent", label: "Independente", description: "Prefiro trabalhar sozinho e ter autonomia" },
-      { value: "collaborative", label: "Colaborativo", description: "Gosto de trabalhar em equipe e trocar ideias" },
-      { value: "mixed", label: "Misto", description: "Depende do projeto e situação" },
-    ],
-  },
-  {
-    key: "workEnvironment" as keyof ValidationData,
-    label: "Que tipo de ambiente de trabalho você prefere?",
-    options: [
-      { value: "quiet", label: "Tranquilo", description: "Ambiente silencioso e focado" },
-      { value: "dynamic", label: "Dinâmico", description: "Ambiente movimentado e energético" },
-      { value: "flexible", label: "Flexível", description: "Posso me adaptar a diferentes ambientes" },
-    ],
-  },
-  {
-    key: "communication" as keyof ValidationData,
-    label: "Como você se comunica no trabalho?",
-    options: [
-      { value: "direct", label: "Direto", description: "Comunicação clara e objetiva" },
-      { value: "diplomatic", label: "Diplomático", description: "Comunicação cuidadosa e respeitosa" },
-      { value: "analytical", label: "Analítico", description: "Comunicação detalhada com dados" },
+      { value: "urgent", label: "Ritmo acelerado, sempre com urgência", description: "Prefiro ambientes dinâmicos com prazos curtos" },
+      { value: "dynamic", label: "Ritmo dinâmico, mas com planejamento", description: "Gosto de velocidade, mas organizado" },
+      { value: "balanced", label: "Ritmo equilibrado, sem pressa excessiva", description: "Busco equilíbrio entre eficiência e qualidade" },
+      { value: "calm", label: "Ritmo mais calmo, com tempo para reflexão", description: "Valorizo tempo para pensar e analisar" },
+      { value: "relaxed", label: "Ritmo bem tranquilo, sem pressão", description: "Prefiro trabalhar sem pressão de tempo" },
     ],
   },
   {
     key: "decisionMaking" as keyof ValidationData,
-    label: "Como você toma decisões?",
+    label: "Seu processo de tomada de decisão",
     options: [
-      { value: "quick", label: "Rápido", description: "Tomo decisões rapidamente com informações básicas" },
-      { value: "deliberate", label: "Deliberado", description: "Analiso cuidadosamente antes de decidir" },
-      { value: "collaborative", label: "Colaborativo", description: "Consulto outros antes de decidir" },
+      { value: "intuitive", label: "Decido rapidamente, confio na intuição", description: "Uso experiência e instinto para decidir" },
+      { value: "basicData", label: "Analiso dados básicos e decido", description: "Busco informações essenciais antes de decidir" },
+      { value: "balanced", label: "Busco equilíbrio entre análise e intuição", description: "Combino dados com experiência" },
+      { value: "detailedData", label: "Preciso de dados detalhados para decidir", description: "Analiso informações profundamente" },
+      { value: "exhaustive", label: "Analiso exaustivamente antes de decidir", description: "Exploro todas as possibilidades antes de decidir" },
     ],
   },
   {
-    key: "workLifeBalance" as keyof ValidationData,
-    label: "Qual a importância do equilíbrio vida-trabalho para você?",
+    key: "communication" as keyof ValidationData,
+    label: "Seu estilo de comunicação preferido",
     options: [
-      { value: "high", label: "Alta", description: "É fundamental para mim" },
-      { value: "moderate", label: "Moderada", description: "Importante, mas posso ser flexível" },
-      { value: "flexible", label: "Flexível", description: "Depende da fase da carreira e projeto" },
+      { value: "direct", label: "Comunicação direta e objetiva", description: "Vou direto ao ponto" },
+      { value: "contextual", label: "Clara, mas com contexto", description: "Explico o necessário com clareza" },
+      { value: "balanced", label: "Equilibrada entre formal e informal", description: "Adapto conforme o contexto" },
+      { value: "detailed", label: "Mais elaborada e detalhada", description: "Gosto de explicar com profundidade" },
+      { value: "formal", label: "Formal e muito estruturada", description: "Prefiro comunicação profissional e organizada" },
+    ],
+  },
+  {
+    key: "learningStyle" as keyof ValidationData,
+    label: "Sua forma preferida de aprendizado",
+    options: [
+      { value: "practice", label: "Experimentando e errando na prática", description: "Aprendo fazendo e testando" },
+      { value: "theoryPractice", label: "Combinando teoria e prática", description: "Gosto de entender e depois aplicar" },
+      { value: "mentorship", label: "Com mentoria e feedback constante", description: "Aprendo melhor com orientação" },
+      { value: "theoryFirst", label: "Estudando teoria antes da prática", description: "Prefiro dominar conceitos primeiro" },
+      { value: "structured", label: "Cursos estruturados e certificações", description: "Valorizo aprendizado formal e estruturado" },
     ],
   },
 ];
@@ -99,11 +95,10 @@ const CandidateValidationStep: React.FC<StepProps> = ({ onNext, data }) => {
   const calculateCulturalScore = (responses: ValidationData): number => {
     // Simple scoring algorithm - can be enhanced
     const scores: Record<string, number> = {
-      workStyle: responses.workStyle === 'collaborative' ? 10 : responses.workStyle === 'mixed' ? 8 : 6,
-      workEnvironment: responses.workEnvironment === 'flexible' ? 10 : 7,
-      communication: responses.communication === 'diplomatic' ? 10 : responses.communication === 'analytical' ? 9 : 7,
-      decisionMaking: responses.decisionMaking === 'collaborative' ? 10 : responses.decisionMaking === 'deliberate' ? 9 : 7,
-      workLifeBalance: responses.workLifeBalance === 'moderate' ? 10 : responses.workLifeBalance === 'flexible' ? 9 : 8,
+      workPace: responses.workPace === 'balanced' ? 10 : responses.workPace === 'dynamic' ? 9 : 7,
+      decisionMaking: responses.decisionMaking === 'balanced' ? 10 : responses.decisionMaking === 'basicData' ? 9 : 7,
+      communication: responses.communication === 'balanced' ? 10 : responses.communication === 'contextual' ? 9 : 7,
+      learningStyle: responses.learningStyle === 'theoryPractice' ? 10 : responses.learningStyle === 'mentorship' ? 9 : 7,
     };
     
     return Object.values(scores).reduce((sum, score) => sum + score, 0) / Object.values(scores).length;
