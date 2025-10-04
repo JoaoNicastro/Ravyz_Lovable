@@ -211,10 +211,10 @@ export default function CandidateAssessmentStep({
                         <RadioGroup
                           onValueChange={(value) => field.onChange(parseInt(value))}
                           defaultValue={field.value?.toString()}
-                          className="flex space-x-2"
+                          className="flex justify-between gap-2 w-full"
                         >
                           {[1, 2, 3, 4, 5].map((value) => (
-                            <div key={value} className="flex items-center space-x-2">
+                            <div key={value} className="flex items-center justify-center space-x-2 flex-1">
                               <RadioGroupItem value={value.toString()} id={`${question.id}-${value}`} />
                               <label 
                                 htmlFor={`${question.id}-${value}`}
