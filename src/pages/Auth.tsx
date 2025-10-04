@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AuthForm } from "@/components/forms/AuthForm";
 import heroImage from "@/assets/hero-recruitment.jpg";
 import ravyzLogo from "@/assets/ravyz-logo.png";
+import { getDefaultDashboardRoute } from "@/lib/navigation";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -25,27 +26,10 @@ const Auth = () => {
     const checkUserProfile = async () => {
       if (user) {
         try {
-          const { data: userData } = await supabase
-            .from('users')
-            .select('profiles')
-            .eq('id', user.id)
-            .single();
-
-          if (userData?.profiles && userData.profiles.length > 0) {
-            // User has a profile selected, redirect to appropriate dashboard
-            if (userData.profiles.includes('candidate')) {
-              navigate('/dashboard/candidate', { replace: true });
-            } else if (userData.profiles.includes('company')) {
-              navigate('/dashboard/company', { replace: true });
-            } else {
-              navigate('/profile-selection', { replace: true });
-            }
-          } else {
-            // No profile selected, go to profile selection
-            navigate('/profile-selection', { replace: true });
-          }
+          const route = await getDefaultDashboardRoute(supabase, user.id);
+          navigate(route, { replace: true });
         } catch (error) {
-          console.error('Error checking user profile:', error);
+          console.error('Error determining dashboard route:', error);
           navigate('/profile-selection', { replace: true });
         }
       }
