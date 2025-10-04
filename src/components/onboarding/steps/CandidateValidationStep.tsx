@@ -135,25 +135,26 @@ const CandidateValidationStep: React.FC<StepProps> = ({ onNext, data }) => {
                           className="space-y-3"
                         >
                           {question.options.map((option) => (
-                            <Label
-                              key={option.value}
-                              htmlFor={`${question.key}-${option.value}`}
-                              className="flex items-start space-x-3 rounded-lg border-2 border-border p-4 cursor-pointer hover:bg-accent/50 transition-colors has-[:checked]:border-primary has-[:checked]:bg-accent"
-                            >
+                            <div key={option.value} className="flex items-start space-x-3">
                               <RadioGroupItem
                                 value={option.value}
                                 id={`${question.key}-${option.value}`}
                                 className="mt-1"
                               />
                               <div className="flex-1">
-                                <div className="font-medium text-foreground">
-                                  {option.label}
-                                </div>
-                                <div className="text-sm text-muted-foreground mt-1">
-                                  {option.description}
-                                </div>
+                                <Label
+                                  htmlFor={`${question.key}-${option.value}`}
+                                  className="cursor-pointer block"
+                                >
+                                  <div className="font-medium text-foreground">
+                                    {option.label}
+                                  </div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {option.description}
+                                  </div>
+                                </Label>
                               </div>
-                            </Label>
+                            </div>
                           ))}
                         </RadioGroup>
                       </FormControl>
