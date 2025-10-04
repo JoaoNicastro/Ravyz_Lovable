@@ -17,7 +17,6 @@ import { Label } from "@/components/ui/label";
 const candidateProfileSchema = z.object({
   // Basic info fields
   date_of_birth: z.string().optional(),
-  email: z.string().email("Email inválido").optional(),
   phone: z.string().optional(),
   // Address fields
   address_zipcode: z.string().optional(),
@@ -49,7 +48,6 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
     resolver: zodResolver(candidateProfileSchema),
     defaultValues: {
       date_of_birth: initialData?.date_of_birth || "",
-      email: initialData?.email || "",
       phone: initialData?.phone || "",
       address_zipcode: initialData?.address_zipcode || "",
       address_street: initialData?.address_street || "",
@@ -107,9 +105,6 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
       console.log('Parsed resume data for form:', parsedData);
       
       // Fill form with parsed data
-      if (parsedData.email) {
-        form.setValue('email', parsedData.email);
-      }
       if (parsedData.phone) {
         form.setValue('phone', parsedData.phone);
       }
@@ -191,20 +186,12 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
 
             <ReusableFormField
               control={form.control}
-              name="email"
-              label="E-mail"
+              name="phone"
+              label="Telefone"
             >
-              <Input type="email" placeholder="seu@email.com" />
+              <Input placeholder="(xx) xxxxx-xxxx" />
             </ReusableFormField>
           </div>
-
-          <ReusableFormField
-            control={form.control}
-            name="phone"
-            label="Telefone"
-          >
-            <Input placeholder="(xx) xxxxx-xxxx" />
-          </ReusableFormField>
         </div>
 
         {/* Address Section */}

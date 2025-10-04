@@ -6,7 +6,6 @@ import { CandidateProfileForm } from "@/components/forms/CandidateProfileForm";
 const candidateSchema = z.object({
   // Basic info fields
   date_of_birth: z.string().optional(),
-  email: z.string().email("Email inválido").optional(),
   phone: z.string().optional(),
   // Address fields
   address_zipcode: z.string().optional(),
