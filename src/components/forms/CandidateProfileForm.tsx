@@ -17,7 +17,10 @@ import { Label } from "@/components/ui/label";
 const candidateProfileSchema = z.object({
   // Basic info fields
   date_of_birth: z.string().min(1, "Data de nascimento é obrigatória"),
-  phone: z.string().min(1, "Telefone é obrigatório"),
+  phone: z.string()
+    .min(7, "Telefone deve ter no mínimo 7 caracteres")
+    .max(20, "Telefone deve ter no máximo 20 caracteres")
+    .regex(/^[+]?[0-9\s\-\(\)]+$/, "Formato de telefone inválido. Use apenas números, espaços, hífens, parênteses e +"),
   cpf: z.string().min(11, "CPF é obrigatório e deve ter 11 dígitos"),
   gender: z.string().optional(),
   // Address fields
