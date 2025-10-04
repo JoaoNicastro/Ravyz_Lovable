@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Form } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ReusableFormField } from "./FormField";
 import { ArrowRight, ArrowLeft, Upload, X, Plus, FileText, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -225,28 +224,6 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Perfil Profissional</h3>
           
-          {/* Avatar */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Foto do Perfil</label>
-            <div className="flex items-center gap-4">
-              <Avatar className="w-20 h-20">
-                <AvatarImage src={form.watch("avatar_url")} />
-                <AvatarFallback>
-                  <Upload className="h-6 w-6 text-muted-foreground" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="space-y-2 flex-1">
-                <ReusableFormField
-                  control={form.control}
-                  name="avatar_url"
-                  description="Cole a URL de uma foto ou deixe em branco por agora"
-                >
-                  <Input placeholder="URL da foto (opcional)" />
-                </ReusableFormField>
-              </div>
-            </div>
-          </div>
-
           {/* Headline */}
           <ReusableFormField
             control={form.control}

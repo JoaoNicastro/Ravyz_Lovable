@@ -55,7 +55,6 @@ const CandidateRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
           <ul className="text-sm text-muted-foreground space-y-1">
             <li>• Use um título profissional claro que descreva seu papel atual ou desejado</li>
             <li>• Seja específico sobre sua localização (cidade, estado)</li>
-            <li>• Inclua uma foto profissional se possível</li>
             <li>• Adicione suas principais habilidades técnicas e comportamentais</li>
           </ul>
         </CardContent>
