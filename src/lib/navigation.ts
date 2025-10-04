@@ -28,14 +28,36 @@ export async function getDefaultDashboardRoute(
         profiles: userData.profiles,
       });
 
-      // If active_profile is set, use it
+      // If active_profile is set, check if profile exists in database
       if (userData.active_profile === 'candidate') {
-        console.log('✅ [Navigation] Active profile is candidate → /dashboard/candidate');
-        return '/dashboard/candidate';
+        const { data: candidateProfile } = await supabase
+          .from('candidate_profiles')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if (candidateProfile) {
+          console.log('✅ [Navigation] Candidate profile exists → /dashboard/candidate');
+          return '/dashboard/candidate';
+        } else {
+          console.log('⚠️ [Navigation] Active profile is candidate but no candidate_profile found → /onboarding/candidate');
+          return '/onboarding/candidate';
+        }
       }
       if (userData.active_profile === 'company') {
-        console.log('✅ [Navigation] Active profile is company → /dashboard/company');
-        return '/dashboard/company';
+        const { data: companyProfile } = await supabase
+          .from('company_profiles')
+          .select('id')
+          .eq('user_id', userId)
+          .maybeSingle();
+        
+        if (companyProfile) {
+          console.log('✅ [Navigation] Company profile exists → /dashboard/company');
+          return '/dashboard/company';
+        } else {
+          console.log('⚠️ [Navigation] Active profile is company but no company_profile found → /onboarding/company');
+          return '/onboarding/company';
+        }
       }
     }
 
