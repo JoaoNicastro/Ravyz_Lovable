@@ -152,9 +152,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           title: "Login realizado!",
           description: "Redirecionando...",
         });
-        
-        // Redirect to profile selection after successful login
-        navigate('/profile-selection');
+        // Redirection will be handled by Auth.tsx useEffect
       }
 
       return { error };
@@ -173,7 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'linkedin_oidc',
         options: {
-          redirectTo: `${window.location.origin}/profile-selection`
+          redirectTo: `${window.location.origin}/auth`
         }
       });
 

@@ -42,12 +42,10 @@ const Auth = () => {
     setIsLoading(true);
     try {
       if (authMode === 'login') {
-        const { error } = await signIn(data.email, data.password);
-        if (!error) {
-          // The useEffect will handle the redirection after user state is updated
-        }
+        await signIn(data.email, data.password);
+        // The signIn function now handles the redirection
       } else {
-        const { error } = await signUp(data.email, data.password, data.name);
+        await signUp(data.email, data.password, data.name);
         // Note: signUp handles success/error messaging
       }
     } finally {
