@@ -15,11 +15,13 @@ import { toast } from "sonner";
 import { useState } from "react";
 
 const assessmentSchema = z.object({
+  headline: z.string().min(5, "Título deve ter pelo menos 5 caracteres").max(200, "Título muito longo"),
+  years_experience: z.number().min(0, "Experiência não pode ser negativa").max(50, "Experiência muito alta"),
+  skills: z.array(z.string()).min(3, "Adicione pelo menos 3 habilidades"),
   currentRole: z.string().min(1, "Cargo atual é obrigatório"),
   currentCompany: z.string().min(1, "Empresa atual é obrigatória"),
   yearsInRole: z.number().min(0, "Anos no cargo deve ser um número positivo"),
   keyAchievements: z.string().min(50, "Descreva suas principais conquistas (mínimo 50 caracteres)"),
-  skills: z.array(z.string()).min(3, "Adicione pelo menos 3 habilidades"),
   careerGoals: z.string().min(50, "Descreva seus objetivos de carreira (mínimo 50 caracteres)"),
   preferredRoles: z.array(z.string()).min(1, "Adicione pelo menos 1 cargo de interesse"),
 });
@@ -40,9 +42,15 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
   const form = useForm<AssessmentData>({
     resolver: zodResolver(assessmentSchema),
     defaultValues: data || {
+      headline: "",
+      years_experience: 0,
       skills: [],
-      preferredRoles: [],
+      currentRole: "",
+      currentCompany: "",
       yearsInRole: 0,
+      keyAchievements: "",
+      careerGoals: "",
+      preferredRoles: [],
     },
   });
 
@@ -107,6 +115,94 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {/* Professional Profile */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Perfil Profissional</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <FormField
+                control={form.control}
+                name="headline"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Título Profissional *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Desenvolvedor Full Stack | Designer UI/UX | Gerente de Marketing" {...field} />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">Como você se apresentaria em uma frase? Seja específico e atrativo.</p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="years_experience"
+                render={({ field }) => (
+                  <FormItem className="max-w-xs">
+                    <FormLabel>Anos de Experiência Total</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="50"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Skills */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Principais Habilidades</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="ex: React, Python, Project Management..."
+                  value={newSkill}
+                  onChange={(e) => setNewSkill(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                />
+                <Button type="button" onClick={addSkill} size="sm">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {form.watch("skills").map((skill, index) => (
+                  <Badge key={index} variant="secondary" className="gap-1">
+                    {skill}
+                    <button
+                      type="button"
+                      onClick={() => removeSkill(index)}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+
+              <FormField
+                control={form.control}
+                name="skills"
+                render={() => (
+                  <FormItem>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+
           {/* Current Position */}
           <Card>
             <CardHeader>
@@ -184,51 +280,6 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Skills */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Habilidades Técnicas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="ex: React, Python, Project Management..."
-                  value={newSkill}
-                  onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                />
-                <Button type="button" onClick={addSkill} size="sm">
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {form.watch("skills").map((skill, index) => (
-                  <Badge key={index} variant="secondary" className="gap-1">
-                    {skill}
-                    <button
-                      type="button"
-                      onClick={() => removeSkill(index)}
-                      className="ml-1 hover:text-destructive"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-
-              <FormField
-                control={form.control}
-                name="skills"
-                render={() => (
-                  <FormItem>
                     <FormMessage />
                   </FormItem>
                 )}

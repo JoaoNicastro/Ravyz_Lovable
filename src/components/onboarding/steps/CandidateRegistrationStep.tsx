@@ -17,9 +17,6 @@ const candidateSchema = z.object({
   address_state: z.string().optional(),
   // Profile fields
   avatar_url: z.string().optional(),
-  headline: z.string().min(1, "Título profissional é obrigatório"),
-  years_experience: z.number().min(0, "Anos de experiência deve ser um número positivo"),
-  skills: z.array(z.string()).min(1, "Adicione pelo menos uma habilidade"),
 });
 
 type CandidateData = z.infer<typeof candidateSchema>;
@@ -56,11 +53,12 @@ const CandidateRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
       {/* Tips */}
       <Card className="bg-muted/30">
         <CardContent className="p-4">
-          <h4 className="font-medium text-foreground mb-2">💡 Dicas para um perfil atrativo:</h4>
+          <h4 className="font-medium text-foreground mb-2">💡 Dicas para dados completos:</h4>
           <ul className="text-sm text-muted-foreground space-y-1">
-            <li>• Use um título profissional claro que descreva seu papel atual ou desejado</li>
-            <li>• Preencha seu endereço completo para facilitar oportunidades próximas</li>
-            <li>• Adicione suas principais habilidades técnicas e comportamentais</li>
+            <li>• Preencha todos os dados pessoais para facilitar o contato</li>
+            <li>• Informações de endereço ajudam em vagas presenciais</li>
+            <li>• Use o upload de currículo para preencher automaticamente</li>
+            <li>• Mantenha seu telefone sempre atualizado</li>
           </ul>
         </CardContent>
       </Card>

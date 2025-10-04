@@ -28,9 +28,6 @@ const candidateProfileSchema = z.object({
   address_state: z.string().optional(),
   // Profile fields
   avatar_url: z.string().url("URL inválida").optional().or(z.literal("")),
-  headline: z.string().min(5, "Título deve ter pelo menos 5 caracteres").max(200, "Título muito longo"),
-  years_experience: z.number().min(0, "Experiência não pode ser negativa").max(50, "Experiência muito alta"),
-  skills: z.array(z.string()).min(1, "Adicione pelo menos uma habilidade"),
 });
 
 type CandidateProfileFormData = z.infer<typeof candidateProfileSchema>;
@@ -41,7 +38,6 @@ interface CandidateProfileFormProps {
 }
 
 export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfileFormProps) {
-  const [newSkill, setNewSkill] = useState("");
   const [isParsingResume, setIsParsingResume] = useState(false);
   
   const form = useForm<CandidateProfileFormData>({
@@ -57,30 +53,8 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
       address_city: initialData?.address_city || "",
       address_state: initialData?.address_state || "",
       avatar_url: initialData?.avatar_url || "",
-      headline: initialData?.headline || "",
-      years_experience: initialData?.years_experience || 0,
-      skills: initialData?.skills || [],
     }
   });
-
-  const skills = form.watch("skills");
-
-  const handleSkillAdd = () => {
-    if (newSkill.trim() && !skills.includes(newSkill.trim())) {
-      form.setValue("skills", [...skills, newSkill.trim()]);
-      setNewSkill("");
-    }
-  };
-
-  const handleSkillRemove = (skillToRemove: string) => {
-    form.setValue("skills", skills.filter(skill => skill !== skillToRemove));
-  };
-
-  const suggestedSkills = [
-    'JavaScript', 'Python', 'React', 'Node.js', 'TypeScript', 'SQL',
-    'Git', 'AWS', 'Docker', 'Figma', 'Photoshop', 'Marketing Digital',
-    'Vendas', 'Gestão de Projetos', 'Liderança', 'Comunicação'
-  ];
 
   const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -265,108 +239,6 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
           </div>
         </div>
 
-        {/* Professional Information */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Perfil Profissional</h3>
-          
-          {/* Headline */}
-          <ReusableFormField
-            control={form.control}
-            name="headline"
-            label="Título Profissional *"
-            description="Como você se apresentaria em uma frase? Seja específico e atrativo."
-          >
-            <Input placeholder="Ex: Desenvolvedor Full Stack | Designer UI/UX | Gerente de Marketing" />
-          </ReusableFormField>
-
-
-        {/* Years of Experience */}
-        <ReusableFormField
-          control={form.control}
-          name="years_experience"
-          label="Anos de Experiência"
-        >
-          {(field) => (
-            <Select value={field.value.toString()} onValueChange={(value) => field.onChange(parseInt(value))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione sua experiência" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">Iniciante (0-1 anos)</SelectItem>
-                <SelectItem value="2">Júnior (2-3 anos)</SelectItem>
-                <SelectItem value="4">Pleno (4-6 anos)</SelectItem>
-                <SelectItem value="7">Sênior (7-10 anos)</SelectItem>
-                <SelectItem value="11">Especialista (11+ anos)</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        </ReusableFormField>
-
-        {/* Skills */}
-        <div className="space-y-4">
-          <label className="text-sm font-medium">Principais Habilidades</label>
-          
-          {/* Add Skill Input */}
-          <div className="flex gap-2">
-            <Input
-              placeholder="Digite uma habilidade"
-              value={newSkill}
-              onChange={(e) => setNewSkill(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleSkillAdd())}
-            />
-            <Button type="button" onClick={handleSkillAdd} size="sm">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Current Skills */}
-          {skills.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {skills.map((skill, index) => (
-                <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                  {skill}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-auto p-0 hover:bg-transparent"
-                    onClick={() => handleSkillRemove(skill)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              ))}
-            </div>
-          )}
-
-          {/* Suggested Skills */}
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">Sugestões:</p>
-            <div className="flex flex-wrap gap-2">
-              {suggestedSkills
-                .filter(skill => !skills.includes(skill))
-                .slice(0, 8)
-                .map((skill) => (
-                  <Button
-                    key={skill}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => form.setValue("skills", [...skills, skill])}
-                  >
-                    {skill}
-                  </Button>
-                ))}
-            </div>
-          </div>
-          
-          {form.formState.errors.skills && (
-            <p className="text-sm font-medium text-destructive">
-              {form.formState.errors.skills.message}
-            </p>
-          )}
-        </div>
-        </div>
 
         {/* Navigation */}
         <div className="flex justify-end pt-6">
