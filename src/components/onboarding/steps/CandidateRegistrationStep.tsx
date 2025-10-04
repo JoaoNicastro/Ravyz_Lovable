@@ -5,9 +5,9 @@ import { CandidateProfileForm } from "@/components/forms/CandidateProfileForm";
 
 const candidateSchema = z.object({
   // Basic info fields
-  date_of_birth: z.string().optional(),
-  phone: z.string().optional(),
-  cpf: z.string().optional(),
+  date_of_birth: z.string().min(1, "Data de nascimento é obrigatória"),
+  phone: z.string().min(1, "Telefone é obrigatório"),
+  cpf: z.string().min(11, "CPF é obrigatório e deve ter 11 dígitos"),
   gender: z.string().optional(),
   // Address fields
   address_zipcode: z.string().optional(),

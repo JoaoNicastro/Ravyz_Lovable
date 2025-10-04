@@ -16,9 +16,9 @@ import { Label } from "@/components/ui/label";
 
 const candidateProfileSchema = z.object({
   // Basic info fields
-  date_of_birth: z.string().optional(),
-  phone: z.string().optional(),
-  cpf: z.string().optional(),
+  date_of_birth: z.string().min(1, "Data de nascimento é obrigatória"),
+  phone: z.string().min(1, "Telefone é obrigatório"),
+  cpf: z.string().min(11, "CPF é obrigatório e deve ter 11 dígitos"),
   gender: z.string().optional(),
   // Address fields
   address_zipcode: z.string().optional(),
@@ -180,7 +180,7 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
             <ReusableFormField
               control={form.control}
               name="date_of_birth"
-              label="Data de nascimento"
+              label="Data de nascimento *"
             >
               <Input type="date" />
             </ReusableFormField>
@@ -188,7 +188,7 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
             <ReusableFormField
               control={form.control}
               name="phone"
-              label="Telefone"
+              label="Telefone *"
             >
               <Input placeholder="(xx) xxxxx-xxxx" />
             </ReusableFormField>
@@ -196,7 +196,7 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
             <ReusableFormField
               control={form.control}
               name="cpf"
-              label="CPF"
+              label="CPF *"
             >
               <Input placeholder="000.000.000-00" maxLength={14} />
             </ReusableFormField>
