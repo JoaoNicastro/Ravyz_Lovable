@@ -7,6 +7,8 @@ const candidateSchema = z.object({
   // Basic info fields
   date_of_birth: z.string().optional(),
   phone: z.string().optional(),
+  cpf: z.string().optional(),
+  gender: z.string().optional(),
   // Address fields
   address_zipcode: z.string().optional(),
   address_street: z.string().optional(),
@@ -17,6 +19,19 @@ const candidateSchema = z.object({
   address_state: z.string().optional(),
   // Profile fields
   avatar_url: z.string().optional(),
+  // Languages
+  languages: z.array(z.object({
+    language: z.string(),
+    level: z.string(),
+  })).default([]),
+  // Education
+  education: z.array(z.object({
+    degree: z.string(),
+    field: z.string(),
+    institution: z.string(),
+    status: z.string(),
+    completionYear: z.number().optional(),
+  })).default([]),
 });
 
 type CandidateData = z.infer<typeof candidateSchema>;
@@ -58,7 +73,8 @@ const CandidateRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
             <li>• Preencha todos os dados pessoais para facilitar o contato</li>
             <li>• Informações de endereço ajudam em vagas presenciais</li>
             <li>• Use o upload de currículo para preencher automaticamente</li>
-            <li>• Mantenha seu telefone sempre atualizado</li>
+            <li>• Adicione idiomas e formação acadêmica para melhor compatibilidade</li>
+            <li>• CPF é necessário para formalização de contratação</li>
           </ul>
         </CardContent>
       </Card>

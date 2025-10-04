@@ -18,6 +18,8 @@ const candidateProfileSchema = z.object({
   // Basic info fields
   date_of_birth: z.string().optional(),
   phone: z.string().optional(),
+  cpf: z.string().optional(),
+  gender: z.string().optional(),
   // Address fields
   address_zipcode: z.string().optional(),
   address_street: z.string().optional(),
@@ -28,6 +30,19 @@ const candidateProfileSchema = z.object({
   address_state: z.string().optional(),
   // Profile fields
   avatar_url: z.string().url("URL inválida").optional().or(z.literal("")),
+  // Languages
+  languages: z.array(z.object({
+    language: z.string(),
+    level: z.string(),
+  })).default([]),
+  // Education
+  education: z.array(z.object({
+    degree: z.string(),
+    field: z.string(),
+    institution: z.string(),
+    status: z.string(),
+    completionYear: z.number().optional(),
+  })).default([]),
 });
 
 type CandidateProfileFormData = z.infer<typeof candidateProfileSchema>;
@@ -39,12 +54,22 @@ interface CandidateProfileFormProps {
 
 export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfileFormProps) {
   const [isParsingResume, setIsParsingResume] = useState(false);
+  const [newLanguage, setNewLanguage] = useState({ language: "", level: "" });
+  const [newEducation, setNewEducation] = useState({
+    degree: "",
+    field: "",
+    institution: "",
+    status: "",
+    completionYear: undefined as number | undefined,
+  });
   
   const form = useForm<CandidateProfileFormData>({
     resolver: zodResolver(candidateProfileSchema),
     defaultValues: {
       date_of_birth: initialData?.date_of_birth || "",
       phone: initialData?.phone || "",
+      cpf: initialData?.cpf || "",
+      gender: initialData?.gender || "",
       address_zipcode: initialData?.address_zipcode || "",
       address_street: initialData?.address_street || "",
       address_number: initialData?.address_number || "",
@@ -53,6 +78,8 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
       address_city: initialData?.address_city || "",
       address_state: initialData?.address_state || "",
       avatar_url: initialData?.avatar_url || "",
+      languages: initialData?.languages || [],
+      education: initialData?.education || [],
     }
   });
 
@@ -165,6 +192,34 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
             >
               <Input placeholder="(xx) xxxxx-xxxx" />
             </ReusableFormField>
+
+            <ReusableFormField
+              control={form.control}
+              name="cpf"
+              label="CPF"
+            >
+              <Input placeholder="000.000.000-00" maxLength={14} />
+            </ReusableFormField>
+
+            <ReusableFormField
+              control={form.control}
+              name="gender"
+              label="Gênero (opcional)"
+            >
+              {(field) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="masculino">Masculino</SelectItem>
+                    <SelectItem value="feminino">Feminino</SelectItem>
+                    <SelectItem value="nao-binario">Não-binário</SelectItem>
+                    <SelectItem value="prefiro-nao-dizer">Prefiro não informar</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </ReusableFormField>
           </div>
         </div>
 
@@ -239,6 +294,212 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
           </div>
         </div>
 
+
+        {/* Languages Section */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Idiomas</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <Label>Idioma</Label>
+              <Input
+                placeholder="Ex: Inglês, Espanhol..."
+                value={newLanguage.language}
+                onChange={(e) => setNewLanguage({ ...newLanguage, language: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>Nível</Label>
+              <div className="flex gap-2">
+                <Select
+                  value={newLanguage.level}
+                  onValueChange={(value) => setNewLanguage({ ...newLanguage, level: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Nível" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="basico">Básico</SelectItem>
+                    <SelectItem value="intermediario">Intermediário</SelectItem>
+                    <SelectItem value="avancado">Avançado</SelectItem>
+                    <SelectItem value="fluente">Fluente</SelectItem>
+                    <SelectItem value="nativo">Nativo</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    if (newLanguage.language && newLanguage.level) {
+                      form.setValue("languages", [...form.watch("languages"), newLanguage]);
+                      setNewLanguage({ language: "", level: "" });
+                    }
+                  }}
+                  size="sm"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {form.watch("languages").length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {form.watch("languages").map((lang, index) => (
+                <Badge key={index} variant="secondary" className="flex items-center gap-2">
+                  {lang.language} - {lang.level}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-0 hover:bg-transparent"
+                    onClick={() => {
+                      const languages = form.watch("languages");
+                      form.setValue("languages", languages.filter((_, i) => i !== index));
+                    }}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Education Section */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Formação Acadêmica</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label>Nível de Escolaridade</Label>
+              <Select
+                value={newEducation.degree}
+                onValueChange={(value) => setNewEducation({ ...newEducation, degree: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o nível" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ensino-medio">Ensino Médio</SelectItem>
+                  <SelectItem value="tecnico">Técnico</SelectItem>
+                  <SelectItem value="graduacao">Graduação</SelectItem>
+                  <SelectItem value="pos-graduacao">Pós-graduação</SelectItem>
+                  <SelectItem value="mestrado">Mestrado</SelectItem>
+                  <SelectItem value="doutorado">Doutorado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Curso/Área</Label>
+              <Input
+                placeholder="Ex: Ciência da Computação"
+                value={newEducation.field}
+                onChange={(e) => setNewEducation({ ...newEducation, field: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label>Instituição</Label>
+              <Input
+                placeholder="Nome da instituição"
+                value={newEducation.institution}
+                onChange={(e) => setNewEducation({ ...newEducation, institution: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label>Status</Label>
+              <Select
+                value={newEducation.status}
+                onValueChange={(value) => setNewEducation({ ...newEducation, status: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="concluido">Concluído</SelectItem>
+                  <SelectItem value="cursando">Cursando</SelectItem>
+                  <SelectItem value="trancado">Trancado</SelectItem>
+                  <SelectItem value="incompleto">Incompleto</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Ano de Conclusão (opcional)</Label>
+              <Input
+                type="number"
+                placeholder="2024"
+                min="1950"
+                max="2030"
+                value={newEducation.completionYear || ""}
+                onChange={(e) => setNewEducation({ 
+                  ...newEducation, 
+                  completionYear: e.target.value ? parseInt(e.target.value) : undefined 
+                })}
+              />
+            </div>
+
+            <div className="flex items-end">
+              <Button
+                type="button"
+                onClick={() => {
+                  if (newEducation.degree && newEducation.field && newEducation.institution && newEducation.status) {
+                    form.setValue("education", [...form.watch("education"), newEducation]);
+                    setNewEducation({
+                      degree: "",
+                      field: "",
+                      institution: "",
+                      status: "",
+                      completionYear: undefined,
+                    });
+                  }
+                }}
+                size="sm"
+                className="w-full"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Adicionar Formação
+              </Button>
+            </div>
+          </div>
+
+          {form.watch("education").length > 0 && (
+            <div className="space-y-2">
+              {form.watch("education").map((edu, index) => (
+                <Card key={index}>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-medium">{edu.degree}</h4>
+                        <p className="text-sm text-muted-foreground">{edu.field}</p>
+                        <p className="text-sm text-muted-foreground">{edu.institution}</p>
+                        <div className="flex gap-2 mt-1">
+                          <Badge variant="outline" className="text-xs">{edu.status}</Badge>
+                          {edu.completionYear && (
+                            <Badge variant="outline" className="text-xs">{edu.completionYear}</Badge>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const education = form.watch("education");
+                          form.setValue("education", education.filter((_, i) => i !== index));
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Navigation */}
         <div className="flex justify-end pt-6">

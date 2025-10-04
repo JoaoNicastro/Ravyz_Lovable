@@ -111,14 +111,18 @@ export type Database = {
           archetype: string | null
           avatar_url: string | null
           career_goals: string | null
+          cpf: string | null
           created_at: string | null
           current_position: string | null
           date_of_birth: string | null
+          education: Json | null
           email: string | null
           full_name: string | null
+          gender: string | null
           headline: string | null
           id: string
           key_achievements: string | null
+          languages: Json | null
           linkedin_data: Json | null
           location: string | null
           phone: string | null
@@ -137,14 +141,18 @@ export type Database = {
           archetype?: string | null
           avatar_url?: string | null
           career_goals?: string | null
+          cpf?: string | null
           created_at?: string | null
           current_position?: string | null
           date_of_birth?: string | null
+          education?: Json | null
           email?: string | null
           full_name?: string | null
+          gender?: string | null
           headline?: string | null
           id?: string
           key_achievements?: string | null
+          languages?: Json | null
           linkedin_data?: Json | null
           location?: string | null
           phone?: string | null
@@ -163,14 +171,18 @@ export type Database = {
           archetype?: string | null
           avatar_url?: string | null
           career_goals?: string | null
+          cpf?: string | null
           created_at?: string | null
           current_position?: string | null
           date_of_birth?: string | null
+          education?: Json | null
           email?: string | null
           full_name?: string | null
+          gender?: string | null
           headline?: string | null
           id?: string
           key_achievements?: string | null
+          languages?: Json | null
           linkedin_data?: Json | null
           location?: string | null
           phone?: string | null
@@ -696,7 +708,7 @@ export type Database = {
       }
       l2_normalize: {
         Args: { "": string } | { "": unknown } | { "": unknown }
-        Returns: unknown
+        Returns: string
       }
       sparsevec_out: {
         Args: { "": unknown }
