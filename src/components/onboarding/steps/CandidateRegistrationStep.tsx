@@ -5,11 +5,17 @@ import { CandidateProfileForm } from "@/components/forms/CandidateProfileForm";
 
 const candidateSchema = z.object({
   // Basic info fields
-  full_name: z.string().min(1, "Nome é obrigatório"),
   date_of_birth: z.string().optional(),
   email: z.string().email("Email inválido").optional(),
   phone: z.string().optional(),
-  location: z.string().optional(),
+  // Address fields
+  address_zipcode: z.string().optional(),
+  address_street: z.string().optional(),
+  address_number: z.string().optional(),
+  address_complement: z.string().optional(),
+  address_neighborhood: z.string().optional(),
+  address_city: z.string().optional(),
+  address_state: z.string().optional(),
   // Profile fields
   avatar_url: z.string().optional(),
   headline: z.string().min(1, "Título profissional é obrigatório"),
@@ -54,7 +60,7 @@ const CandidateRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
           <h4 className="font-medium text-foreground mb-2">💡 Dicas para um perfil atrativo:</h4>
           <ul className="text-sm text-muted-foreground space-y-1">
             <li>• Use um título profissional claro que descreva seu papel atual ou desejado</li>
-            <li>• Seja específico sobre sua localização (cidade, estado)</li>
+            <li>• Preencha seu endereço completo para facilitar oportunidades próximas</li>
             <li>• Adicione suas principais habilidades técnicas e comportamentais</li>
           </ul>
         </CardContent>

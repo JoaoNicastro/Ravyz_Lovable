@@ -16,11 +16,17 @@ import { Label } from "@/components/ui/label";
 
 const candidateProfileSchema = z.object({
   // Basic info fields
-  full_name: z.string().min(1, "Nome é obrigatório"),
   date_of_birth: z.string().optional(),
   email: z.string().email("Email inválido").optional(),
   phone: z.string().optional(),
-  location: z.string().optional(),
+  // Address fields
+  address_zipcode: z.string().optional(),
+  address_street: z.string().optional(),
+  address_number: z.string().optional(),
+  address_complement: z.string().optional(),
+  address_neighborhood: z.string().optional(),
+  address_city: z.string().optional(),
+  address_state: z.string().optional(),
   // Profile fields
   avatar_url: z.string().url("URL inválida").optional().or(z.literal("")),
   headline: z.string().min(5, "Título deve ter pelo menos 5 caracteres").max(200, "Título muito longo"),
@@ -42,11 +48,16 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
   const form = useForm<CandidateProfileFormData>({
     resolver: zodResolver(candidateProfileSchema),
     defaultValues: {
-      full_name: initialData?.full_name || "",
       date_of_birth: initialData?.date_of_birth || "",
       email: initialData?.email || "",
       phone: initialData?.phone || "",
-      location: initialData?.location || "",
+      address_zipcode: initialData?.address_zipcode || "",
+      address_street: initialData?.address_street || "",
+      address_number: initialData?.address_number || "",
+      address_complement: initialData?.address_complement || "",
+      address_neighborhood: initialData?.address_neighborhood || "",
+      address_city: initialData?.address_city || "",
+      address_state: initialData?.address_state || "",
       avatar_url: initialData?.avatar_url || "",
       headline: initialData?.headline || "",
       years_experience: initialData?.years_experience || 0,
@@ -96,9 +107,6 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
       console.log('Parsed resume data for form:', parsedData);
       
       // Fill form with parsed data
-      if (parsedData.full_name) {
-        form.setValue('full_name', parsedData.full_name);
-      }
       if (parsedData.email) {
         form.setValue('email', parsedData.email);
       }
@@ -107,9 +115,6 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
       }
       if (parsedData.date_of_birth) {
         form.setValue('date_of_birth', parsedData.date_of_birth);
-      }
-      if (parsedData.location) {
-        form.setValue('location', parsedData.location);
       }
 
       toast.success('Currículo analisado com sucesso! Dados preenchidos automaticamente.');
@@ -174,14 +179,6 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
         {/* Basic Information Fields */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Dados Pessoais</h3>
-          
-          <ReusableFormField
-            control={form.control}
-            name="full_name"
-            label="Nome completo *"
-          >
-            <Input placeholder="Seu nome completo" />
-          </ReusableFormField>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ReusableFormField
@@ -201,21 +198,82 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
             </ReusableFormField>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ReusableFormField
+            control={form.control}
+            name="phone"
+            label="Telefone"
+          >
+            <Input placeholder="(xx) xxxxx-xxxx" />
+          </ReusableFormField>
+        </div>
+
+        {/* Address Section */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Endereço</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <ReusableFormField
               control={form.control}
-              name="phone"
-              label="Telefone"
+              name="address_zipcode"
+              label="CEP"
             >
-              <Input placeholder="(xx) xxxxx-xxxx" />
+              <Input placeholder="00000-000" />
+            </ReusableFormField>
+
+            <div className="md:col-span-2">
+              <ReusableFormField
+                control={form.control}
+                name="address_street"
+                label="Rua"
+              >
+                <Input placeholder="Nome da rua" />
+              </ReusableFormField>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <ReusableFormField
+              control={form.control}
+              name="address_number"
+              label="Número"
+            >
+              <Input placeholder="123" />
+            </ReusableFormField>
+
+            <div className="md:col-span-2">
+              <ReusableFormField
+                control={form.control}
+                name="address_complement"
+                label="Complemento"
+              >
+                <Input placeholder="Apto, bloco, etc. (opcional)" />
+              </ReusableFormField>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <ReusableFormField
+              control={form.control}
+              name="address_neighborhood"
+              label="Bairro"
+            >
+              <Input placeholder="Nome do bairro" />
             </ReusableFormField>
 
             <ReusableFormField
               control={form.control}
-              name="location"
-              label="Localização"
+              name="address_city"
+              label="Cidade"
             >
-              <Input placeholder="Ex: São Paulo, SP | Rio de Janeiro, RJ | Remoto" />
+              <Input placeholder="Nome da cidade" />
+            </ReusableFormField>
+
+            <ReusableFormField
+              control={form.control}
+              name="address_state"
+              label="Estado"
+            >
+              <Input placeholder="UF" maxLength={2} />
             </ReusableFormField>
           </div>
         </div>
