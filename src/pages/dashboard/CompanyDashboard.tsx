@@ -477,31 +477,75 @@ export default function CompanyDashboard() {
                 />
               )}
             </div>
-            <div className="grid gap-4">
-              {jobMatches.map((job) => (
-                <Card key={job.job_id}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle>{job.job_title}</CardTitle>
-                        <CardDescription className="flex items-center gap-2 mt-2">
-                          <MapPin className="w-4 h-4" />
-                          {job.job_location}
-                        </CardDescription>
+            
+            {jobMatches.length === 0 ? (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <Briefcase className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-lg font-medium mb-2">Nenhuma vaga publicada ainda</p>
+                  <p className="text-muted-foreground mb-6">
+                    Crie sua primeira vaga e comece a encontrar candidatos compatíveis
+                  </p>
+                  {companyId && (
+                    <CreateJobDialog 
+                      companyId={companyId} 
+                      onJobCreated={loadAllData}
+                    />
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {jobMatches.map((job) => (
+                  <Card key={job.job_id}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <CardTitle>{job.job_title}</CardTitle>
+                          <CardDescription className="flex items-center gap-4 mt-2">
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-4 h-4" />
+                              {job.job_location}
+                            </span>
+                            {job.job_archetype && (
+                              <Badge variant="outline">{job.job_archetype}</Badge>
+                            )}
+                          </CardDescription>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-primary">
+                            {job.matches.length}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            candidatos compatíveis
+                          </div>
+                        </div>
                       </div>
-                      <Badge variant="outline">
-                        {job.matches.length} candidatos
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {job.job_archetype && (
-                      <Badge variant="secondary">{job.job_archetype}</Badge>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm text-muted-foreground">
+                          {job.matches.length > 0 ? (
+                            <>
+                              Top match: {Math.round(job.matches[0].match_percentage)}%
+                            </>
+                          ) : (
+                            'Aguardando candidatos'
+                          )}
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setActiveTab('matches')}
+                        >
+                          Ver Detalhes
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>

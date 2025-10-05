@@ -56,9 +56,6 @@ export async function getCompanyJobMatches(companyId: string): Promise<JobMatchS
           years_experience,
           skills,
           archetype
-        ),
-        applications:applications!applications_job_id_fkey (
-          status
         )
       `)
       .in('job_id', jobIds)
@@ -68,15 +65,21 @@ export async function getCompanyJobMatches(companyId: string): Promise<JobMatchS
     if (matchError) throw matchError;
     if (!matches) return [];
 
+    // Fetch applications separately to avoid foreign key issues
+    const { data: applications } = await supabase
+      .from('applications')
+      .select('job_id, candidate_id, status')
+      .in('job_id', jobIds);
+
     // Group matches by job
     const jobMatches: JobMatchSummary[] = jobs.map(job => {
       const jobMatchesData = matches
         .filter(m => m.job_id === job.id)
         .map(match => {
           const candidate = match.candidate_profiles as any;
-          const application = Array.isArray(match.applications) && match.applications.length > 0
-            ? match.applications[0] as any
-            : null;
+          const application = applications?.find(
+            app => app.job_id === job.id && app.candidate_id === candidate.id
+          );
 
           return {
             candidate_id: candidate.id,
