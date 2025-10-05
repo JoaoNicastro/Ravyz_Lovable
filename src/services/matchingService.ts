@@ -1,4 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
+import { maskCandidateData } from '@/lib/data-masking';
+import { hasContactConsent } from './consentService';
 
 export interface MatchData {
   job_id: string;
@@ -288,4 +290,83 @@ function calculateInterviewProbability(matchPercentage: number, jobStats: any): 
   }
 
   return Math.min(Math.round(probability), 99); // Cap at 99%
+}
+
+/**
+ * Get company's job matches with masked candidate data
+ * Candidate PII is masked unless explicit consent is given
+ * This protects candidates from identity theft and spam
+ */
+export async function getCompanyJobMatches(
+  companyId: string,
+  jobId?: string
+): Promise<any[]> {
+  try {
+    let query = supabase
+      .from('matching_results')
+      .select(`
+        *,
+        candidate_profiles (
+          id,
+          full_name,
+          email,
+          phone,
+          cpf,
+          date_of_birth,
+          current_position,
+          location,
+          headline,
+          avatar_url,
+          skills,
+          years_experience,
+          archetype
+        ),
+        jobs!inner (
+          id,
+          title,
+          company_id
+        )
+      `)
+      .eq('jobs.company_id', companyId)
+      .gte('match_percentage', 50)
+      .order('match_percentage', { ascending: false });
+
+    if (jobId) {
+      query = query.eq('job_id', jobId);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching company matches:', error);
+      return [];
+    }
+
+    if (!data) return [];
+
+    // Mask candidate data based on consent
+    const maskedMatches = await Promise.all(
+      data.map(async (match: any) => {
+        const candidate = match.candidate_profiles;
+        if (!candidate) return match;
+
+        // Check if candidate has given consent to this company
+        const consent = await hasContactConsent(
+          match.candidate_id,
+          companyId,
+          match.job_id
+        );
+
+        return {
+          ...match,
+          candidate_profiles: maskCandidateData(candidate, consent),
+        };
+      })
+    );
+
+    return maskedMatches;
+  } catch (error) {
+    console.error('Error fetching company job matches:', error);
+    return [];
+  }
 }
