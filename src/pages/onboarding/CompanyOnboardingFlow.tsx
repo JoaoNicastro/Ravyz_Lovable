@@ -7,6 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import CompanyRegistrationStep from "@/components/onboarding/steps/CompanyRegistrationStep";
 import CompanyJobDefinitionStep from "@/components/onboarding/steps/CompanyJobDefinitionStep";
+import CandidateBasicProfileStep from "@/components/onboarding/steps/CandidateBasicProfileStep";
+import EducationPreferencesStep from "@/components/onboarding/steps/EducationPreferencesStep";
+import IndustryPreferencesStep from "@/components/onboarding/steps/IndustryPreferencesStep";
 import CompanyAssessmentStep from "@/components/onboarding/steps/CompanyAssessmentStep";
 import ravyzLogo from "@/assets/ravyz-logo.png";
 
@@ -36,6 +39,24 @@ const STEPS: StepData[] = [
     title: "Primeira Vaga",
     description: "Crie sua primeira oportunidade",
     component: CompanyJobDefinitionStep,
+  },
+  {
+    id: "candidate-basic-profile",
+    title: "Perfil Básico",
+    description: "Defina o perfil demográfico ideal",
+    component: CandidateBasicProfileStep,
+  },
+  {
+    id: "education-preferences",
+    title: "Formação Acadêmica",
+    description: "Requisitos de educação",
+    component: EducationPreferencesStep,
+  },
+  {
+    id: "industry-preferences",
+    title: "Setores e Indústrias",
+    description: "Experiência em indústrias",
+    component: IndustryPreferencesStep,
   },
   {
     id: "company-assessment",
@@ -103,6 +124,9 @@ const CompanyOnboardingFlow: React.FC = () => {
 
       const companyData = allStepData["company-registration"];
       const jobData = allStepData["job-definition"];
+      const candidateBasicData = allStepData["candidate-basic-profile"];
+      const educationData = allStepData["education-preferences"];
+      const industryData = allStepData["industry-preferences"];
       const assessmentData = allStepData["company-assessment"];
 
       // First, create or update company profile
@@ -163,7 +187,7 @@ const CompanyOnboardingFlow: React.FC = () => {
         companyProfile = data;
       }
 
-      // Create the first job with assessment data
+      // Create the first job with all data
       const { data: newJob, error: jobError } = await supabase
         .from('jobs')
         .insert({
@@ -176,6 +200,11 @@ const CompanyOnboardingFlow: React.FC = () => {
           salary_min: jobData.salary_min,
           salary_max: jobData.salary_max,
           status: 'active',
+          gender_preference: candidateBasicData?.gender_preference || 'indiferente',
+          age_ranges: candidateBasicData?.age_ranges || [],
+          education_levels: educationData?.education_levels || [],
+          preferred_institutions: educationData?.preferred_institutions || [],
+          industries: industryData?.industries || [],
           pillar_scores: assessmentData?.pillar_scores || {},
           archetype: assessmentData?.archetype || 'Equilibrado',
         })

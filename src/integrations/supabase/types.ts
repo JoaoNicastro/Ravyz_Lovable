@@ -274,14 +274,19 @@ export type Database = {
       }
       jobs: {
         Row: {
+          age_ranges: Json | null
           archetype: string | null
           company_id: string | null
           created_at: string | null
           description: string | null
+          education_levels: Json | null
           expires_at: string | null
+          gender_preference: string | null
           id: string
+          industries: Json | null
           location: string | null
           pillar_scores: Json | null
+          preferred_institutions: Json | null
           priority_score: number | null
           requirements: Json | null
           salary_max: number | null
@@ -293,14 +298,19 @@ export type Database = {
           work_model: Database["public"]["Enums"]["work_model"] | null
         }
         Insert: {
+          age_ranges?: Json | null
           archetype?: string | null
           company_id?: string | null
           created_at?: string | null
           description?: string | null
+          education_levels?: Json | null
           expires_at?: string | null
+          gender_preference?: string | null
           id?: string
+          industries?: Json | null
           location?: string | null
           pillar_scores?: Json | null
+          preferred_institutions?: Json | null
           priority_score?: number | null
           requirements?: Json | null
           salary_max?: number | null
@@ -312,14 +322,19 @@ export type Database = {
           work_model?: Database["public"]["Enums"]["work_model"] | null
         }
         Update: {
+          age_ranges?: Json | null
           archetype?: string | null
           company_id?: string | null
           created_at?: string | null
           description?: string | null
+          education_levels?: Json | null
           expires_at?: string | null
+          gender_preference?: string | null
           id?: string
+          industries?: Json | null
           location?: string | null
           pillar_scores?: Json | null
+          preferred_institutions?: Json | null
           priority_score?: number | null
           requirements?: Json | null
           salary_max?: number | null
