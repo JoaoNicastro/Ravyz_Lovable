@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,7 +8,8 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Briefcase, MapPin, DollarSign } from "lucide-react";
+import { Briefcase, MapPin, DollarSign, Plus, X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const jobDefinitionSchema = z.object({
   title: z.string().min(1, "Título da vaga é obrigatório"),
@@ -55,6 +56,9 @@ const BENEFITS_OPTIONS = [
 ];
 
 const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading }) => {
+  const [customBenefit, setCustomBenefit] = useState("");
+  const [showCustomInput, setShowCustomInput] = useState(false);
+
   const form = useForm<JobDefinitionData>({
     resolver: zodResolver(jobDefinitionSchema),
     defaultValues: data || {
@@ -70,6 +74,20 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
 
   const handleSubmit = (formData: JobDefinitionData) => {
     onNext(formData);
+  };
+
+  const benefits = form.watch("benefits") || [];
+
+  const handleAddCustomBenefit = () => {
+    if (customBenefit.trim() && !benefits.includes(customBenefit.trim())) {
+      form.setValue("benefits", [...benefits, customBenefit.trim()]);
+      setCustomBenefit("");
+      setShowCustomInput(false);
+    }
+  };
+
+  const handleRemoveBenefit = (benefit: string) => {
+    form.setValue("benefits", benefits.filter(b => b !== benefit));
   };
 
   return (
@@ -229,41 +247,91 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
               render={() => (
                 <FormItem>
                   <FormLabel>Benefícios - opcional</FormLabel>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {BENEFITS_OPTIONS.map((benefit) => (
-                      <FormField
-                        key={benefit}
-                        control={form.control}
-                        name="benefits"
-                        render={({ field }) => {
-                          return (
-                            <FormItem
-                              key={benefit}
-                              className="flex flex-row items-start space-x-3 space-y-0"
-                            >
-                              <FormControl>
-                                <input
-                                  type="checkbox"
-                                  className="h-4 w-4 rounded border-input text-primary focus:ring-2 focus:ring-primary"
-                                  checked={field.value?.includes(benefit)}
-                                  onChange={(e) => {
-                                    const currentValue = field.value || [];
-                                    const updatedValue = e.target.checked
-                                      ? [...currentValue, benefit]
-                                      : currentValue.filter((val) => val !== benefit);
-                                    field.onChange(updatedValue);
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel className="text-sm font-normal cursor-pointer">
-                                {benefit}
-                              </FormLabel>
-                            </FormItem>
-                          );
+                  
+                  {/* Selected Benefits */}
+                  {benefits.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {benefits.map((benefit) => (
+                        <Badge key={benefit} variant="secondary" className="gap-1">
+                          {benefit}
+                          <X 
+                            className="h-3 w-3 cursor-pointer" 
+                            onClick={() => handleRemoveBenefit(benefit)}
+                          />
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Preset Options */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                    {BENEFITS_OPTIONS.map((benefit) => {
+                      const isSelected = benefits.includes(benefit);
+                      return (
+                        <div
+                          key={benefit}
+                          className={`text-sm cursor-pointer p-2 rounded border hover:bg-muted ${
+                            isSelected ? "bg-muted font-medium border-primary" : ""
+                          }`}
+                          onClick={() => {
+                            if (isSelected) {
+                              handleRemoveBenefit(benefit);
+                            } else {
+                              form.setValue("benefits", [...benefits, benefit]);
+                            }
+                          }}
+                        >
+                          {benefit}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Custom Benefit Input */}
+                  {!showCustomInput ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCustomInput(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar outro benefício
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Nome do benefício"
+                        value={customBenefit}
+                        onChange={(e) => setCustomBenefit(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddCustomBenefit();
+                          }
                         }}
                       />
-                    ))}
-                  </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleAddCustomBenefit}
+                      >
+                        Adicionar
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setShowCustomInput(false);
+                          setCustomBenefit("");
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  )}
+
                   <FormMessage />
                 </FormItem>
               )}
