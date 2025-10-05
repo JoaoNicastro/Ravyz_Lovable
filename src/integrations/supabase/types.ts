@@ -51,6 +51,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "applications_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
@@ -105,6 +112,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      candidate_contact_consent: {
+        Row: {
+          application_id: string | null
+          candidate_id: string
+          company_id: string
+          created_at: string | null
+          granted_at: string | null
+          granted_by_application: boolean | null
+          id: string
+          revoked_at: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          candidate_id: string
+          company_id: string
+          created_at?: string | null
+          granted_at?: string | null
+          granted_by_application?: boolean | null
+          id?: string
+          revoked_at?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          candidate_id?: string
+          company_id?: string
+          created_at?: string | null
+          granted_at?: string | null
+          granted_by_application?: boolean | null
+          id?: string
+          revoked_at?: string | null
+        }
+        Relationships: []
       }
       candidate_profiles: {
         Row: {
@@ -392,6 +432,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "match_feedback_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "match_feedback_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
@@ -453,6 +500,13 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matching_results_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles_safe"
             referencedColumns: ["id"]
           },
           {
@@ -541,6 +595,13 @@ export type Database = {
             referencedRelation: "candidate_profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "questionnaire_responses_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
       resume_analyses: {
@@ -598,6 +659,13 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "resume_analyses_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles_safe"
             referencedColumns: ["id"]
           },
         ]
@@ -664,7 +732,110 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      candidate_profiles_safe: {
+        Row: {
+          age_range: string | null
+          archetype: string | null
+          avatar_url: string | null
+          career_goals: string | null
+          cpf: string | null
+          created_at: string | null
+          current_position: string | null
+          date_of_birth: string | null
+          education: Json | null
+          email: string | null
+          full_name: string | null
+          gender: string | null
+          headline: string | null
+          id: string | null
+          key_achievements: string | null
+          languages: Json | null
+          linkedin_data: Json | null
+          location: string | null
+          phone: string | null
+          pillar_scores: Json | null
+          preferences: Json | null
+          preferred_roles: Json | null
+          resume_score: number | null
+          skills: Json | null
+          skills_vector: Json | null
+          updated_at: string | null
+          user_id: string | null
+          validation_score: number | null
+          years_experience: number | null
+        }
+        Insert: {
+          age_range?: never
+          archetype?: string | null
+          avatar_url?: string | null
+          career_goals?: string | null
+          cpf?: never
+          created_at?: string | null
+          current_position?: string | null
+          date_of_birth?: never
+          education?: Json | null
+          email?: never
+          full_name?: never
+          gender?: never
+          headline?: string | null
+          id?: string | null
+          key_achievements?: string | null
+          languages?: Json | null
+          linkedin_data?: Json | null
+          location?: string | null
+          phone?: never
+          pillar_scores?: Json | null
+          preferences?: Json | null
+          preferred_roles?: Json | null
+          resume_score?: number | null
+          skills?: Json | null
+          skills_vector?: Json | null
+          updated_at?: string | null
+          user_id?: string | null
+          validation_score?: number | null
+          years_experience?: number | null
+        }
+        Update: {
+          age_range?: never
+          archetype?: string | null
+          avatar_url?: string | null
+          career_goals?: string | null
+          cpf?: never
+          created_at?: string | null
+          current_position?: string | null
+          date_of_birth?: never
+          education?: Json | null
+          email?: never
+          full_name?: never
+          gender?: never
+          headline?: string | null
+          id?: string | null
+          key_achievements?: string | null
+          languages?: Json | null
+          linkedin_data?: Json | null
+          location?: string | null
+          phone?: never
+          pillar_scores?: Json | null
+          preferences?: Json | null
+          preferred_roles?: Json | null
+          resume_score?: number | null
+          skills?: Json | null
+          skills_vector?: Json | null
+          updated_at?: string | null
+          user_id?: string | null
+          validation_score?: number | null
+          years_experience?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       binary_quantize: {
@@ -707,6 +878,10 @@ export type Database = {
         Args: { "": unknown[] }
         Returns: number
       }
+      has_contact_consent: {
+        Args: { _candidate_id: string; _company_id: string }
+        Returns: boolean
+      }
       hnsw_bit_support: {
         Args: { "": unknown }
         Returns: unknown
@@ -741,6 +916,22 @@ export type Database = {
       }
       l2_normalize: {
         Args: { "": string } | { "": unknown } | { "": unknown }
+        Returns: string
+      }
+      mask_cpf: {
+        Args: { cpf: string }
+        Returns: string
+      }
+      mask_email: {
+        Args: { email: string }
+        Returns: string
+      }
+      mask_name: {
+        Args: { full_name: string }
+        Returns: string
+      }
+      mask_phone: {
+        Args: { phone: string }
         Returns: string
       }
       sparsevec_out: {
