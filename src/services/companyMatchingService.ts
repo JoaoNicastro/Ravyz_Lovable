@@ -1,5 +1,34 @@
 import { supabase } from '@/integrations/supabase/client';
 
+// PII Masking utilities
+const maskCPF = (cpf: string | null): string => {
+  if (!cpf) return '';
+  return cpf.length >= 4 ? `***.***.${cpf.slice(-3)}-**` : '***';
+};
+
+const maskEmail = (email: string | null): string => {
+  if (!email) return '';
+  const atIndex = email.indexOf('@');
+  if (atIndex > 1) {
+    return `${email.slice(0, 2)}***@${email.split('@')[1]}`;
+  }
+  return '***';
+};
+
+const maskPhone = (phone: string | null): string => {
+  if (!phone) return '';
+  return phone.length >= 4 ? `(**) ****-${phone.slice(-4)}` : '****';
+};
+
+const maskName = (fullName: string | null): string => {
+  if (!fullName) return 'Candidato';
+  const parts = fullName.split(' ');
+  if (parts.length >= 2) {
+    return `${parts[0]} ${parts[1].charAt(0)}.`;
+  }
+  return parts[0] || 'Candidato';
+};
+
 export interface CompanyMatchData {
   candidate_id: string;
   candidate_name: string;
@@ -55,7 +84,8 @@ export async function getCompanyJobMatches(companyId: string): Promise<JobMatchS
           phone,
           years_experience,
           skills,
-          archetype
+          archetype,
+          cpf
         )
       `)
       .in('job_id', jobIds)
@@ -64,6 +94,15 @@ export async function getCompanyJobMatches(companyId: string): Promise<JobMatchS
 
     if (matchError) throw matchError;
     if (!matches) return [];
+
+    // Check consent for all unique candidates
+    const candidateIds = [...new Set(matches.map(m => m.candidate_id))];
+    const { data: consents } = await supabase
+      .from('candidate_contact_consent')
+      .select('candidate_id, company_id')
+      .eq('company_id', companyId)
+      .in('candidate_id', candidateIds)
+      .is('revoked_at', null);
 
     // Fetch applications separately to avoid foreign key issues
     const { data: applications } = await supabase
@@ -81,13 +120,19 @@ export async function getCompanyJobMatches(companyId: string): Promise<JobMatchS
             app => app.job_id === job.id && app.candidate_id === candidate.id
           );
 
+          // Check if company has consent to view this candidate's PII
+          const hasConsent = consents?.some(
+            c => c.candidate_id === candidate.id && c.company_id === companyId
+          );
+
           return {
             candidate_id: candidate.id,
-            candidate_name: candidate.full_name || 'Candidato',
+            // Apply masking based on consent
+            candidate_name: hasConsent ? (candidate.full_name || 'Candidato') : maskName(candidate.full_name),
             candidate_headline: candidate.headline || '',
             candidate_location: candidate.location || '',
-            candidate_email: candidate.email || '',
-            candidate_phone: candidate.phone || '',
+            candidate_email: hasConsent ? (candidate.email || '') : maskEmail(candidate.email),
+            candidate_phone: hasConsent ? (candidate.phone || '') : maskPhone(candidate.phone),
             years_experience: candidate.years_experience || 0,
             skills: Array.isArray(candidate.skills) ? candidate.skills : [],
             archetype: candidate.archetype || '',
