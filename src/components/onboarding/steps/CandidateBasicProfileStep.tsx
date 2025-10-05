@@ -164,8 +164,8 @@ const CandidateBasicProfileStep: React.FC<StepProps> = ({ onNext, onBack, isLoad
             )}
           />
 
-          <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? "Salvando..." : "Próximo"}
+          <Button type="submit" disabled={isLoading}>
+            Continuar
           </Button>
         </Card>
       </form>

@@ -126,8 +126,8 @@ const IndustryPreferencesStep: React.FC<StepProps> = ({ onNext, onBack, isLoadin
             )}
           />
 
-          <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? "Salvando..." : "Próximo"}
+          <Button type="submit" disabled={isLoading}>
+            Continuar
           </Button>
         </Card>
       </form>

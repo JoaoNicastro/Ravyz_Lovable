@@ -272,8 +272,8 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
 
           {/* Submit Button */}
           <div className="flex justify-end pt-4">
-            <Button type="submit" size="lg" disabled={isLoading}>
-              {isLoading ? "Finalizando..." : "Finalizar Configuração"}
+            <Button type="submit" disabled={isLoading}>
+              Continuar
             </Button>
           </div>
         </form>

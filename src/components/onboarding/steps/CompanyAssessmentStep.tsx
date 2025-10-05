@@ -220,7 +220,7 @@ const CompanyAssessmentStep: React.FC<CompanyAssessmentStepProps> = ({
                 Voltar
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Processando..." : "Finalizar Assessment"}
+                Continuar
               </Button>
             </div>
           </form>
