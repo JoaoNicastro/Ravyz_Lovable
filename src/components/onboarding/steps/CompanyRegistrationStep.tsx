@@ -14,7 +14,9 @@ const companyRegistrationSchema = z.object({
   company_name: z.string().min(2, "Nome da empresa deve ter pelo menos 2 caracteres"),
   industry: z.string().min(1, "Setor é obrigatório"),
   size_category: z.string().min(1, "Tamanho da empresa é obrigatório"),
+  location: z.string().min(1, "Localização é obrigatória"),
   description: z.string().optional(),
+  company_culture: z.string().optional(),
 });
 
 type CompanyRegistrationData = z.infer<typeof companyRegistrationSchema>;
@@ -33,7 +35,9 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
       company_name: "",
       industry: "",
       size_category: "",
+      location: "",
       description: "",
+      company_culture: "",
     },
   });
 
@@ -75,6 +79,27 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
             )}
           />
 
+          {/* Location */}
+          <FormField
+            control={form.control}
+            name="location"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center space-x-2">
+                  <MapPin className="h-4 w-4" />
+                  <span>Localização *</span>
+                </FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Ex: São Paulo, SP" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           {/* Description */}
           <FormField
             control={form.control}
@@ -88,6 +113,28 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
                 <FormControl>
                   <Textarea 
                     placeholder="Conte um pouco sobre sua empresa, seus valores e o que faz... (opcional)"
+                    className="min-h-[100px]"
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Company Culture */}
+          <FormField
+            control={form.control}
+            name="company_culture"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center space-x-2">
+                  <Info className="h-4 w-4" />
+                  <span>Cultura da Empresa</span>
+                </FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Descreva a cultura, valores, benefícios e ambiente de trabalho... (opcional)"
                     className="min-h-[100px]"
                     {...field} 
                   />
