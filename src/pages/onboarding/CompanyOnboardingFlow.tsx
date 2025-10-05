@@ -124,6 +124,12 @@ const CompanyOnboardingFlow: React.FC = () => {
             industry: companyData.industry,
             size_category: companyData.size_category,
             location: companyData.location,
+            company_culture: companyData.company_culture ? { description: companyData.company_culture } : undefined,
+            website: companyData.website || null,
+            cnpj: companyData.cnpj || null,
+            founded_year: companyData.founded_year ? Number(companyData.founded_year) : null,
+            employee_count: companyData.employee_count ? Number(companyData.employee_count) : null,
+            social_links: companyData.linkedin_url ? { linkedin: companyData.linkedin_url } : undefined,
             updated_at: new Date().toISOString(),
           })
           .eq('user_id', user.user.id)
@@ -143,6 +149,12 @@ const CompanyOnboardingFlow: React.FC = () => {
             industry: companyData.industry,
             size_category: companyData.size_category,
             location: companyData.location,
+            company_culture: companyData.company_culture ? { description: companyData.company_culture } : undefined,
+            website: companyData.website || null,
+            cnpj: companyData.cnpj || null,
+            founded_year: companyData.founded_year ? Number(companyData.founded_year) : null,
+            employee_count: companyData.employee_count ? Number(companyData.employee_count) : null,
+            social_links: companyData.linkedin_url ? { linkedin: companyData.linkedin_url } : undefined,
           })
           .select()
           .single();

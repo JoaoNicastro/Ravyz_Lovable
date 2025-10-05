@@ -8,7 +8,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Users, MapPin, Info } from "lucide-react";
+import { Building2, Users, MapPin, Info, Globe, Calendar, Hash, Linkedin } from "lucide-react";
 
 const companyRegistrationSchema = z.object({
   company_name: z.string().min(2, "Nome da empresa deve ter pelo menos 2 caracteres"),
@@ -17,6 +17,11 @@ const companyRegistrationSchema = z.object({
   location: z.string().min(1, "Localização é obrigatória"),
   description: z.string().optional(),
   company_culture: z.string().optional(),
+  website: z.string().url("URL inválida").optional().or(z.literal("")),
+  cnpj: z.string().regex(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, "CNPJ inválido. Use o formato 00.000.000/0000-00").optional().or(z.literal("")),
+  founded_year: z.coerce.number().min(1800, "Ano inválido").max(new Date().getFullYear(), "Ano não pode ser no futuro").optional().or(z.literal("")),
+  employee_count: z.coerce.number().min(1, "Número de funcionários deve ser maior que 0").optional().or(z.literal("")),
+  linkedin_url: z.string().url("URL inválida").optional().or(z.literal("")),
 });
 
 type CompanyRegistrationData = z.infer<typeof companyRegistrationSchema>;
@@ -38,6 +43,11 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
       location: "",
       description: "",
       company_culture: "",
+      website: "",
+      cnpj: "",
+      founded_year: "",
+      employee_count: "",
+      linkedin_url: "",
     },
   });
 
@@ -193,6 +203,112 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
                     <SelectItem value="200+">200+ funcionários</SelectItem>
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Employee Count */}
+          <FormField
+            control={form.control}
+            name="employee_count"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center space-x-2">
+                  <Hash className="h-4 w-4" />
+                  <span>Número Exato de Funcionários</span>
+                </FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number"
+                    placeholder="Ex: 125" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Website */}
+          <FormField
+            control={form.control}
+            name="website"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center space-x-2">
+                  <Globe className="h-4 w-4" />
+                  <span>Website da Empresa</span>
+                </FormLabel>
+                <FormControl>
+                  <Input 
+                    type="url"
+                    placeholder="https://www.exemplo.com.br" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* CNPJ */}
+          <FormField
+            control={form.control}
+            name="cnpj"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>CNPJ</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="00.000.000/0000-00" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Founded Year */}
+          <FormField
+            control={form.control}
+            name="founded_year"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4" />
+                  <span>Ano de Fundação</span>
+                </FormLabel>
+                <FormControl>
+                  <Input 
+                    type="number"
+                    placeholder="Ex: 2010" 
+                    {...field} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* LinkedIn URL */}
+          <FormField
+            control={form.control}
+            name="linkedin_url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center space-x-2">
+                  <Linkedin className="h-4 w-4" />
+                  <span>LinkedIn da Empresa</span>
+                </FormLabel>
+                <FormControl>
+                  <Input 
+                    type="url"
+                    placeholder="https://www.linkedin.com/company/..." 
+                    {...field} 
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

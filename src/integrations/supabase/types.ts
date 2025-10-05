@@ -209,43 +209,58 @@ export type Database = {
       }
       company_profiles: {
         Row: {
+          cnpj: string | null
           company_culture: Json | null
           company_name: string
           created_at: string | null
           description: string | null
+          employee_count: number | null
+          founded_year: number | null
           id: string
           industry: string | null
           location: string | null
           logo_url: string | null
           size_category: string | null
+          social_links: Json | null
           updated_at: string | null
           user_id: string
+          website: string | null
         }
         Insert: {
+          cnpj?: string | null
           company_culture?: Json | null
           company_name: string
           created_at?: string | null
           description?: string | null
+          employee_count?: number | null
+          founded_year?: number | null
           id?: string
           industry?: string | null
           location?: string | null
           logo_url?: string | null
           size_category?: string | null
+          social_links?: Json | null
           updated_at?: string | null
           user_id: string
+          website?: string | null
         }
         Update: {
+          cnpj?: string | null
           company_culture?: Json | null
           company_name?: string
           created_at?: string | null
           description?: string | null
+          employee_count?: number | null
+          founded_year?: number | null
           id?: string
           industry?: string | null
           location?: string | null
           logo_url?: string | null
           size_category?: string | null
+          social_links?: Json | null
           updated_at?: string | null
           user_id?: string
+          website?: string | null
         }
         Relationships: [
           {
