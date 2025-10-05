@@ -1,33 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
-// PII Masking utilities
-const maskCPF = (cpf: string | null): string => {
-  if (!cpf) return '';
-  return cpf.length >= 4 ? `***.***.${cpf.slice(-3)}-**` : '***';
-};
-
-const maskEmail = (email: string | null): string => {
-  if (!email) return '';
-  const atIndex = email.indexOf('@');
-  if (atIndex > 1) {
-    return `${email.slice(0, 2)}***@${email.split('@')[1]}`;
-  }
-  return '***';
-};
-
-const maskPhone = (phone: string | null): string => {
-  if (!phone) return '';
-  return phone.length >= 4 ? `(**) ****-${phone.slice(-4)}` : '****';
-};
-
-const maskName = (fullName: string | null): string => {
-  if (!fullName) return 'Candidato';
-  const parts = fullName.split(' ');
-  if (parts.length >= 2) {
-    return `${parts[0]} ${parts[1].charAt(0)}.`;
-  }
-  return parts[0] || 'Candidato';
-};
+// Note: PII masking is now handled by the candidate_profiles_safe database view
+// which automatically masks CPF, email, phone, DOB, and gender based on consent
 
 export interface CompanyMatchData {
   candidate_id: string;
@@ -70,12 +44,13 @@ export async function getCompanyJobMatches(companyId: string): Promise<JobMatchS
     if (!jobs || jobs.length === 0) return [];
 
     // Fetch matching results for all jobs
+    // Use candidate_profiles_safe view for automatic LGPD-compliant PII masking
     const jobIds = jobs.map(j => j.id);
     const { data: matches, error: matchError } = await supabase
       .from('matching_results')
       .select(`
         *,
-        candidate_profiles:candidate_id (
+        candidate_profiles_safe:candidate_id (
           id,
           full_name,
           headline,
@@ -84,8 +59,7 @@ export async function getCompanyJobMatches(companyId: string): Promise<JobMatchS
           phone,
           years_experience,
           skills,
-          archetype,
-          cpf
+          archetype
         )
       `)
       .in('job_id', jobIds)
@@ -94,15 +68,6 @@ export async function getCompanyJobMatches(companyId: string): Promise<JobMatchS
 
     if (matchError) throw matchError;
     if (!matches) return [];
-
-    // Check consent for all unique candidates
-    const candidateIds = [...new Set(matches.map(m => m.candidate_id))];
-    const { data: consents } = await supabase
-      .from('candidate_contact_consent')
-      .select('candidate_id, company_id')
-      .eq('company_id', companyId)
-      .in('candidate_id', candidateIds)
-      .is('revoked_at', null);
 
     // Fetch applications separately to avoid foreign key issues
     const { data: applications } = await supabase
@@ -115,24 +80,19 @@ export async function getCompanyJobMatches(companyId: string): Promise<JobMatchS
       const jobMatchesData = matches
         .filter(m => m.job_id === job.id)
         .map(match => {
-          const candidate = match.candidate_profiles as any;
+          // PII is automatically masked by candidate_profiles_safe view based on consent
+          const candidate = match.candidate_profiles_safe as any;
           const application = applications?.find(
             app => app.job_id === job.id && app.candidate_id === candidate.id
           );
 
-          // Check if company has consent to view this candidate's PII
-          const hasConsent = consents?.some(
-            c => c.candidate_id === candidate.id && c.company_id === companyId
-          );
-
           return {
             candidate_id: candidate.id,
-            // Apply masking based on consent
-            candidate_name: hasConsent ? (candidate.full_name || 'Candidato') : maskName(candidate.full_name),
+            candidate_name: candidate.full_name || 'Candidato',
             candidate_headline: candidate.headline || '',
             candidate_location: candidate.location || '',
-            candidate_email: hasConsent ? (candidate.email || '') : maskEmail(candidate.email),
-            candidate_phone: hasConsent ? (candidate.phone || '') : maskPhone(candidate.phone),
+            candidate_email: candidate.email || '',
+            candidate_phone: candidate.phone || '',
             years_experience: candidate.years_experience || 0,
             skills: Array.isArray(candidate.skills) ? candidate.skills : [],
             archetype: candidate.archetype || '',
