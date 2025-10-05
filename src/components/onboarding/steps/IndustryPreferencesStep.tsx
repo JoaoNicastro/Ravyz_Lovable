@@ -126,9 +126,11 @@ const IndustryPreferencesStep: React.FC<StepProps> = ({ onNext, onBack, isLoadin
             )}
           />
 
-          <Button type="submit" disabled={isLoading}>
-            Continuar
-          </Button>
+          <div className="flex justify-end pt-4">
+            <Button type="submit" disabled={isLoading}>
+              Continuar
+            </Button>
+          </div>
         </Card>
       </form>
     </Form>
