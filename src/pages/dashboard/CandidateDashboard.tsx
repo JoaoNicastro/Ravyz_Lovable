@@ -11,11 +11,9 @@ import { UserDropdown } from '@/components/UserDropdown';
 import { SkillsHighlightCard } from '@/components/SkillsHighlightCard';
 import { MarketPositionCard } from '@/components/MarketPositionCard';
 import { DreamJobCard } from '@/components/DreamJobCard';
-import { ThumbsUp, ThumbsDown, Building, MapPin, DollarSign, LayoutDashboard, FileText, Sparkles, Briefcase, Send, Clock, Heart, CheckCircle2, X } from 'lucide-react';
+import { Building, MapPin, DollarSign, LayoutDashboard, FileText, Sparkles, Briefcase, Send, Clock, Heart } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import ravyzLogo from '@/assets/ravyz-logo.png';
-import { MatchingEngine, CandidateRavyzData, JobRavyzData } from '@/lib/matching-engine';
-import { mockCandidates, mockJobs, MockCandidate, MockJob } from '@/lib/mock-loader';
 import { getCandidateMatches, MatchData } from '@/services/matchingService';
 import { applyToJob, getCandidateApplications, ApplicationData } from '@/services/applicationsService';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,177 +21,74 @@ import { supabase } from '@/integrations/supabase/client';
 // Use ApplicationData from the service
 type Application = ApplicationData;
 
-interface MatchResult {
-  candidate_id: string;
-  job_id: string;
-  compatibility_score: number;
-  pillar_breakdown: Record<string, number>;
-  candidate_archetype: string;
-  job_archetype: string;
-  base_similarity: number;
-  archetype_boost: number;
-  job: MockJob;
-}
-
 export default function CandidateDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [matches, setMatches] = useState<MatchResult[]>([]);
-  const [detailedMatches, setDetailedMatches] = useState<MatchData[]>([]);
-  const [candidateProfile, setCandidateProfile] = useState<MockCandidate | null>(null);
+  const [matches, setMatches] = useState<MatchData[]>([]);
+  const [candidateProfile, setCandidateProfile] = useState<any>(null);
   const [candidateProfileId, setCandidateProfileId] = useState<string | null>(null);
-  const [supabaseProfile, setSupabaseProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('matches');
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedJobDetails, setSelectedJobDetails] = useState<any>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [stats, setStats] = useState({
+    totalMatches: 0,
+    totalApplications: 0,
+    profileViews: 0,
+  });
 
   useEffect(() => {
-    // Load candidate profile ID from Supabase
-    loadCandidateProfileId();
+    if (user) {
+      loadAllData();
+    }
   }, [user]);
 
-  useEffect(() => {
-    // Load applications from Supabase when we have candidate profile ID
-    if (candidateProfileId) {
-      loadApplications();
-    }
-  }, [candidateProfileId]);
-
-  useEffect(() => {
-    loadMockData();
-  }, []);
-
-  useEffect(() => {
-    // Load detailed matches from Supabase if we have a candidate profile ID
-    if (candidateProfileId) {
-      loadDetailedMatches();
-    }
-  }, [candidateProfileId]);
-
-  const loadCandidateProfileId = async () => {
+  const loadAllData = async () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+
+      // Load candidate profile
+      const { data: profile, error: profileError } = await supabase
         .from('candidate_profiles')
-        .select('id, preferences')
+        .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (error) throw error;
-      if (data) {
-        setCandidateProfileId(data.id);
-        setSupabaseProfile(data);
+      if (profileError) throw profileError;
+      
+      if (profile) {
+        setCandidateProfile(profile);
+        setCandidateProfileId(profile.id);
+
+        // Load matches
+        const matchesData = await getCandidateMatches(profile.id);
+        setMatches(matchesData);
+
+        // Load applications
+        const apps = await getCandidateApplications();
+        setApplications(apps);
+
+        // Calculate stats
+        setStats({
+          totalMatches: matchesData.length,
+          totalApplications: apps.length,
+          profileViews: 0, // TODO: Implement profile views tracking
+        });
+
+        console.log('✅ Loaded candidate data:', {
+          profile: profile.full_name,
+          matches: matchesData.length,
+          applications: apps.length,
+        });
       }
     } catch (error) {
-      console.error('Error loading candidate profile ID:', error);
-    }
-  };
-
-  const loadApplications = async () => {
-    if (!candidateProfileId) return;
-
-    try {
-      const apps = await getCandidateApplications();
-      setApplications(apps);
-    } catch (error) {
-      console.error('Error loading applications:', error);
+      console.error('Error loading candidate data:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível carregar candidaturas',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  const loadDetailedMatches = async () => {
-    if (!candidateProfileId) return;
-
-    try {
-      const matchesData = await getCandidateMatches(candidateProfileId);
-      setDetailedMatches(matchesData);
-      console.log('✅ Loaded detailed matches from Supabase:', matchesData.length);
-    } catch (error) {
-      console.error('Error loading detailed matches:', error);
-    }
-  };
-
-  const loadMockData = async () => {
-    try {
-      setLoading(true);
-      
-      // Use first candidate as logged-in user
-      const candidate = mockCandidates[0];
-      setCandidateProfile(candidate);
-
-      console.log('🎯 Loading mock candidate:', candidate.full_name);
-      
-      // Prepare candidate data for matching
-      const candidateData: CandidateRavyzData = {
-        id: candidate.id,
-        pillar_scores: candidate.pillar_scores,
-        archetype: candidate.archetype,
-        skills: candidate.skills,
-        yearsExperience: candidate.years_experience,
-      };
-
-      // Prepare jobs data for matching
-      const jobsData: JobRavyzData[] = mockJobs.map(job => ({
-        id: job.id,
-        pillar_scores: job.pillar_scores,
-        archetype: job.archetype,
-        hardSkills: job.requirements,
-      }));
-
-      console.log(`🎯 Calculating matches for ${mockJobs.length} jobs...`);
-
-      // Calculate matches
-      const matchingEngine = new MatchingEngine();
-      const allMatches = matchingEngine.calculateAllMatches([candidateData], jobsData);
-
-      console.log(`✅ Generated ${allMatches.length} matches`);
-      
-      // Transform and sort matches
-      const matchesWithJobData = allMatches
-        .map(match => {
-          const job = mockJobs.find(j => j.id === match.job_id);
-          if (!job) return null;
-          
-          return {
-            ...match,
-            job,
-          };
-        })
-        .filter((m): m is MatchResult => m !== null)
-        .sort((a, b) => b.compatibility_score - a.compatibility_score)
-        .slice(0, 10); // Top 10 matches
-
-      setMatches(matchesWithJobData);
-
-      console.log('\n📊 DEBUG: Raw Match Data');
-      console.log('Candidate pillars:', candidate.pillar_scores);
-      if (matchesWithJobData[0]) {
-        console.log('First job pillars:', matchesWithJobData[0].job.pillar_scores);
-        console.log('First match raw score:', matchesWithJobData[0].compatibility_score);
-        console.log('First match pillar_breakdown:', matchesWithJobData[0].pillar_breakdown);
-      }
-
-      // Log top 5 matches
-      console.log('🏆 Top 5 Matches:');
-      matchesWithJobData.slice(0, 5).forEach((match, i) => {
-        console.log(`${i + 1}. ${match.job.title}`);
-        console.log(`   Raw Score: ${match.compatibility_score}%`);
-        console.log(`   Base Similarity: ${match.base_similarity}%, Archetype Boost: ${match.archetype_boost}%`);
-        console.log(`   Candidate: ${match.candidate_archetype} vs Job: ${match.job_archetype}`);
-      });
-
-    } catch (error) {
-      console.error('Error loading mock data:', error);
-      toast({
-        title: 'Erro',
-        description: 'Falha ao carregar dados mock',
+        description: 'Falha ao carregar dados do candidato',
         variant: 'destructive',
       });
     } finally {
@@ -201,14 +96,14 @@ export default function CandidateDashboard() {
     }
   };
 
-  const handleApply = async (jobId: string, jobTitle: string, location: string) => {
+  const handleApply = async (jobId: string) => {
     console.log('🚀 Starting application process for job:', jobId);
 
     const result = await applyToJob(jobId);
 
     if (result.success) {
-      // Reload applications to show the new one
-      await loadApplications();
+      // Reload data to show the new application
+      await loadAllData();
 
       toast({
         title: 'Candidatura enviada!',
@@ -226,14 +121,6 @@ export default function CandidateDashboard() {
         variant: 'destructive',
       });
       console.error('❌ Application failed:', result.error);
-    }
-  };
-
-  // Wrapper for MatchCard component
-  const handleApplyFromMatch = (jobId: string) => {
-    const match = detailedMatches.find(m => m.job_id === jobId);
-    if (match) {
-      handleApply(jobId, match.job_title, match.location);
     }
   };
 
@@ -318,10 +205,6 @@ export default function CandidateDashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img src={ravyzLogo} alt="Ravyz" className="h-8" />
-              <Badge variant="secondary" className="gap-1">
-                <Sparkles className="w-3 h-3" />
-                Mock Data Mode
-              </Badge>
             </div>
             
             <div className="flex items-center gap-4">
@@ -339,27 +222,29 @@ export default function CandidateDashboard() {
           <CardHeader>
             <div className="flex items-start justify-between">
               <div>
-                <CardTitle className="text-3xl">{candidateProfile.full_name}</CardTitle>
-                <CardDescription className="text-lg mt-2">{candidateProfile.headline}</CardDescription>
+                <CardTitle className="text-3xl">{candidateProfile?.full_name || 'Candidato'}</CardTitle>
+                <CardDescription className="text-lg mt-2">{candidateProfile?.headline || 'Profissional'}</CardDescription>
                 <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <MapPin className="w-4 h-4" />
-                    {candidateProfile.location}
+                    {candidateProfile?.location || 'Localização'}
                   </div>
                   <div className="flex items-center gap-1">
                     <Briefcase className="w-4 h-4" />
-                    {candidateProfile.years_experience} anos de experiência
+                    {candidateProfile?.years_experience || 0} anos de experiência
                   </div>
                 </div>
               </div>
-              <Badge variant="outline" className="text-base px-4 py-2">
-                {candidateProfile.archetype}
-              </Badge>
+              {candidateProfile?.archetype && (
+                <Badge variant="outline" className="text-base px-4 py-2">
+                  {candidateProfile.archetype}
+                </Badge>
+              )}
             </div>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
-              {candidateProfile.skills.map((skill, index) => (
+              {(Array.isArray(candidateProfile?.skills) ? candidateProfile.skills : []).map((skill, index) => (
                 <Badge key={index} variant="secondary">
                   {skill}
                 </Badge>
@@ -381,7 +266,7 @@ export default function CandidateDashboard() {
             </TabsTrigger>
             <TabsTrigger value="applications">
               <Send className="w-4 h-4 mr-2" />
-              Candidaturas ({applications.length})
+              Candidaturas ({stats.totalApplications})
             </TabsTrigger>
           </TabsList>
 
@@ -395,8 +280,8 @@ export default function CandidateDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{detailedMatches.length || matches.length}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Vagas compatíveis</p>
+                  <div className="text-3xl font-bold">{stats.totalMatches}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Vagas compatíveis ≥75%</p>
                 </CardContent>
               </Card>
 
@@ -407,7 +292,7 @@ export default function CandidateDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{applications.length}</div>
+                  <div className="text-3xl font-bold">{stats.totalApplications}</div>
                   <p className="text-xs text-muted-foreground mt-1">Enviadas</p>
                 </CardContent>
               </Card>
@@ -415,12 +300,12 @@ export default function CandidateDashboard() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Perfil
+                    Visualizações
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{candidateProfile?.archetype}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Arquétipo</p>
+                  <div className="text-3xl font-bold">{stats.profileViews}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Empresas visualizaram</p>
                 </CardContent>
               </Card>
 
@@ -429,13 +314,13 @@ export default function CandidateDashboard() {
 
             {/* Dream Job Card - Full Width */}
             <DreamJobCard 
-              desiredPosition={(supabaseProfile?.preferences as any)?.desired_role || "Head of Product"}
+              desiredPosition={(candidateProfile?.preferences as any)?.desired_role || "Cargo desejado"}
               salaryRange={{
-                min: (supabaseProfile?.preferences as any)?.salary_min || 18000,
-                max: (supabaseProfile?.preferences as any)?.salary_max || 28000
+                min: (candidateProfile?.preferences as any)?.salary_min || 0,
+                max: (candidateProfile?.preferences as any)?.salary_max || 0
               }}
-              industries={(supabaseProfile?.preferences as any)?.industry_interests || ["Tecnologia", "Fintech", "E-commerce"]}
-              values={["Inovação", "Work-life balance", "Crescimento profissional", "Diversidade"]}
+              industries={(candidateProfile?.preferences as any)?.industry_interests || []}
+              values={(candidateProfile?.preferences as any)?.values || []}
             />
 
             {/* Skills Highlight Card - Full Width */}
@@ -492,7 +377,7 @@ export default function CandidateDashboard() {
               </CardHeader>
             </Card>
 
-            {detailedMatches.length === 0 && matches.length === 0 ? (
+            {matches.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
                   <Sparkles className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -502,120 +387,17 @@ export default function CandidateDashboard() {
                   </p>
                 </CardContent>
               </Card>
-            ) : detailedMatches.length > 0 ? (
-              // Show detailed match cards from Supabase
+            ) : (
+              // Show match cards from Supabase
               <div className="space-y-6">
-                {detailedMatches.map((match) => (
+                {matches.map((match) => (
                   <MatchCard
                     key={match.job_id}
                     match={match}
-                    onApply={handleApplyFromMatch}
+                    onApply={handleApply}
                     onSave={handleSaveJob}
                     onViewDetails={handleViewDetails}
                   />
-                ))}
-              </div>
-            ) : (
-              // Fallback: show simplified cards without detailed data
-              <div className="space-y-6">
-                {matches.slice(0, 5).map((match) => (
-                  <Card key={match.job_id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <CardTitle className="text-2xl">{match.job.title}</CardTitle>
-                            <Badge className={
-                              match.compatibility_score >= 80 
-                                ? 'bg-[#16a34a] text-white' 
-                                : match.compatibility_score >= 50 
-                                ? 'bg-[#facc15] text-black' 
-                                : 'bg-[#dc2626] text-white'
-                            }>
-                              {Math.round(match.compatibility_score)}% Match
-                            </Badge>
-                          </div>
-                          <CardDescription className="flex items-center gap-3 text-base">
-                            <span className="flex items-center gap-1">
-                              <Building className="w-4 h-4" />
-                              Empresa
-                            </span>
-                            <span>•</span>
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-4 h-4" />
-                              {match.job.location}
-                            </span>
-                          </CardDescription>
-                        </div>
-                        <Badge variant="outline" className="text-sm">
-                          {match.candidate_archetype}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center justify-center gap-4 p-3 bg-muted/30 rounded-lg">
-                        <Badge variant="outline" className="text-sm">
-                          Você: {match.candidate_archetype}
-                        </Badge>
-                        <span className="text-muted-foreground text-sm">vs</span>
-                        <Badge variant="outline" className="text-sm">
-                          Vaga: {match.job_archetype}
-                        </Badge>
-                      </div>
-
-                      {/* Compatibility Explanation */}
-                      <div className="space-y-3 border-t border-border/50 pt-4">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-sm font-semibold text-foreground">
-                            Por que você foi compatível com esta vaga
-                          </h4>
-                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 font-bold">
-                            {Math.round(match.compatibility_score)}% Match
-                          </Badge>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          {Object.entries(match.pillar_breakdown).slice(0, 3).map(([pillar, score]) => {
-                            const pillarScore = score as number;
-                            const reason = pillarScore >= 80 
-                              ? `Alinhamento forte em ${pillar}`
-                              : pillarScore >= 60
-                              ? `Boa compatibilidade em ${pillar}`
-                              : `Compatibilidade em ${pillar}`;
-                            
-                            return (
-                              <div key={pillar} className="flex items-start gap-2">
-                                <CheckCircle2 className="h-4 w-4 text-[#16a34a] shrink-0 mt-0.5" />
-                                <p className="text-sm text-foreground">
-                                  {reason} ({Math.round(pillarScore)}%)
-                                </p>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between py-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleSaveJob(match.job_id)}
-                          className="gap-2"
-                        >
-                          <Heart className="h-4 w-4" />
-                          Salvar
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => handleApply(match.job_id, match.job.title, match.job.location)}
-                          className="bg-gradient-primary hover:shadow-glow gap-2"
-                        >
-                          Candidatar-se
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
                 ))}
               </div>
             )}

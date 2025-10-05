@@ -9,146 +9,71 @@ import { useToast } from '@/hooks/use-toast';
 import { MatchRadarChart } from '@/components/MatchRadarChart';
 import { Notifications } from '@/components/Notifications';
 import { UserDropdown } from '@/components/UserDropdown';
-import { CheckCircle, XCircle, User, MapPin, Briefcase, LayoutDashboard, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { CheckCircle, XCircle, User, MapPin, Briefcase, LayoutDashboard, ChevronDown, ChevronUp, Sparkles, AlertTriangle } from 'lucide-react';
 import ravyzLogo from '@/assets/ravyz-logo.png';
-import { MatchingEngine, CandidateRavyzData, JobRavyzData } from '@/lib/matching-engine';
-import { mockCandidates, mockJobs, MockCandidate, MockJob, getMockJobsByCompanyId } from '@/lib/mock-loader';
 import { CreateJobDialog } from '@/components/CreateJobDialog';
 import { supabase } from '@/integrations/supabase/client';
-
-interface MatchResult {
-  candidate_id: string;
-  job_id: string;
-  compatibility_score: number;
-  pillar_breakdown: Record<string, number>;
-  candidate_archetype: string;
-  job_archetype: string;
-  base_similarity: number;
-  archetype_boost: number;
-  candidate: MockCandidate;
-}
+import { getCompanyJobMatches, getCompanyStats, JobMatchSummary } from '@/services/companyMatchingService';
 
 export default function CompanyDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [jobs, setJobs] = useState<MockJob[]>([]);
-  const [jobMatches, setJobMatches] = useState<Record<string, MatchResult[]>>({});
+  const [jobMatches, setJobMatches] = useState<JobMatchSummary[]>([]);
   const [expandedJobs, setExpandedJobs] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('matches');
   const [companyId, setCompanyId] = useState<string | null>(null);
+  const [companyProfile, setCompanyProfile] = useState<any>(null);
+  const [stats, setStats] = useState({
+    activeJobs: 0,
+    totalMatches: 0,
+    topMatchScore: 0,
+  });
 
   useEffect(() => {
-    loadCompanyProfile();
-    loadMockData();
-  }, []);
+    if (user) {
+      loadAllData();
+    }
+  }, [user]);
 
-  const loadCompanyProfile = async () => {
+  const loadAllData = async () => {
     if (!user?.id) return;
     
     try {
-      const { data, error } = await supabase
-        .from('company_profiles')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (error) throw error;
-      if (data) {
-        setCompanyId(data.id);
-      }
-    } catch (error) {
-      console.error('Error loading company profile:', error);
-    }
-  };
-
-  const loadMockData = async () => {
-    try {
       setLoading(true);
+
+      // Load company profile
+      const { data: profile, error: profileError } = await supabase
+        .from('company_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
       
-      // Get company jobs (filter by test-company-123)
-      const companyJobs = getMockJobsByCompanyId('test-company-123');
-      setJobs(companyJobs);
-
-      console.log(`🏢 Loading ${companyJobs.length} company jobs`);
-
-      // Prepare candidates data for matching
-      const candidatesData: CandidateRavyzData[] = mockCandidates.map(candidate => ({
-        id: candidate.id,
-        pillar_scores: candidate.pillar_scores,
-        archetype: candidate.archetype,
-        skills: candidate.skills,
-        yearsExperience: candidate.years_experience,
-      }));
-
-      // Prepare jobs data for matching
-      const jobsData: JobRavyzData[] = companyJobs.map(job => ({
-        id: job.id,
-        pillar_scores: job.pillar_scores,
-        archetype: job.archetype,
-        hardSkills: job.requirements,
-      }));
-
-      console.log(`🎯 Calculating matches for ${candidatesData.length} candidates...`);
-
-      // Calculate matches
-      const matchingEngine = new MatchingEngine();
-      const allMatches = matchingEngine.calculateAllMatches(candidatesData, jobsData);
-
-      console.log(`✅ Generated ${allMatches.length} matches`);
-
-      // Group matches by job
-      const matchesByJob: Record<string, MatchResult[]> = {};
+      if (profileError) throw profileError;
       
-      companyJobs.forEach(job => {
-        const jobMatchResults = allMatches
-          .filter(match => match.job_id === job.id)
-          .map(match => {
-            const candidate = mockCandidates.find(c => c.id === match.candidate_id);
-            if (!candidate) return null;
-            
-            return {
-              ...match,
-              candidate,
-            };
-          })
-          .filter((m): m is MatchResult => m !== null)
-          .sort((a, b) => b.compatibility_score - a.compatibility_score)
-          .slice(0, 5); // Top 5 per job
+      if (profile) {
+        setCompanyId(profile.id);
+        setCompanyProfile(profile);
 
-        matchesByJob[job.id] = jobMatchResults;
-      });
+        // Load job matches
+        const matches = await getCompanyJobMatches(profile.id);
+        setJobMatches(matches);
 
-      setJobMatches(matchesByJob);
+        // Load stats
+        const statsData = await getCompanyStats(profile.id);
+        setStats(statsData);
 
-      console.log('\n📊 DEBUG: Raw Match Data');
-      const firstJob = companyJobs[0];
-      const firstMatch = matchesByJob[firstJob?.id]?.[0];
-      if (firstMatch && firstJob) {
-        console.log('Job pillars:', firstJob.pillar_scores);
-        console.log('Candidate pillars:', firstMatch.candidate.pillar_scores);
-        console.log('First match raw score:', firstMatch.compatibility_score);
-        console.log('First match pillar_breakdown:', firstMatch.pillar_breakdown);
+        console.log('✅ Loaded company data:', {
+          company: profile.company_name,
+          jobs: matches.length,
+          totalMatches: statsData.totalMatches,
+        });
       }
-
-      // Log summary
-      console.log('🏆 Matches Summary:');
-      companyJobs.forEach(job => {
-        const count = matchesByJob[job.id]?.length || 0;
-        console.log(`  ${job.title}: ${count} candidates`);
-        if (count > 0) {
-          const topMatch = matchesByJob[job.id][0];
-          console.log(`    Top: ${topMatch.candidate.full_name}`);
-          console.log(`    Raw Score: ${topMatch.compatibility_score}%`);
-          console.log(`    Base: ${topMatch.base_similarity}%, Boost: ${topMatch.archetype_boost}%`);
-        }
-      });
-
     } catch (error) {
-      console.error('Error loading mock data:', error);
+      console.error('Error loading company data:', error);
       toast({
         title: 'Erro',
-        description: 'Falha ao carregar dados mock',
+        description: 'Falha ao carregar dados da empresa',
         variant: 'destructive',
       });
     } finally {
@@ -193,6 +118,22 @@ export default function CompanyDashboard() {
     );
   }
 
+  if (!companyProfile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Perfil não encontrado</CardTitle>
+            <CardDescription>Complete seu cadastro de empresa</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
+  // Calculate alerts
+  const jobsWithoutCandidates = jobMatches.filter(job => job.matches.length === 0);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -201,10 +142,6 @@ export default function CompanyDashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img src={ravyzLogo} alt="Ravyz" className="h-8" />
-              <Badge variant="secondary" className="gap-1">
-                <Sparkles className="w-3 h-3" />
-                Mock Data Mode
-              </Badge>
             </div>
             
             <div className="flex items-center gap-4">
@@ -218,8 +155,8 @@ export default function CompanyDashboard() {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Empresa Teste</h1>
-          <p className="text-muted-foreground">Dashboard da empresa</p>
+          <h1 className="text-4xl font-bold mb-2">{companyProfile.company_name}</h1>
+          <p className="text-muted-foreground">{companyProfile.description || 'Dashboard da empresa'}</p>
         </div>
 
         {/* Tabs */}
@@ -235,7 +172,7 @@ export default function CompanyDashboard() {
             </TabsTrigger>
             <TabsTrigger value="jobs">
               <Briefcase className="w-4 h-4 mr-2" />
-              Minhas Vagas ({jobs.length})
+              Minhas Vagas ({stats.activeJobs})
             </TabsTrigger>
           </TabsList>
 
@@ -249,7 +186,7 @@ export default function CompanyDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">{jobs.length}</div>
+                  <div className="text-3xl font-bold">{stats.activeJobs}</div>
                   <p className="text-xs text-muted-foreground mt-1">Publicadas</p>
                 </CardContent>
               </Card>
@@ -261,10 +198,8 @@ export default function CompanyDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold">
-                    {Object.values(jobMatches).reduce((sum, matches) => sum + matches.length, 0)}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">Compatíveis</p>
+                  <div className="text-3xl font-bold">{stats.totalMatches}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Compatíveis ≥75%</p>
                 </CardContent>
               </Card>
 
@@ -276,44 +211,62 @@ export default function CompanyDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold">
-                    {Math.round(Object.values(jobMatches).flat()[0]?.compatibility_score || 0)}%
+                    {Math.round(stats.topMatchScore)}%
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">Melhor compatibilidade</p>
                 </CardContent>
               </Card>
             </div>
 
+            {/* Alerts */}
+            {jobsWithoutCandidates.length > 0 && (
+              <Card className="border-orange-500/50 bg-orange-500/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-orange-600">
+                    <AlertTriangle className="w-5 h-5" />
+                    Alertas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    {jobsWithoutCandidates.length} vaga(s) sem candidatos compatíveis.
+                    Considere revisar os requisitos ou ampliar o escopo da busca.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader>
                 <CardTitle>Vagas com Mais Candidatos</CardTitle>
-                <CardDescription>Ranking das vagas por número de matches</CardDescription>
+                <CardDescription>Ranking das vagas por número de matches ≥75%</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {jobs.length === 0 ? (
+                  {jobMatches.length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">
                       Nenhuma vaga cadastrada
                     </p>
                   ) : (
-                    jobs
-                      .sort((a, b) => (jobMatches[b.id]?.length || 0) - (jobMatches[a.id]?.length || 0))
+                    jobMatches
+                      .sort((a, b) => b.matches.length - a.matches.length)
                       .slice(0, 5)
                       .map((job) => {
-                        const matchCount = jobMatches[job.id]?.length || 0;
-                        const topMatch = jobMatches[job.id]?.[0];
+                        const matchCount = job.matches.length;
+                        const topMatch = job.matches[0];
                         
                         return (
-                          <div key={job.id} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
+                          <div key={job.job_id} className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0">
                             <div className="flex-1">
-                              <p className="font-medium">{job.title}</p>
+                              <p className="font-medium">{job.job_title}</p>
                               <div className="flex items-center gap-2 mt-1">
                                 <span className="text-sm text-muted-foreground flex items-center gap-1">
                                   <MapPin className="w-3 h-3" />
-                                  {job.location}
+                                  {job.job_location}
                                 </span>
                                 {topMatch && (
                                   <Badge variant="outline" className="text-xs">
-                                    Top: {Math.round(topMatch.compatibility_score)}%
+                                    Top: {Math.round(topMatch.match_percentage)}%
                                   </Badge>
                                 )}
                               </div>
@@ -332,34 +285,41 @@ export default function CompanyDashboard() {
           </TabsContent>
 
           <TabsContent value="matches" className="space-y-6 mt-6">
-            {jobs.length === 0 ? (
+            {jobMatches.length === 0 ? (
               <Card>
                 <CardContent className="text-center py-12">
                   <p className="text-muted-foreground">Nenhuma vaga cadastrada</p>
+                  {companyId && (
+                    <CreateJobDialog 
+                      companyId={companyId} 
+                      onJobCreated={loadAllData}
+                    />
+                  )}
                 </CardContent>
               </Card>
             ) : (
               <div className="space-y-6">
-                {jobs.map((job) => {
-                  const matches = jobMatches[job.id] || [];
-                  const isExpanded = expandedJobs.has(job.id);
+                {jobMatches.map((job) => {
+                  const isExpanded = expandedJobs.has(job.job_id);
 
                   return (
-                    <Card key={job.id}>
-                      <Collapsible open={isExpanded} onOpenChange={() => toggleJobExpansion(job.id)}>
+                    <Card key={job.job_id}>
+                      <Collapsible open={isExpanded} onOpenChange={() => toggleJobExpansion(job.job_id)}>
                         <CollapsibleTrigger asChild>
                           <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                             <div className="flex items-center justify-between">
                               <div className="flex-1">
-                                <CardTitle className="text-xl">{job.title}</CardTitle>
+                                <CardTitle className="text-xl">{job.job_title}</CardTitle>
                                 <CardDescription className="mt-2 flex items-center gap-4">
                                   <span className="flex items-center gap-1">
                                     <MapPin className="w-4 h-4" />
-                                    {job.location}
+                                    {job.job_location}
                                   </span>
-                                  <Badge variant="outline">{job.archetype}</Badge>
+                                  {job.job_archetype && (
+                                    <Badge variant="outline">{job.job_archetype}</Badge>
+                                  )}
                                   <span className="text-primary font-medium">
-                                    {matches.length} candidatos compatíveis
+                                    {job.matches.length} candidatos compatíveis
                                   </span>
                                 </CardDescription>
                               </div>
@@ -374,37 +334,44 @@ export default function CompanyDashboard() {
 
                         <CollapsibleContent>
                           <CardContent className="pt-0">
-                            {matches.length === 0 ? (
+                            {job.matches.length === 0 ? (
                               <p className="text-center text-muted-foreground py-8">
                                 Nenhum candidato compatível encontrado
                               </p>
                             ) : (
                               <div className="space-y-4">
-                                {matches.map((match) => (
+                                {job.matches.map((match) => (
                                   <Card key={match.candidate_id} className="border-2">
                                     <CardHeader>
                                       <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                           <CardTitle className="text-lg">
-                                            {match.candidate.full_name}
+                                            {match.candidate_name}
                                           </CardTitle>
                                           <CardDescription className="mt-1">
-                                            {match.candidate.headline}
+                                            {match.candidate_headline}
                                           </CardDescription>
                                           <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
                                             <span className="flex items-center gap-1">
                                               <MapPin className="w-3 h-3" />
-                                              {match.candidate.location}
+                                              {match.candidate_location}
                                             </span>
                                             <span className="flex items-center gap-1">
                                               <Briefcase className="w-3 h-3" />
-                                              {match.candidate.years_experience} anos
+                                              {match.years_experience} anos
                                             </span>
                                           </div>
+                                          {match.application_status && (
+                                            <div className="mt-2">
+                                              <Badge variant="secondary">
+                                                Status: {match.application_status}
+                                              </Badge>
+                                            </div>
+                                          )}
                                         </div>
                                         <div className="text-right">
                                           <div className="text-3xl font-bold text-primary">
-                                            {Math.round(match.compatibility_score)}%
+                                            {Math.round(match.match_percentage)}%
                                           </div>
                                           <div className="text-xs text-muted-foreground">Match</div>
                                         </div>
@@ -413,71 +380,65 @@ export default function CompanyDashboard() {
 
                                     <CardContent className="space-y-4">
                                       {/* Archetypes */}
-                                      <div className="flex items-center justify-center gap-4 p-3 bg-muted/50 rounded-lg">
-                                        <Badge variant="outline" className="px-3 py-1">
-                                          {match.candidate_archetype}
-                                        </Badge>
-                                        <span className="text-sm text-muted-foreground">vs</span>
-                                        <Badge variant="outline" className="px-3 py-1">
-                                          {match.job_archetype}
-                                        </Badge>
-                                      </div>
-
-                                      {/* Radar Chart */}
-                                      <div>
-                                        <h4 className="text-sm font-semibold mb-3">Análise de Pilares</h4>
-                                        <MatchRadarChart 
-                                          candidatePillars={match.candidate.pillar_scores}
-                                          jobPillars={job.pillar_scores}
-                                        />
-                                      </div>
+                                      {match.archetype && job.job_archetype && (
+                                        <div className="flex items-center justify-center gap-4 p-3 bg-muted/50 rounded-lg">
+                                          <Badge variant="outline" className="px-3 py-1">
+                                            {match.archetype}
+                                          </Badge>
+                                          <span className="text-sm text-muted-foreground">vs</span>
+                                          <Badge variant="outline" className="px-3 py-1">
+                                            {job.job_archetype}
+                                          </Badge>
+                                        </div>
+                                      )}
 
                                       {/* Pillar Breakdown */}
-                                      <div>
-                                        <h4 className="text-sm font-semibold mb-3">Detalhamento por Pilar</h4>
-                                        <div className="grid gap-2">
-                                          {Object.entries(match.pillar_breakdown).map(([pillar, score]) => {
-                                            const pillarScore = score as number;
-                                            return (
-                                              <div key={pillar} className="flex items-center justify-between text-sm">
-                                                <span className="text-muted-foreground capitalize">{pillar}</span>
-                                                <div className="flex items-center gap-2">
-                                                  <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
-                                                    <div 
-                                                      className="h-full bg-primary"
-                                                      style={{ width: `${Math.min(100, Math.max(0, pillarScore))}%` }}
-                                                    />
+                                      {Object.keys(match.pillar_breakdown).length > 0 && (
+                                        <div>
+                                          <h4 className="text-sm font-semibold mb-3">Detalhamento por Pilar</h4>
+                                          <div className="grid gap-2">
+                                            {Object.entries(match.pillar_breakdown).map(([pillar, score]) => {
+                                              const pillarScore = score as number;
+                                              return (
+                                                <div key={pillar} className="flex items-center justify-between text-sm">
+                                                  <span className="text-muted-foreground capitalize">{pillar}</span>
+                                                  <div className="flex items-center gap-2">
+                                                    <div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
+                                                      <div 
+                                                        className="h-full bg-primary"
+                                                        style={{ width: `${Math.min(100, Math.max(0, pillarScore))}%` }}
+                                                      />
+                                                    </div>
+                                                    <span className="w-12 text-right font-medium">
+                                                      {Math.round(pillarScore)}%
+                                                    </span>
                                                   </div>
-                                                  <span className="w-12 text-right font-medium">
-                                                    {Math.round(pillarScore)}%
-                                                  </span>
                                                 </div>
-                                              </div>
-                                            );
-                                          })}
+                                              );
+                                            })}
+                                          </div>
                                         </div>
-                                      </div>
+                                      )}
 
                                       {/* Skills */}
-                                      <div>
-                                        <h4 className="text-sm font-semibold mb-2">Habilidades</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                          {match.candidate.skills.map((skill, index) => (
-                                            <Badge 
-                                              key={index} 
-                                              variant={job.requirements.includes(skill) ? "default" : "secondary"}
-                                            >
-                                              {skill}
-                                            </Badge>
-                                          ))}
+                                      {match.skills.length > 0 && (
+                                        <div>
+                                          <h4 className="text-sm font-semibold mb-2">Habilidades</h4>
+                                          <div className="flex flex-wrap gap-2">
+                                            {match.skills.map((skill, index) => (
+                                              <Badge key={index} variant="secondary">
+                                                {skill}
+                                              </Badge>
+                                            ))}
+                                          </div>
                                         </div>
-                                      </div>
+                                      )}
 
                                       {/* Actions */}
                                       <div className="flex gap-3 pt-2 border-t">
                                         <Button 
                                           className="flex-1"
-                                          onClick={() => handleInviteCandidate(match.candidate_id, job.id)}
+                                          onClick={() => handleInviteCandidate(match.candidate_id, job.job_id)}
                                         >
                                           <CheckCircle className="w-4 h-4 mr-2" />
                                           Convidar
@@ -485,7 +446,7 @@ export default function CompanyDashboard() {
                                         <Button 
                                           variant="outline"
                                           className="flex-1"
-                                          onClick={() => handleRejectCandidate(match.candidate_id, job.id)}
+                                          onClick={() => handleRejectCandidate(match.candidate_id, job.job_id)}
                                         >
                                           <XCircle className="w-4 h-4 mr-2" />
                                           Rejeitar
@@ -512,33 +473,31 @@ export default function CompanyDashboard() {
               {companyId && (
                 <CreateJobDialog 
                   companyId={companyId} 
-                  onJobCreated={loadMockData}
+                  onJobCreated={loadAllData}
                 />
               )}
             </div>
             <div className="grid gap-4">
-              {jobs.map((job) => (
-                <Card key={job.id}>
+              {jobMatches.map((job) => (
+                <Card key={job.job_id}>
                   <CardHeader>
-                    <CardTitle>{job.title}</CardTitle>
-                    <CardDescription>{job.description}</CardDescription>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle>{job.job_title}</CardTitle>
+                        <CardDescription className="flex items-center gap-2 mt-2">
+                          <MapPin className="w-4 h-4" />
+                          {job.job_location}
+                        </CardDescription>
+                      </div>
+                      <Badge variant="outline">
+                        {job.matches.length} candidatos
+                      </Badge>
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-center gap-4 text-sm">
-                      <Badge variant="outline">{job.archetype}</Badge>
-                      <span className="flex items-center gap-1 text-muted-foreground">
-                        <MapPin className="w-4 h-4" />
-                        {job.location}
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold mb-2">Requisitos</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {job.requirements.map((req, index) => (
-                          <Badge key={index} variant="secondary">{req}</Badge>
-                        ))}
-                      </div>
-                    </div>
+                    {job.job_archetype && (
+                      <Badge variant="secondary">{job.job_archetype}</Badge>
+                    )}
                   </CardContent>
                 </Card>
               ))}
