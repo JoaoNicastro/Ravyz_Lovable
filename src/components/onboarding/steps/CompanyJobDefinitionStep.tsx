@@ -8,7 +8,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Briefcase, MapPin, DollarSign, Monitor } from "lucide-react";
+import { Briefcase, MapPin, DollarSign } from "lucide-react";
 
 const jobDefinitionSchema = z.object({
   title: z.string().min(1, "Título da vaga é obrigatório"),
@@ -17,7 +17,17 @@ const jobDefinitionSchema = z.object({
   level: z.enum(["junior", "pleno", "senior"], {
     required_error: "Nível é obrigatório",
   }),
-  salary: z.number().min(0, "Salário deve ser positivo").optional(),
+  salary_min: z.number().min(0, "Salário mínimo deve ser positivo").optional(),
+  salary_max: z.number().min(0, "Salário máximo deve ser positivo").optional(),
+  benefits: z.array(z.string()).optional(),
+}).refine((data) => {
+  if (data.salary_min && data.salary_max) {
+    return data.salary_max >= data.salary_min;
+  }
+  return true;
+}, {
+  message: "Salário máximo deve ser maior ou igual ao mínimo",
+  path: ["salary_max"],
 });
 
 type JobDefinitionData = z.infer<typeof jobDefinitionSchema>;
@@ -29,6 +39,21 @@ interface StepProps {
   data?: JobDefinitionData;
 }
 
+const BENEFITS_OPTIONS = [
+  "Vale Refeição",
+  "Vale Transporte",
+  "Plano de Saúde",
+  "Plano Odontológico",
+  "Home Office",
+  "Horário Flexível",
+  "Gympass",
+  "Vale Cultura",
+  "Seguro de Vida",
+  "Participação nos Lucros",
+  "Auxílio Creche",
+  "Convênio Farmácia",
+];
+
 const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading }) => {
   const form = useForm<JobDefinitionData>({
     resolver: zodResolver(jobDefinitionSchema),
@@ -37,7 +62,9 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
       description: "",
       location: "",
       level: "pleno",
-      salary: undefined,
+      salary_min: undefined,
+      salary_max: undefined,
+      benefits: [],
     },
   });
 
@@ -148,25 +175,95 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
             />
           </div>
 
-          {/* Salary */}
+          {/* Salary Range */}
+          <div className="space-y-4">
+            <FormLabel className="flex items-center space-x-2">
+              <DollarSign className="h-4 w-4" />
+              <span>Faixa Salarial (R$) - opcional</span>
+            </FormLabel>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="salary_min"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Salário Mínimo</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number"
+                        placeholder="3000"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="salary_max"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Salário Máximo</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number"
+                        placeholder="5000"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+
+          {/* Benefits */}
           <div className="space-y-4">
             <FormField
               control={form.control}
-              name="salary"
-              render={({ field }) => (
+              name="benefits"
+              render={() => (
                 <FormItem>
-                  <FormLabel className="flex items-center space-x-2">
-                    <DollarSign className="h-4 w-4" />
-                    <span>Salário (R$) - opcional</span>
-                  </FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number"
-                      placeholder="5000"
-                      {...field}
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                    />
-                  </FormControl>
+                  <FormLabel>Benefícios - opcional</FormLabel>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {BENEFITS_OPTIONS.map((benefit) => (
+                      <FormField
+                        key={benefit}
+                        control={form.control}
+                        name="benefits"
+                        render={({ field }) => {
+                          return (
+                            <FormItem
+                              key={benefit}
+                              className="flex flex-row items-start space-x-3 space-y-0"
+                            >
+                              <FormControl>
+                                <input
+                                  type="checkbox"
+                                  className="h-4 w-4 rounded border-input text-primary focus:ring-2 focus:ring-primary"
+                                  checked={field.value?.includes(benefit)}
+                                  onChange={(e) => {
+                                    const currentValue = field.value || [];
+                                    const updatedValue = e.target.checked
+                                      ? [...currentValue, benefit]
+                                      : currentValue.filter((val) => val !== benefit);
+                                    field.onChange(updatedValue);
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel className="text-sm font-normal cursor-pointer">
+                                {benefit}
+                              </FormLabel>
+                            </FormItem>
+                          );
+                        }}
+                      />
+                    ))}
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
