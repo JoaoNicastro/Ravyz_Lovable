@@ -10,6 +10,7 @@ import CompanyJobDefinitionStep from "@/components/onboarding/steps/CompanyJobDe
 import CandidateBasicProfileStep from "@/components/onboarding/steps/CandidateBasicProfileStep";
 import EducationPreferencesStep from "@/components/onboarding/steps/EducationPreferencesStep";
 import IndustryPreferencesStep from "@/components/onboarding/steps/IndustryPreferencesStep";
+import TechnicalSkillsStep from "@/components/onboarding/steps/TechnicalSkillsStep";
 import CompanyAssessmentStep from "@/components/onboarding/steps/CompanyAssessmentStep";
 import ravyzLogo from "@/assets/ravyz-logo.png";
 
@@ -57,6 +58,12 @@ const STEPS: StepData[] = [
     title: "Setores e Indústrias",
     description: "Experiência em indústrias",
     component: IndustryPreferencesStep,
+  },
+  {
+    id: "technical-skills",
+    title: "Habilidades Técnicas",
+    description: "Competências técnicas necessárias",
+    component: TechnicalSkillsStep,
   },
   {
     id: "company-assessment",
@@ -127,6 +134,7 @@ const CompanyOnboardingFlow: React.FC = () => {
       const candidateBasicData = allStepData["candidate-basic-profile"];
       const educationData = allStepData["education-preferences"];
       const industryData = allStepData["industry-preferences"];
+      const technicalSkillsData = allStepData["technical-skills"];
       const assessmentData = allStepData["company-assessment"];
 
       // First, create or update company profile
@@ -205,6 +213,7 @@ const CompanyOnboardingFlow: React.FC = () => {
           education_levels: educationData?.education_levels || [],
           preferred_institutions: educationData?.preferred_institutions || [],
           industries: industryData?.industries || [],
+          technical_skills: technicalSkillsData?.technical_skills || [],
           pillar_scores: assessmentData?.pillar_scores || {},
           archetype: assessmentData?.archetype || 'Equilibrado',
         })

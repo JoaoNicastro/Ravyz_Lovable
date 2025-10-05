@@ -293,6 +293,7 @@ export type Database = {
           salary_min: number | null
           skills_vector: Json | null
           status: Database["public"]["Enums"]["job_status"] | null
+          technical_skills: Json | null
           title: string
           updated_at: string | null
           work_model: Database["public"]["Enums"]["work_model"] | null
@@ -317,6 +318,7 @@ export type Database = {
           salary_min?: number | null
           skills_vector?: Json | null
           status?: Database["public"]["Enums"]["job_status"] | null
+          technical_skills?: Json | null
           title: string
           updated_at?: string | null
           work_model?: Database["public"]["Enums"]["work_model"] | null
@@ -341,6 +343,7 @@ export type Database = {
           salary_min?: number | null
           skills_vector?: Json | null
           status?: Database["public"]["Enums"]["job_status"] | null
+          technical_skills?: Json | null
           title?: string
           updated_at?: string | null
           work_model?: Database["public"]["Enums"]["work_model"] | null
