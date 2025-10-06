@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ravyzLogo from "@/assets/ravyz-logo.png";
+import { useLinkedInAuth } from "@/hooks/useLinkedInAuth";
 
 // Step components
 import FillMethodStep from "@/components/onboarding/steps/FillMethodStep";
@@ -77,6 +78,9 @@ const OnboardingFlow = () => {
   const [linkedInDataImported, setLinkedInDataImported] = useState(false);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Process LinkedIn OAuth callback
+  const { isProcessing: isProcessingLinkedIn } = useLinkedInAuth();
 
   // Initialize step from URL params
   useEffect(() => {
@@ -370,6 +374,19 @@ const OnboardingFlow = () => {
       }
     }
   }, [currentStep, skippedSteps]);
+
+  // Show loading while processing LinkedIn import
+  if (isProcessingLinkedIn) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <h2 className="text-xl font-semibold">Importando dados do LinkedIn...</h2>
+          <p className="text-muted-foreground">Aguarde enquanto processamos seu perfil</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-24">{/* Added padding bottom for fixed footer */}

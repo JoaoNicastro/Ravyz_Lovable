@@ -13,6 +13,7 @@ import { parseResumeEnhanced, type ParsedResumeData } from "@/lib/enhanced-resum
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { AvatarUpload } from "@/components/AvatarUpload";
 
 const candidateProfileSchema = z.object({
   // Basic info fields
@@ -65,6 +66,7 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
     status: "",
     completionYear: undefined as number | undefined,
   });
+  const [avatarUrl, setAvatarUrl] = useState(initialData?.avatar_url || '');
   
   const form = useForm<CandidateProfileFormData>({
     resolver: zodResolver(candidateProfileSchema),
@@ -172,6 +174,17 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
                 </span>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Avatar Upload Section */}
+        <Card>
+          <CardContent className="pt-6">
+            <AvatarUpload
+              currentAvatarUrl={avatarUrl}
+              onAvatarChange={setAvatarUrl}
+              userName={form.watch('cpf') || 'Usuário'}
+            />
           </CardContent>
         </Card>
 
