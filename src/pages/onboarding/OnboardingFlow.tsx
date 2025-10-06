@@ -143,22 +143,38 @@ const OnboardingFlow = () => {
     loadLinkedInData();
   }, []);
 
-  // Initialize step from URL params
+  // Initialize step from URL params (idempotent)
   useEffect(() => {
     const step = searchParams.get("step");
     if (step) {
       const stepIndex = STEPS.findIndex(s => s.id === step);
-      if (stepIndex !== -1) {
+      if (stepIndex !== -1 && stepIndex !== currentStep) {
         setCurrentStep(stepIndex);
       }
+    } else {
+      // Ensure URL always has the current step once
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("step", STEPS[currentStep].id);
+        return next;
+      }, { replace: true });
     }
-  }, [searchParams]);
-
-  // Update URL when step changes
-  useEffect(() => {
-    setSearchParams({ step: STEPS[currentStep].id });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep]);
+  }, [searchParams, currentStep]);
+
+  // Update URL when step changes (avoid redundant replaces)
+  useEffect(() => {
+    const urlStep = searchParams.get("step");
+    const expected = STEPS[currentStep].id;
+    if (urlStep !== expected) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("step", expected);
+        return next;
+      }, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, searchParams]);
 
   const handleNext = async (data?: any) => {
     setIsLoading(true);
