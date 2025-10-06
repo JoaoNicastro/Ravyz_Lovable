@@ -296,7 +296,7 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {form.watch("preferredLocations").map((location, index) => (
+                  {(form.watch("preferredLocations") || []).map((location, index) => (
                     <Badge key={index} variant="secondary" className="gap-1">
                       {location}
                       <button
