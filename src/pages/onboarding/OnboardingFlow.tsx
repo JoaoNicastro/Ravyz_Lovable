@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -143,30 +143,22 @@ const OnboardingFlow = () => {
     loadLinkedInData();
   }, []);
 
-  // Sync current step with URL (read-only)
-  const location = useLocation();
+  // Initialize step from URL on mount only
   useEffect(() => {
-    const stepParam = new URLSearchParams(location.search).get("step");
+    const stepParam = searchParams.get("step");
     if (stepParam) {
       const stepIndex = STEPS.findIndex((s) => s.id === stepParam);
-      if (stepIndex !== -1 && stepIndex !== currentStep) {
+      if (stepIndex !== -1) {
         setCurrentStep(stepIndex);
       }
-    } else {
-      // Ensure URL contains current step once
-      const expected = STEPS[currentStep].id;
-      setSearchParams({ step: expected }, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.search, currentStep]);
+  }, []); // Run only once on mount
 
-  // Update URL when step changes (no-op if same)
+  // Sync URL when currentStep changes
   useEffect(() => {
-    const urlStep = new URLSearchParams(location.search).get("step");
-    const expected = STEPS[currentStep].id;
-    if (urlStep !== expected) {
-      setSearchParams({ step: expected }, { replace: true });
-    }
+    const expectedStep = STEPS[currentStep].id;
+    setSearchParams({ step: expectedStep }, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStep]);
 
