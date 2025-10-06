@@ -56,7 +56,7 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
 
   const addSkill = () => {
     if (newSkill.trim()) {
-      const currentSkills = form.getValues("skills");
+      const currentSkills = form.getValues("skills") || [];
       form.setValue("skills", [...currentSkills, newSkill.trim()]);
       setNewSkill("");
     }
@@ -69,7 +69,7 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
 
   const addRole = () => {
     if (newRole.trim()) {
-      const currentRoles = form.getValues("preferredRoles");
+      const currentRoles = form.getValues("preferredRoles") || [];
       form.setValue("preferredRoles", [...currentRoles, newRole.trim()]);
       setNewRole("");
     }
