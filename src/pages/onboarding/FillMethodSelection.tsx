@@ -68,9 +68,20 @@ const FillMethodSelection = () => {
 
       // Redirect based on method
       if (selectedMethod === 'linkedin') {
-        // TODO: Implement LinkedIn OAuth flow
-        toast.info("Integração LinkedIn em desenvolvimento");
-        navigate('/onboarding/candidate');
+        // Initiate LinkedIn OAuth flow
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'linkedin_oidc',
+          options: {
+            redirectTo: `${window.location.origin}/onboarding/candidate?linkedin_import=true`
+          }
+        });
+        
+        if (error) {
+          toast.error("Erro ao conectar com LinkedIn. Tente novamente.");
+          return;
+        }
+        // OAuth will redirect automatically
+        return;
       } else if (selectedMethod === 'upload') {
         navigate('/resume/analyze');
       } else {

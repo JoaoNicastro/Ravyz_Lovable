@@ -73,6 +73,8 @@ const OnboardingFlow = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [stepData, setStepData] = useState<Record<string, any>>({});
+  const [skippedSteps, setSkippedSteps] = useState<string[]>([]);
+  const [linkedInDataImported, setLinkedInDataImported] = useState(false);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -104,6 +106,11 @@ const OnboardingFlow = () => {
         }));
       }
 
+      // Check if LinkedIn method was chosen and profile has LinkedIn data
+      if (STEPS[currentStep].id === 'fill-method' && data?.method === 'linkedin') {
+        await checkLinkedInImport();
+      }
+
       // If this is the last step, complete onboarding
       if (currentStep === STEPS.length - 1) {
         await completeOnboarding();
@@ -118,6 +125,42 @@ const OnboardingFlow = () => {
       toast.error("Erro ao avançar. Tente novamente.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const checkLinkedInImport = async () => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return;
+
+      const { data: profile } = await supabase
+        .from('candidate_profiles')
+        .select('linkedin_data, full_name, current_position, education')
+        .eq('user_id', user.user.id)
+        .single();
+
+      if (profile?.linkedin_data && Object.keys(profile.linkedin_data).length > 0) {
+        // Check if essential data was imported
+        const hasEssentialData = 
+          profile.full_name && 
+          profile.current_position && 
+          profile.education && 
+          Array.isArray(profile.education) && 
+          profile.education.length > 0;
+
+        if (hasEssentialData) {
+          const stepsToSkip = ['registration', 'assessment', 'candidate-assessment'];
+          setSkippedSteps(stepsToSkip);
+          setLinkedInDataImported(true);
+          
+          toast.info(
+            "Pulamos algumas etapas porque essas informações já foram importadas do seu perfil do LinkedIn.",
+            { duration: 5000 }
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error checking LinkedIn import:", error);
     }
   };
 
@@ -310,8 +353,23 @@ const OnboardingFlow = () => {
     return score;
   };
 
-  const progressPercentage = ((currentStep + 1) / STEPS.length) * 100;
+  // Filter steps based on skipped steps
+  const activeSteps = STEPS.filter(step => !skippedSteps.includes(step.id));
+  const activeCurrentStepIndex = activeSteps.findIndex(s => s.id === STEPS[currentStep].id);
+  const progressPercentage = ((activeCurrentStepIndex + 1) / activeSteps.length) * 100;
   const CurrentStepComponent = STEPS[currentStep].component;
+
+  // Automatically skip to next non-skipped step
+  useEffect(() => {
+    if (skippedSteps.length > 0 && skippedSteps.includes(STEPS[currentStep].id)) {
+      const nextStepIndex = STEPS.findIndex((step, idx) => 
+        idx > currentStep && !skippedSteps.includes(step.id)
+      );
+      if (nextStepIndex !== -1) {
+        setCurrentStep(nextStepIndex);
+      }
+    }
+  }, [currentStep, skippedSteps]);
 
   return (
     <div className="min-h-screen bg-background pb-24">{/* Added padding bottom for fixed footer */}
@@ -347,27 +405,43 @@ const OnboardingFlow = () => {
               <p className="text-muted-foreground">
                 {STEPS[currentStep].description}
               </p>
+              {linkedInDataImported && (
+                <div className="mt-2 text-sm text-success flex items-center gap-2">
+                  <span className="w-2 h-2 bg-success rounded-full animate-pulse" />
+                  Dados importados do LinkedIn
+                </div>
+              )}
             </div>
 
             {/* Step Navigation Pills */}
             <div className="flex gap-2 overflow-x-auto pb-2">
-              {STEPS.map((step, index) => (
-                <div
-                  key={step.id}
-                  className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm whitespace-nowrap ${
-                    index === currentStep
-                      ? "bg-primary text-primary-foreground"
-                      : index < currentStep
-                      ? "bg-success/20 text-success"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold">
-                    {index < currentStep ? "✓" : index + 1}
-                  </span>
-                  {step.title}
-                </div>
-              ))}
+              {STEPS.map((step, index) => {
+                const isSkipped = skippedSteps.includes(step.id);
+                const isPast = index < currentStep;
+                const isCurrent = index === currentStep;
+                
+                return (
+                  <div
+                    key={step.id}
+                    className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm whitespace-nowrap ${
+                      isCurrent
+                        ? "bg-primary text-primary-foreground"
+                        : isPast
+                        ? isSkipped
+                          ? "bg-muted/50 text-muted-foreground line-through"
+                          : "bg-success/20 text-success"
+                        : isSkipped
+                        ? "bg-muted/30 text-muted-foreground/50 line-through"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold">
+                      {isSkipped ? "⊘" : isPast ? "✓" : index + 1}
+                    </span>
+                    {step.title}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -400,7 +474,7 @@ const OnboardingFlow = () => {
           <div className="flex items-center gap-4">
             <div className="text-center">
               <div className="text-sm font-medium text-foreground">
-                Passo {currentStep + 1} de {STEPS.length}
+                Passo {activeCurrentStepIndex + 1} de {activeSteps.length}
               </div>
               <div className="text-xs text-muted-foreground">
                 {Math.round(progressPercentage)}% concluído
