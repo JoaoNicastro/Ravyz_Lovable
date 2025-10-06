@@ -135,23 +135,6 @@ const CandidateValidationStep: React.FC<StepProps> = ({ onNext, onBack, data }) 
 
   return (
     <div className="max-w-4xl mx-auto min-h-[600px] flex flex-col">
-      {/* Progress Bar */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-muted-foreground">
-            Pergunta {currentQuestion + 1} de {questions.length}
-          </span>
-          <span className="text-sm font-medium text-primary">
-            {Math.round(progress)}%
-          </span>
-        </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-primary transition-all duration-500 ease-out"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      </div>
 
       {/* Question */}
       <div 
