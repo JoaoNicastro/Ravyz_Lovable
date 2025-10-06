@@ -74,24 +74,24 @@ const OnboardingFlow = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [stepData, setStepData] = useState<Record<string, any>>({});
-  const [skippedSteps, setSkippedSteps] = useState<string[]>([]);
   const [linkedInDataImported, setLinkedInDataImported] = useState(false);
+  const [linkedInPrefilledData, setLinkedInPrefilledData] = useState<Record<string, any>>({});
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
   // Process LinkedIn OAuth callback
   const { isProcessing: isProcessingLinkedIn } = useLinkedInAuth();
 
-  // Check for LinkedIn data on mount
+  // Load LinkedIn data on mount and prepare prefill data
   useEffect(() => {
-    const checkInitialLinkedInData = async () => {
+    const loadLinkedInData = async () => {
       try {
         const { data: user } = await supabase.auth.getUser();
         if (!user.user) return;
 
         const { data: profile } = await supabase
           .from('candidate_profiles')
-          .select('linkedin_data, full_name, email, current_position, education, skills')
+          .select('*')
           .eq('user_id', user.user.id)
           .maybeSingle();
 
@@ -109,27 +109,45 @@ const OnboardingFlow = () => {
             profile.skills.length > 0;
 
           if (hasEssentialData) {
-            const stepsToSkip = ['registration', 'assessment'];
-            setSkippedSteps(stepsToSkip);
             setLinkedInDataImported(true);
             
-            // If we're on fill-method or a skipped step, navigate to validation
-            const currentStepId = searchParams.get("step") || 'fill-method';
-            if (currentStepId === 'fill-method' || stepsToSkip.includes(currentStepId)) {
-              setCurrentStep(STEPS.findIndex(s => s.id === 'validation'));
-              toast.info(
-                "Pulamos algumas etapas porque suas informações do LinkedIn já foram importadas com sucesso.",
-                { duration: 5000 }
-              );
-            }
+            // Prepare prefilled data for registration step
+            const registrationData: any = {
+              avatar_url: profile.avatar_url,
+              languages: profile.languages || [],
+              education: profile.education || [],
+            };
+
+            // Prepare prefilled data for assessment step
+            const assessmentData: any = {
+              headline: profile.headline || `${profile.current_position}`,
+              years_experience: profile.years_experience || 0,
+              skills: Array.isArray(profile.skills) ? profile.skills : [],
+              currentRole: profile.current_position || '',
+              currentCompany: '',
+              yearsInRole: 0,
+              keyAchievements: profile.key_achievements || '',
+              careerGoals: profile.career_goals || '',
+              preferredRoles: profile.preferred_roles || [],
+            };
+
+            setLinkedInPrefilledData({
+              registration: registrationData,
+              assessment: assessmentData,
+            });
+
+            toast.info(
+              "Preenchemos automaticamente suas informações com base no seu perfil do LinkedIn. Revise e confirme antes de continuar.",
+              { duration: 6000 }
+            );
           }
         }
       } catch (error) {
-        console.error("Error checking initial LinkedIn data:", error);
+        console.error("Error loading LinkedIn data:", error);
       }
     };
 
-    checkInitialLinkedInData();
+    loadLinkedInData();
   }, []);
 
   // Initialize step from URL params
@@ -160,14 +178,9 @@ const OnboardingFlow = () => {
         }));
       }
 
-      // Check if LinkedIn method was chosen and profile has LinkedIn data
+      // Check if LinkedIn method was chosen
       if (STEPS[currentStep].id === 'fill-method' && data?.method === 'linkedin') {
-        await checkLinkedInImport();
-        // After checking, if steps should be skipped, jump to validation
-        if (skippedSteps.length > 0) {
-          setCurrentStep(STEPS.findIndex(s => s.id === 'validation'));
-          return;
-        }
+        await loadLinkedInDataForPrefill();
       }
 
       // If this is the last step, complete onboarding
@@ -187,14 +200,14 @@ const OnboardingFlow = () => {
     }
   };
 
-  const checkLinkedInImport = async () => {
+  const loadLinkedInDataForPrefill = async () => {
     try {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return;
 
       const { data: profile } = await supabase
         .from('candidate_profiles')
-        .select('linkedin_data, full_name, email, current_position, education, skills')
+        .select('*')
         .eq('user_id', user.user.id)
         .maybeSingle();
 
@@ -212,18 +225,41 @@ const OnboardingFlow = () => {
           profile.skills.length > 0;
 
         if (hasEssentialData) {
-          const stepsToSkip = ['registration', 'assessment'];
-          setSkippedSteps(stepsToSkip);
           setLinkedInDataImported(true);
           
+          // Prepare prefilled data for registration step
+          const registrationData: any = {
+            avatar_url: profile.avatar_url,
+            languages: profile.languages || [],
+            education: profile.education || [],
+          };
+
+          // Prepare prefilled data for assessment step
+          const assessmentData: any = {
+            headline: profile.headline || `${profile.current_position}`,
+            years_experience: profile.years_experience || 0,
+            skills: Array.isArray(profile.skills) ? profile.skills : [],
+            currentRole: profile.current_position || '',
+            currentCompany: '',
+            yearsInRole: 0,
+            keyAchievements: profile.key_achievements || '',
+            careerGoals: profile.career_goals || '',
+            preferredRoles: profile.preferred_roles || [],
+          };
+
+          setLinkedInPrefilledData({
+            registration: registrationData,
+            assessment: assessmentData,
+          });
+
           toast.info(
-            "Pulamos algumas etapas porque suas informações do LinkedIn já foram importadas com sucesso.",
-            { duration: 5000 }
+            "Preenchemos automaticamente suas informações com base no seu perfil do LinkedIn. Revise e confirme antes de continuar.",
+            { duration: 6000 }
           );
         }
       }
     } catch (error) {
-      console.error("Error checking LinkedIn import:", error);
+      console.error("Error loading LinkedIn data:", error);
     }
   };
 
@@ -416,23 +452,14 @@ const OnboardingFlow = () => {
     return score;
   };
 
-  // Filter steps based on skipped steps
-  const activeSteps = STEPS.filter(step => !skippedSteps.includes(step.id));
-  const activeCurrentStepIndex = activeSteps.findIndex(s => s.id === STEPS[currentStep].id);
-  const progressPercentage = ((activeCurrentStepIndex + 1) / activeSteps.length) * 100;
+  const progressPercentage = ((currentStep + 1) / STEPS.length) * 100;
   const CurrentStepComponent = STEPS[currentStep].component;
-
-  // Automatically skip to next non-skipped step
-  useEffect(() => {
-    if (skippedSteps.length > 0 && skippedSteps.includes(STEPS[currentStep].id)) {
-      const nextStepIndex = STEPS.findIndex((step, idx) => 
-        idx > currentStep && !skippedSteps.includes(step.id)
-      );
-      if (nextStepIndex !== -1) {
-        setCurrentStep(nextStepIndex);
-      }
-    }
-  }, [currentStep, skippedSteps]);
+  
+  // Merge prefilled LinkedIn data with any existing step data
+  const currentStepData = {
+    ...linkedInPrefilledData[STEPS[currentStep].id],
+    ...stepData[STEPS[currentStep].id]
+  };
 
   // Show loading while processing LinkedIn import
   if (isProcessingLinkedIn) {
@@ -492,7 +519,6 @@ const OnboardingFlow = () => {
             {/* Step Navigation Pills */}
             <div className="flex gap-2 overflow-x-auto pb-2">
               {STEPS.map((step, index) => {
-                const isSkipped = skippedSteps.includes(step.id);
                 const isPast = index < currentStep;
                 const isCurrent = index === currentStep;
                 
@@ -503,16 +529,12 @@ const OnboardingFlow = () => {
                       isCurrent
                         ? "bg-primary text-primary-foreground"
                         : isPast
-                        ? isSkipped
-                          ? "bg-muted/50 text-muted-foreground line-through"
-                          : "bg-success/20 text-success"
-                        : isSkipped
-                        ? "bg-muted/30 text-muted-foreground/50 line-through"
+                        ? "bg-success/20 text-success"
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
                     <span className="w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold">
-                      {isSkipped ? "⊘" : isPast ? "✓" : index + 1}
+                      {isPast ? "✓" : index + 1}
                     </span>
                     {step.title}
                   </div>
@@ -525,11 +547,20 @@ const OnboardingFlow = () => {
 
       {/* Step Content */}
       <div className="max-w-4xl mx-auto px-6 py-8">
+        {linkedInDataImported && (STEPS[currentStep].id === 'registration' || STEPS[currentStep].id === 'assessment') && (
+          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+            <p className="text-sm text-blue-800 dark:text-blue-200 flex items-center gap-2">
+              <span className="text-lg">ℹ️</span>
+              Preenchemos automaticamente suas informações com base no seu perfil do LinkedIn. Revise e confirme antes de continuar.
+            </p>
+          </div>
+        )}
+        
         <CurrentStepComponent
           onNext={handleNext}
           onBack={handleBack}
           isLoading={isLoading}
-          data={stepData[STEPS[currentStep].id]}
+          data={currentStepData}
         />
       </div>
 
@@ -547,16 +578,16 @@ const OnboardingFlow = () => {
             Voltar
           </Button>
 
-          <div className="flex items-center gap-4">
-            <div className="text-center">
-              <div className="text-sm font-medium text-foreground">
-                Passo {activeCurrentStepIndex + 1} de {activeSteps.length}
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {Math.round(progressPercentage)}% concluído
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <div className="text-sm font-medium text-foreground">
+                  Passo {currentStep + 1} de {STEPS.length}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {Math.round(progressPercentage)}% concluído
+                </div>
               </div>
             </div>
-          </div>
         </div>
       </div>
     </div>
