@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -143,38 +143,32 @@ const OnboardingFlow = () => {
     loadLinkedInData();
   }, []);
 
-  // Initialize step from URL params (idempotent)
+  // Sync current step with URL (read-only)
+  const location = useLocation();
   useEffect(() => {
-    const step = searchParams.get("step");
-    if (step) {
-      const stepIndex = STEPS.findIndex(s => s.id === step);
+    const stepParam = new URLSearchParams(location.search).get("step");
+    if (stepParam) {
+      const stepIndex = STEPS.findIndex((s) => s.id === stepParam);
       if (stepIndex !== -1 && stepIndex !== currentStep) {
         setCurrentStep(stepIndex);
       }
     } else {
-      // Ensure URL always has the current step once
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.set("step", STEPS[currentStep].id);
-        return next;
-      }, { replace: true });
+      // Ensure URL contains current step once
+      const expected = STEPS[currentStep].id;
+      setSearchParams({ step: expected }, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, currentStep]);
+  }, [location.search, currentStep]);
 
-  // Update URL when step changes (avoid redundant replaces)
+  // Update URL when step changes (no-op if same)
   useEffect(() => {
-    const urlStep = searchParams.get("step");
+    const urlStep = new URLSearchParams(location.search).get("step");
     const expected = STEPS[currentStep].id;
     if (urlStep !== expected) {
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.set("step", expected);
-        return next;
-      }, { replace: true });
+      setSearchParams({ step: expected }, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStep, searchParams]);
+  }, [currentStep]);
 
   const handleNext = async (data?: any) => {
     setIsLoading(true);
