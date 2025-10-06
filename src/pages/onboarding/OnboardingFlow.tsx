@@ -45,16 +45,16 @@ const STEPS: StepData[] = [
     component: CandidateRegistrationStep,
   },
   {
-    id: "validation",
-    title: "Validação Cultural",
-    description: "Responda perguntas sobre seus valores",
-    component: CandidateValidationStep,
-  },
-  {
     id: "assessment",
     title: "Avaliação Profissional",
     description: "Conte sobre sua experiência profissional",
     component: ProfessionalAssessmentStep,
+  },
+  {
+    id: "validation",
+    title: "Validação Cultural",
+    description: "Responda perguntas sobre seus valores",
+    component: CandidateValidationStep,
   },
   {
     id: "candidate-assessment",
