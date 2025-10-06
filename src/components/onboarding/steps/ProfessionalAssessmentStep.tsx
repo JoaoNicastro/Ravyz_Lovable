@@ -115,37 +115,35 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
     <div className="space-y-6">
       {/* Mini Progress Bar */}
       <div className="max-w-2xl mx-auto">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-muted-foreground">
-              Etapa {currentSubStep + 1} de {SUB_STEPS.length}
-            </span>
-            <span className="font-semibold text-primary">
-              {Math.round(progressPercentage)}%
-            </span>
-          </div>
-          <Progress value={progressPercentage} className="h-2" />
-          
-          {/* Step Pills */}
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {SUB_STEPS.map((step, index) => (
-              <div
-                key={step.id}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs whitespace-nowrap transition-all ${
-                  index === currentSubStep
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : index < currentSubStep
-                    ? "bg-success/20 text-success"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                <span className="w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold">
-                  {index < currentSubStep ? "✓" : index + 1}
-                </span>
-                {step.title}
-              </div>
-            ))}
-          </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-medium text-muted-foreground">
+            Etapa {currentSubStep + 1} de {SUB_STEPS.length}
+          </span>
+          <span className="font-semibold text-primary">
+            {Math.round(progressPercentage)}%
+          </span>
+        </div>
+        <Progress value={progressPercentage} className="h-2" />
+        
+        {/* Step Pills */}
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {SUB_STEPS.map((step, index) => (
+            <div
+              key={step.id}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs whitespace-nowrap transition-all ${
+                index === currentSubStep
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : index < currentSubStep
+                  ? "bg-success/20 text-success"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
+              <span className="w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold">
+                {index < currentSubStep ? "✓" : index + 1}
+              </span>
+              {step.title}
+            </div>
+          ))}
         </div>
       </div>
 
