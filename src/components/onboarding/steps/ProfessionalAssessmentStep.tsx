@@ -177,7 +177,7 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {form.watch("skills").map((skill, index) => (
+                {(form.watch("skills") || []).map((skill, index) => (
                   <Badge key={index} variant="secondary" className="gap-1">
                     {skill}
                     <button
@@ -327,7 +327,7 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {form.watch("preferredRoles").map((role, index) => (
+                  {(form.watch("preferredRoles") || []).map((role, index) => (
                     <Badge key={index} variant="outline" className="gap-1">
                       {role}
                       <button
