@@ -8,10 +8,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ChevronRight, Plus, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { ChevronRight, Plus, X, Check, Sparkles } from "lucide-react";
+import { AutocompleteInput } from "@/components/onboarding/AutocompleteInput";
+import { SkillSuggestions } from "@/components/onboarding/SkillSuggestions";
+import { ProfilePreview } from "@/components/onboarding/ProfilePreview";
+import { AchievementBadge } from "@/components/onboarding/AchievementBadge";
 import { useState } from "react";
 
 const assessmentSchema = z.object({
@@ -35,9 +38,26 @@ interface StepProps {
   data?: AssessmentData;
 }
 
+const PROFESSIONAL_TITLES = [
+  "Desenvolvedor Full Stack",
+  "Desenvolvedor Frontend",
+  "Desenvolvedor Backend",
+  "Designer UI/UX",
+  "Designer de Produto",
+  "Gerente de Projetos",
+  "Gerente de Marketing",
+  "Analista de Dados",
+  "Product Manager",
+  "Engenheiro de Software",
+  "Arquiteto de Soluções",
+  "Scrum Master",
+  "Tech Lead",
+];
+
 const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
   const [newSkill, setNewSkill] = useState("");
   const [newRole, setNewRole] = useState("");
+  const [showSuccessCheck, setShowSuccessCheck] = useState<string | null>(null);
 
   const form = useForm<AssessmentData>({
     resolver: zodResolver(assessmentSchema),
@@ -54,11 +74,14 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
     },
   });
 
-  const addSkill = () => {
-    if (newSkill.trim()) {
+  const addSkill = (skill?: string) => {
+    const skillToAdd = skill || newSkill;
+    if (skillToAdd.trim()) {
       const currentSkills = form.getValues("skills") || [];
-      form.setValue("skills", [...currentSkills, newSkill.trim()]);
+      form.setValue("skills", [...currentSkills, skillToAdd.trim()]);
       setNewSkill("");
+      setShowSuccessCheck("skill");
+      setTimeout(() => setShowSuccessCheck(null), 1000);
     }
   };
 
@@ -102,35 +125,63 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
     return Math.min(score, 100);
   };
 
+  const watchedValues = form.watch();
+  
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="text-center space-y-2">
-        <h2 className="text-xl font-semibold text-foreground">
-          Conte sobre sua experiência profissional
-        </h2>
-        <p className="text-muted-foreground">
-          Essas informações nos ajudam a encontrar oportunidades alinhadas com seu perfil
-        </p>
-      </div>
+    <div className="grid lg:grid-cols-[1fr_320px] gap-6">
+      <div className="space-y-6">
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-bold text-foreground flex items-center justify-center gap-2">
+            <Sparkles className="w-6 h-6 text-primary" />
+            Destaque sua Trajetória
+          </h2>
+          <p className="text-muted-foreground">
+            Vamos encontrar as melhores oportunidades destacando sua experiência
+          </p>
+        </div>
+
+        {/* Achievement Badge */}
+        <AchievementBadge
+          skillCount={watchedValues.skills?.length || 0}
+          hasGoals={!!watchedValues.careerGoals && watchedValues.careerGoals.length >= 50}
+          isComplete={
+            !!watchedValues.headline &&
+            !!watchedValues.years_experience &&
+            (watchedValues.skills?.length || 0) >= 3 &&
+            !!watchedValues.currentRole &&
+            !!watchedValues.currentCompany &&
+            !!watchedValues.keyAchievements &&
+            !!watchedValues.careerGoals
+          }
+        />
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Professional Profile */}
-          <Card>
+          <Card className="border-l-4 border-l-primary">
             <CardHeader>
-              <CardTitle>Perfil Profissional</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <span>✨</span> Perfil Profissional
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <FormField
                 control={form.control}
                 name="headline"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Título Profissional *</FormLabel>
+                    <FormLabel className="text-base">Como você se apresenta profissionalmente?</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Desenvolvedor Full Stack | Designer UI/UX | Gerente de Marketing" {...field} />
+                      <AutocompleteInput
+                        placeholder="Comece a digitar... (ex: Desenvolvedor, Designer)"
+                        suggestions={PROFESSIONAL_TITLES}
+                        onSelect={(value) => field.onChange(value)}
+                        {...field}
+                      />
                     </FormControl>
-                    <p className="text-xs text-muted-foreground">Como você se apresentaria em uma frase? Seja específico e atrativo.</p>
+                    <p className="text-xs text-muted-foreground">
+                      💡 Dica: Seja específico e atrativo!
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -140,17 +191,26 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
                 control={form.control}
                 name="years_experience"
                 render={({ field }) => (
-                  <FormItem className="max-w-xs">
-                    <FormLabel>Anos de Experiência Total</FormLabel>
+                  <FormItem>
+                    <div className="flex items-center justify-between mb-2">
+                      <FormLabel className="text-base">Quantos anos de experiência você tem?</FormLabel>
+                      <span className="text-2xl font-bold text-primary">{field.value || 0}</span>
+                    </div>
                     <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        max="50"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      <Slider
+                        min={0}
+                        max={30}
+                        step={1}
+                        value={[field.value || 0]}
+                        onValueChange={(values) => field.onChange(values[0])}
+                        className="py-4"
                       />
                     </FormControl>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>0 anos</span>
+                      <span>15 anos</span>
+                      <span>30+ anos</span>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -159,31 +219,58 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
           </Card>
 
           {/* Skills */}
-          <Card>
+          <Card className="border-l-4 border-l-primary">
             <CardHeader>
-              <CardTitle>Principais Habilidades</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <span>🎯</span> Principais Habilidades
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
                 <Input
-                  placeholder="ex: React, Python, Project Management..."
+                  placeholder="Digite uma habilidade e pressione Enter..."
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addSkill();
+                    }
+                  }}
                 />
-                <Button type="button" onClick={addSkill} size="sm">
-                  <Plus className="w-4 h-4" />
+                <Button 
+                  type="button" 
+                  onClick={() => addSkill()} 
+                  size="sm"
+                  className="min-w-[60px]"
+                >
+                  {showSuccessCheck === "skill" ? (
+                    <Check className="w-4 h-4 animate-in zoom-in-0" />
+                  ) : (
+                    <Plus className="w-4 h-4" />
+                  )}
                 </Button>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              {/* Skill Suggestions */}
+              <SkillSuggestions
+                role={form.watch("headline") || ""}
+                onAddSkill={addSkill}
+                currentSkills={form.watch("skills") || []}
+              />
+
+              <div className="flex flex-wrap gap-2 min-h-[40px]">
                 {(form.watch("skills") || []).map((skill, index) => (
-                  <Badge key={index} variant="secondary" className="gap-1">
+                  <Badge 
+                    key={index} 
+                    variant="secondary" 
+                    className="gap-1 animate-in fade-in-0 zoom-in-95"
+                  >
                     {skill}
                     <button
                       type="button"
                       onClick={() => removeSkill(index)}
-                      className="ml-1 hover:text-destructive"
+                      className="ml-1 hover:text-destructive transition-colors"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -200,13 +287,19 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
                   </FormItem>
                 )}
               />
+              
+              <p className="text-xs text-muted-foreground">
+                💡 Adicione pelo menos 3 habilidades. Quanto mais, melhor!
+              </p>
             </CardContent>
           </Card>
 
           {/* Current Position */}
-          <Card>
+          <Card className="border-l-4 border-l-primary">
             <CardHeader>
-              <CardTitle>Posição Atual</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <span>💼</span> Posição Atual
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
@@ -262,9 +355,11 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
           </Card>
 
           {/* Achievements */}
-          <Card>
+          <Card className="border-l-4 border-l-primary">
             <CardHeader>
-              <CardTitle>Principais Conquistas</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <span>🏆</span> Principais Conquistas
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <FormField
@@ -272,7 +367,7 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
                 name="keyAchievements"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descreva suas principais conquistas profissionais</FormLabel>
+                    <FormLabel className="text-base">Do que você mais se orgulha na sua carreira?</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="ex: Liderei o desenvolvimento de uma aplicação que aumentou a eficiência da equipe em 40%..."
@@ -288,9 +383,11 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
           </Card>
 
           {/* Career Goals */}
-          <Card>
+          <Card className="border-l-4 border-l-primary">
             <CardHeader>
-              <CardTitle>Objetivos de Carreira</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <span>🎯</span> Objetivos de Carreira
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField
@@ -298,7 +395,7 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
                 name="careerGoals"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Quais são seus objetivos profissionais?</FormLabel>
+                    <FormLabel className="text-base">Onde você se vê daqui a alguns anos?</FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="ex: Busco crescer como líder técnico, aprender novas tecnologias..."
@@ -313,7 +410,7 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
 
               {/* Preferred Roles */}
               <div className="space-y-2">
-                <Label>Cargos de Interesse</Label>
+                <Label className="text-base">Quais cargos você deseja?</Label>
                 <div className="flex gap-2">
                   <Input
                     placeholder="ex: Senior Developer, Tech Lead..."
@@ -359,14 +456,26 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({ onNext, data }) => {
               type="submit"
               disabled={form.formState.isSubmitting}
               size="lg"
-              className="min-w-[140px]"
+              className="min-w-[160px] bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
             >
-              {form.formState.isSubmitting ? "Salvando..." : "Continuar"}
-              <ChevronRight className="ml-2 w-4 h-4" />
+              {form.formState.isSubmitting ? "Salvando..." : "Continuar Jornada"}
+              <ChevronRight className="ml-2 w-5 h-5" />
             </Button>
           </div>
         </form>
       </Form>
+      </div>
+
+      {/* Profile Preview Sidebar */}
+      <div className="hidden lg:block">
+        <ProfilePreview
+          headline={watchedValues.headline}
+          yearsExperience={watchedValues.years_experience}
+          skills={watchedValues.skills}
+          currentRole={watchedValues.currentRole}
+          currentCompany={watchedValues.currentCompany}
+        />
+      </div>
     </div>
   );
 };
