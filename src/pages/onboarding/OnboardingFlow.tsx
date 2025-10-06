@@ -157,7 +157,8 @@ const OnboardingFlow = () => {
   // Update URL when step changes
   useEffect(() => {
     setSearchParams({ step: STEPS[currentStep].id });
-  }, [currentStep, setSearchParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep]);
 
   const handleNext = async (data?: any) => {
     setIsLoading(true);

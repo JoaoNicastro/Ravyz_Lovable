@@ -78,8 +78,9 @@ export const AchievementBadge: React.FC<AchievementBadgeProps> = ({
         setShowNotification(latestBadge);
         setTimeout(() => setShowNotification(null), 3000);
       }
-      setUnlockedBadges([...unlockedBadges, ...newUnlocked]);
+      setUnlockedBadges((prev) => [...prev, ...newUnlocked]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [skillCount, hasGoals, isComplete]);
 
   if (unlockedBadges.length === 0) return null;
