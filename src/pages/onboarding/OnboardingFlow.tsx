@@ -82,6 +82,56 @@ const OnboardingFlow = () => {
   // Process LinkedIn OAuth callback
   const { isProcessing: isProcessingLinkedIn } = useLinkedInAuth();
 
+  // Check for LinkedIn data on mount
+  useEffect(() => {
+    const checkInitialLinkedInData = async () => {
+      try {
+        const { data: user } = await supabase.auth.getUser();
+        if (!user.user) return;
+
+        const { data: profile } = await supabase
+          .from('candidate_profiles')
+          .select('linkedin_data, full_name, email, current_position, education, skills')
+          .eq('user_id', user.user.id)
+          .maybeSingle();
+
+        if (profile?.linkedin_data && Object.keys(profile.linkedin_data).length > 0) {
+          // Check if essential data was imported
+          const hasEssentialData = 
+            profile.full_name && 
+            profile.email &&
+            profile.current_position && 
+            profile.education && 
+            Array.isArray(profile.education) && 
+            profile.education.length > 0 &&
+            profile.skills &&
+            Array.isArray(profile.skills) &&
+            profile.skills.length > 0;
+
+          if (hasEssentialData) {
+            const stepsToSkip = ['registration', 'assessment'];
+            setSkippedSteps(stepsToSkip);
+            setLinkedInDataImported(true);
+            
+            // If we're on fill-method or a skipped step, navigate to validation
+            const currentStepId = searchParams.get("step") || 'fill-method';
+            if (currentStepId === 'fill-method' || stepsToSkip.includes(currentStepId)) {
+              setCurrentStep(STEPS.findIndex(s => s.id === 'validation'));
+              toast.info(
+                "Pulamos algumas etapas porque suas informações do LinkedIn já foram importadas com sucesso.",
+                { duration: 5000 }
+              );
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error checking initial LinkedIn data:", error);
+      }
+    };
+
+    checkInitialLinkedInData();
+  }, []);
+
   // Initialize step from URL params
   useEffect(() => {
     const step = searchParams.get("step");
@@ -113,6 +163,11 @@ const OnboardingFlow = () => {
       // Check if LinkedIn method was chosen and profile has LinkedIn data
       if (STEPS[currentStep].id === 'fill-method' && data?.method === 'linkedin') {
         await checkLinkedInImport();
+        // After checking, if steps should be skipped, jump to validation
+        if (skippedSteps.length > 0) {
+          setCurrentStep(STEPS.findIndex(s => s.id === 'validation'));
+          return;
+        }
       }
 
       // If this is the last step, complete onboarding
@@ -139,26 +194,30 @@ const OnboardingFlow = () => {
 
       const { data: profile } = await supabase
         .from('candidate_profiles')
-        .select('linkedin_data, full_name, current_position, education')
+        .select('linkedin_data, full_name, email, current_position, education, skills')
         .eq('user_id', user.user.id)
-        .single();
+        .maybeSingle();
 
       if (profile?.linkedin_data && Object.keys(profile.linkedin_data).length > 0) {
         // Check if essential data was imported
         const hasEssentialData = 
           profile.full_name && 
+          profile.email &&
           profile.current_position && 
           profile.education && 
           Array.isArray(profile.education) && 
-          profile.education.length > 0;
+          profile.education.length > 0 &&
+          profile.skills &&
+          Array.isArray(profile.skills) &&
+          profile.skills.length > 0;
 
         if (hasEssentialData) {
-          const stepsToSkip = ['registration', 'assessment', 'candidate-assessment'];
+          const stepsToSkip = ['registration', 'assessment'];
           setSkippedSteps(stepsToSkip);
           setLinkedInDataImported(true);
           
           toast.info(
-            "Pulamos algumas etapas porque essas informações já foram importadas do seu perfil do LinkedIn.",
+            "Pulamos algumas etapas porque suas informações do LinkedIn já foram importadas com sucesso.",
             { duration: 5000 }
           );
         }
