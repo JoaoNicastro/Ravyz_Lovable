@@ -9,7 +9,6 @@ import ravyzLogo from "@/assets/ravyz-logo.png";
 import { useLinkedInAuth } from "@/hooks/useLinkedInAuth";
 
 // Step components
-import FillMethodStep from "@/components/onboarding/steps/FillMethodStep";
 import CandidateRegistrationStep from "@/components/onboarding/steps/CandidateRegistrationStep";
 import CandidateValidationStep from "@/components/onboarding/steps/CandidateValidationStep";
 import ProfessionalAssessmentStep from "@/components/onboarding/steps/ProfessionalAssessmentStep";
@@ -32,12 +31,6 @@ interface StepComponentProps {
 }
 
 const STEPS: StepData[] = [
-  {
-    id: "fill-method",
-    title: "Método de Preenchimento",
-    description: "Escolha como deseja completar seu perfil",
-    component: FillMethodStep,
-  },
   {
     id: "registration",
     title: "Informações para Candidatura",
@@ -176,11 +169,6 @@ const OnboardingFlow = () => {
           ...prev,
           [STEPS[currentStep].id]: data
         }));
-      }
-
-      // Check if LinkedIn method was chosen
-      if (STEPS[currentStep].id === 'fill-method' && data?.method === 'linkedin') {
-        await loadLinkedInDataForPrefill();
       }
 
       // If this is the last step, complete onboarding
