@@ -315,8 +315,21 @@ const OnboardingFlow = () => {
 
   const completeOnboarding = async () => {
     try {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não encontrado");
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError) {
+        console.error("Auth error:", authError);
+        toast.error("Erro de autenticação. Por favor, faça login novamente.");
+        navigate("/auth");
+        return;
+      }
+
+      if (!user) {
+        console.error("No user found");
+        toast.error("Sessão expirada. Por favor, faça login novamente.");
+        navigate("/auth");
+        return;
+      }
 
       // Combine all collected data
       const allData = {
@@ -335,15 +348,15 @@ const OnboardingFlow = () => {
       let { data: profile, error: profileError } = await supabase
         .from('candidate_profiles')
         .select('*')
-        .eq('user_id', user.user.id)
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle();
 
       if (profileError && profileError.code !== 'PGRST116') {
         throw profileError;
       }
 
       const profileData = {
-        user_id: user.user.id,
+        user_id: user.id,
         // Basic personal info from registration
         full_name: registrationData?.full_name || null,
         date_of_birth: registrationData?.date_of_birth 
@@ -353,17 +366,21 @@ const OnboardingFlow = () => {
           : null,
         email: registrationData?.email || null,
         phone: registrationData?.phone || null,
+        cpf: registrationData?.cpf || null,
+        gender: registrationData?.gender || null,
+        location: registrationData?.location || null,
         // Professional profile info
         avatar_url: registrationData?.avatar_url || null,
-        headline: registrationData?.headline || null,
-        location: registrationData?.location || null,
-        years_experience: registrationData?.years_experience || null,
-        skills: registrationData?.skills || [],
-        // Assessment data
-        current_position: assessmentData?.current_position || null,
-        key_achievements: assessmentData?.achievements || null,
-        preferred_roles: assessmentData?.preferred_roles || [],
-        career_goals: assessmentData?.career_goals || null,
+        headline: assessmentData?.headline || null,
+        years_experience: assessmentData?.years_experience || 0,
+        skills: assessmentData?.skills || [],
+        languages: registrationData?.languages || [],
+        education: registrationData?.education || [],
+        // Current position data
+        current_position: assessmentData?.currentRole || null,
+        key_achievements: assessmentData?.keyAchievements || null,
+        preferred_roles: assessmentData?.preferredRoles || [],
+        career_goals: assessmentData?.careerGoals || null,
         preferences: {
           completionLevel: 100,
           desired_role: dreamJobData?.desiredRole,
@@ -399,7 +416,7 @@ const OnboardingFlow = () => {
         const { data: candidateProfile } = await supabase
           .from('candidate_profiles')
           .select('id')
-          .eq('user_id', user.user.id)
+          .eq('user_id', user.id)
           .single();
 
         if (candidateProfile) {
@@ -467,7 +484,7 @@ const OnboardingFlow = () => {
           profiles: ['candidate'],
           active_profile: 'candidate'
         })
-        .eq('id', user.user.id);
+        .eq('id', user.id);
 
       if (error) throw error;
 
