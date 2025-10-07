@@ -1,14 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Form } from "@/components/ui/form";
-import { Badge } from "@/components/ui/badge";
+import { InteractiveScale } from "@/components/onboarding/InteractiveScale";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // Company Assessment questions based on MATCH RAVYZ methodology (30 questions)
 const JOB_ASSESSMENT_QUESTIONS = [
@@ -56,7 +54,7 @@ const JOB_ASSESSMENT_QUESTIONS = [
 // Create schema dynamically from questions
 const companyAssessmentSchema = z.object(
   JOB_ASSESSMENT_QUESTIONS.reduce((acc, question) => {
-    acc[question.id] = z.number().min(1).max(5);
+    acc[question.id] = z.number().min(1, "Resposta obrigatória").max(5);
     return acc;
   }, {} as Record<string, z.ZodNumber>)
 );
@@ -76,10 +74,50 @@ const CompanyAssessmentStep: React.FC<CompanyAssessmentStepProps> = ({
   isLoading = false,
   data,
 }) => {
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+
   const form = useForm<CompanyAssessmentData>({
     resolver: zodResolver(companyAssessmentSchema),
     defaultValues: data || {},
   });
+
+  const currentQuestion = JOB_ASSESSMENT_QUESTIONS[currentQuestionIndex];
+  const totalQuestions = JOB_ASSESSMENT_QUESTIONS.length;
+  const progress = ((currentQuestionIndex + 1) / totalQuestions) * 100;
+  const answeredCount = Object.keys(form.getValues()).filter(key => 
+    form.getValues()[key as keyof CompanyAssessmentData] !== undefined
+  ).length;
+
+  const handleAnswerSelect = (value: number) => {
+    setIsAnimating(true);
+    
+    // Set value in form
+    form.setValue(currentQuestion.id as keyof CompanyAssessmentData, value);
+
+    // Auto-advance after a short delay
+    setTimeout(() => {
+      if (currentQuestionIndex < totalQuestions - 1) {
+        setCurrentQuestionIndex(prev => prev + 1);
+        setIsAnimating(false);
+      } else {
+        // Last question - submit form
+        form.handleSubmit(handleSubmit)();
+      }
+    }, 500);
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    }
+  };
 
   const handleSubmit = (formData: CompanyAssessmentData) => {
     // Calculate pillar scores (average per pillar)
@@ -101,7 +139,7 @@ const CompanyAssessmentStep: React.FC<CompanyAssessmentStepProps> = ({
 
     // Calculate averages per pillar
     JOB_ASSESSMENT_QUESTIONS.forEach((question) => {
-      const score = formData[question.id];
+      const score = formData[question.id as keyof CompanyAssessmentData];
       const pillar = question.pillar as keyof typeof pillarScores;
       
       pillarScores[pillar] += score;
@@ -152,81 +190,113 @@ const CompanyAssessmentStep: React.FC<CompanyAssessmentStepProps> = ({
     return pairs[key1] || pairs[key2] || "Equilibrado";
   };
 
-  const progress = Object.keys(form.getValues()).length / JOB_ASSESSMENT_QUESTIONS.length * 100;
+  const currentValue = form.watch(currentQuestion.id as keyof CompanyAssessmentData);
+  const pillarName = currentQuestion.pillar === 'autonomy' ? 'Autonomia' :
+                      currentQuestion.pillar === 'leadership' ? 'Liderança' :
+                      currentQuestion.pillar === 'teamwork' ? 'Trabalho em Grupo' :
+                      currentQuestion.pillar === 'risk' ? 'Risco' : 'Ambição';
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Assessment da Vaga</CardTitle>
-        <p className="text-muted-foreground">
-          Defina o perfil comportamental ideal para esta vaga usando a escala de 1 (baixo) a 5 (alto)
-        </p>
-        <Progress value={progress} className="h-2" />
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-            {JOB_ASSESSMENT_QUESTIONS.map((question, index) => (
-              <FormField
-                key={question.id}
-                control={form.control}
-                name={question.id as keyof CompanyAssessmentData}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base">
-                      <span className="font-semibold">{index + 1}.</span> {question.text}
-                    </FormLabel>
-                    <RadioGroup
-                      onValueChange={(value) => field.onChange(parseInt(value))}
-                      value={field.value?.toString()}
-                      className="flex justify-between"
-                    >
-                      {[1, 2, 3, 4, 5].map((value) => (
-                        <div key={value} className="flex items-center space-x-2">
-                          <RadioGroupItem value={value.toString()} id={`${question.id}-${value}`} />
-                          <label
-                            htmlFor={`${question.id}-${value}`}
-                            className="text-sm cursor-pointer"
-                          >
-                            {value}
-                          </label>
-                        </div>
-                      ))}
-                    </RadioGroup>
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Baixo</span>
-                      <span>Alto</span>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
+    <div className="max-w-4xl mx-auto space-y-6 pb-8">
+      {/* Progress Header */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h2 className="text-2xl font-bold">Assessment da Vaga</h2>
+            <p className="text-sm text-muted-foreground">
+              Pergunta {currentQuestionIndex + 1} de {totalQuestions}
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-primary">{Math.round(progress)}%</div>
+            <div className="text-xs text-muted-foreground">Concluído</div>
+          </div>
+        </div>
+
+        {/* Pillar indicator */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground">Pilar:</span>
+          <span className={cn(
+            "text-xs font-semibold px-2.5 py-1 rounded-full",
+            currentQuestion.pillar === 'autonomy' && "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+            currentQuestion.pillar === 'leadership' && "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
+            currentQuestion.pillar === 'teamwork' && "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
+            currentQuestion.pillar === 'risk' && "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300",
+            currentQuestion.pillar === 'ambition' && "bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300"
+          )}>
+            {pillarName}
+          </span>
+        </div>
+      </div>
+
+      {/* Question Card */}
+      <Card className={cn(
+        "transition-all duration-300",
+        isAnimating && "opacity-50 scale-95"
+      )}>
+        <CardContent className="py-12 px-6 md:px-12">
+          <div className="space-y-8">
+            {/* Question Text */}
+            <div className="text-center space-y-4 animate-fade-in">
+              <h3 className="text-2xl md:text-3xl font-semibold leading-tight">
+                {currentQuestion.text}
+              </h3>
+            </div>
+
+            {/* Interactive Scale */}
+            <div className="animate-fade-in">
+              <InteractiveScale
+                value={currentValue}
+                onChange={handleAnswerSelect}
+                disabled={isAnimating}
               />
-            ))}
-
-            {/* Pillar indicators */}
-            <div className="mt-8 p-4 bg-muted rounded-lg">
-              <h3 className="font-semibold mb-2">Pilares da Vaga:</h3>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="secondary">Autonomia (Liberdade de Decisão)</Badge>
-                <Badge variant="secondary">Liderança (Potencial de Sucessão)</Badge>
-                <Badge variant="secondary">Trabalho em Grupo (Colaboração)</Badge>
-                <Badge variant="secondary">Risco (Inovação vs Estabilidade)</Badge>
-                <Badge variant="secondary">Ambição (Projeção de Carreira)</Badge>
-              </div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
 
-            <div className="flex justify-between">
-              <Button type="button" variant="outline" onClick={onBack}>
-                Voltar
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                Continuar
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+      {/* Navigation */}
+      <div className="flex justify-between items-center pt-4">
+        <Button
+          variant="outline"
+          onClick={currentQuestionIndex === 0 ? onBack : handlePrevious}
+          disabled={isLoading}
+          size="lg"
+        >
+          <ChevronLeft className="h-4 w-4 mr-2" />
+          {currentQuestionIndex === 0 ? 'Voltar' : 'Anterior'}
+        </Button>
+
+        <div className="text-sm text-muted-foreground">
+          {answeredCount === totalQuestions ? (
+            <span className="text-success font-medium">Todas as perguntas respondidas! ✓</span>
+          ) : (
+            <span>{answeredCount} de {totalQuestions} respondidas</span>
+          )}
+        </div>
+
+        {currentQuestionIndex < totalQuestions - 1 ? (
+          <Button
+            variant="ghost"
+            onClick={handleNext}
+            disabled={!currentValue || isLoading}
+            size="lg"
+          >
+            Próxima
+            <ChevronRight className="h-4 w-4 ml-2" />
+          </Button>
+        ) : (
+          <Button
+            onClick={form.handleSubmit(handleSubmit)}
+            disabled={answeredCount < totalQuestions || isLoading}
+            size="lg"
+          >
+            {isLoading ? 'Processando...' : 'Finalizar Assessment'}
+            <ChevronRight className="h-4 w-4 ml-2" />
+          </Button>
+        )}
+      </div>
+    </div>
   );
 };
 
