@@ -35,7 +35,7 @@ export const AchievementsStep: React.FC<AchievementsStepProps> = ({ onNext, onBa
   const currentLength = form.watch("keyAchievements")?.length || 0;
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <div className="text-center space-y-2 mb-8">
         <h2 className="text-2xl font-bold text-foreground flex items-center justify-center gap-2">
           <span>🏆</span> Suas Conquistas

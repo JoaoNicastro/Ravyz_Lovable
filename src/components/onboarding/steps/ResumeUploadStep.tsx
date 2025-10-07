@@ -174,7 +174,7 @@ const ResumeUploadStep: React.FC<StepProps> = ({ onNext, onBack, isLoading }) =>
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center space-y-3">
         <h2 className="text-2xl font-semibold">Upload de Currículo</h2>
         <p className="text-muted-foreground">

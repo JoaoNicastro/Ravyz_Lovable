@@ -57,7 +57,7 @@ export const SkillsStep: React.FC<SkillsStepProps> = ({ onNext, onBack, data, he
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       <div className="text-center space-y-2 mb-8">
         <h2 className="text-2xl font-bold text-foreground flex items-center justify-center gap-2">
           <span>🎯</span> Suas Habilidades
