@@ -57,21 +57,28 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
   });
 
   const addLocation = (locationValue?: string) => {
-    const locationToAdd = locationValue || newLocation;
-    if (locationToAdd.trim()) {
-      const currentLocations = form.getValues("preferredLocations");
-      if (!currentLocations.includes(locationToAdd.trim())) {
-        form.setValue("preferredLocations", [...currentLocations, locationToAdd.trim()]);
-        setNewLocation("");
-      }
+    const locationToAdd = (locationValue ?? newLocation).trim();
+    if (!locationToAdd) return;
+
+    const currentLocations = form.getValues("preferredLocations") || [];
+    if (!currentLocations.includes(locationToAdd)) {
+      form.setValue(
+        "preferredLocations",
+        [...currentLocations, locationToAdd],
+        { shouldDirty: true, shouldValidate: true }
+      );
+      setNewLocation("");
     }
   };
 
   const removeLocation = (index: number) => {
-    const currentLocations = form.getValues("preferredLocations");
-    form.setValue("preferredLocations", currentLocations.filter((_, i) => i !== index));
+    const currentLocations = form.getValues("preferredLocations") || [];
+    form.setValue(
+      "preferredLocations",
+      currentLocations.filter((_, i) => i !== index),
+      { shouldDirty: true, shouldValidate: true }
+    );
   };
-
   const toggleIndustry = (industry: string) => {
     const updated = selectedIndustries.includes(industry)
       ? selectedIndustries.filter(i => i !== industry)
