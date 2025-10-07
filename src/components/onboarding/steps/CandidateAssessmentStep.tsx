@@ -252,8 +252,6 @@ export default function CandidateAssessmentStep({
             <div className="text-xs text-muted-foreground">Concluído</div>
           </div>
         </div>
-        
-        <Progress value={progress} className="h-2.5 transition-all duration-500" />
 
         {/* Pillar indicator */}
         <div className="flex items-center gap-2">
