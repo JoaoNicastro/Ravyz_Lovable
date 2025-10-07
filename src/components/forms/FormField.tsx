@@ -31,7 +31,7 @@ export function ReusableFormField<
               : React.cloneElement(children as React.ReactElement, { ...field })
             }
           </FormControl>
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+          {description && <p className="text-xs text-muted-foreground mt-1">{description}</p>}
           <FormMessage />
         </FormItem>
       )}

@@ -8,7 +8,7 @@ import { Form } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ReusableFormField } from "./FormField";
-import { ArrowRight, ArrowLeft, Upload, X, Plus, FileText, Loader2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, Upload, X, Plus, FileText, Loader2, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import { parseResumeEnhanced, type ParsedResumeData } from "@/lib/enhanced-resume-parser";
 import { toast } from "sonner";
@@ -18,7 +18,23 @@ import { AvatarUpload } from "@/components/AvatarUpload";
 
 const candidateProfileSchema = z.object({
   // Basic info fields
-  date_of_birth: z.string().min(1, "Data de nascimento é obrigatória"),
+  date_of_birth: z.string()
+    .min(1, "Data de nascimento é obrigatória")
+    .refine((date) => {
+      const birthDate = new Date(date);
+      const today = new Date();
+      const age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) 
+        ? age - 1 
+        : age;
+      return actualAge >= 16;
+    }, "Você deve ter pelo menos 16 anos")
+    .refine((date) => {
+      const birthDate = new Date(date);
+      const today = new Date();
+      return birthDate < today;
+    }, "Data de nascimento não pode ser no futuro"),
   phone: z.string()
     .min(14, "Telefone incompleto")
     .regex(/^\(\d{2}\)\s\d{5}-\d{4}$/, "Formato de telefone inválido"),
@@ -199,8 +215,20 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
               control={form.control}
               name="date_of_birth"
               label="Data de nascimento *"
+              description="Você deve ter pelo menos 16 anos"
             >
-              <Input type="date" />
+              {(field) => (
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <Input 
+                    type="date" 
+                    className="pl-10"
+                    max={new Date().toISOString().split('T')[0]}
+                    min={new Date(new Date().setFullYear(new Date().getFullYear() - 100)).toISOString().split('T')[0]}
+                    {...field}
+                  />
+                </div>
+              )}
             </ReusableFormField>
 
             <ReusableFormField
