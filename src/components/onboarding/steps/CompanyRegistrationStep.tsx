@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { MaskedInput } from "@/components/ui/masked-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Users, MapPin, Info, Globe, Calendar, Hash, Linkedin } from "lucide-react";
+
 
 const companyRegistrationSchema = z.object({
   company_name: z.string().min(2, "Nome da empresa deve ter pelo menos 2 caracteres"),
@@ -69,252 +69,240 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          {/* Company Name */}
-          <FormField
-            control={form.control}
-            name="company_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center space-x-2">
-                  <Building2 className="h-4 w-4" />
-                  <span>Nome da Empresa *</span>
-                </FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Ex: Tech Innovation Ltda" 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Informações Básicas */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Informações Básicas</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="company_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome da Empresa *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Ex: Tech Innovation Ltda" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Location */}
-          <FormField
-            control={form.control}
-            name="location"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center space-x-2">
-                  <MapPin className="h-4 w-4" />
-                  <span>Localização *</span>
-                </FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Ex: São Paulo, SP" 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Localização *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Ex: São Paulo, SP" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
 
-          {/* Description */}
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center space-x-2">
-                  <Info className="h-4 w-4" />
-                  <span>Descrição da Empresa</span>
-                </FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Conte um pouco sobre sua empresa, seus valores e o que faz... (opcional)"
-                    className="min-h-[100px]"
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Company Culture */}
-          <FormField
-            control={form.control}
-            name="company_culture"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center space-x-2">
-                  <Info className="h-4 w-4" />
-                  <span>Cultura da Empresa</span>
-                </FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Descreva a cultura, valores, benefícios e ambiente de trabalho... (opcional)"
-                    className="min-h-[100px]"
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Industry */}
-          <FormField
-            control={form.control}
-            name="industry"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Setor de Atuação *</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+          {/* Sobre a Empresa */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Sobre a Empresa</h3>
+            
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição da Empresa</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o setor" />
-                    </SelectTrigger>
+                    <Textarea 
+                      placeholder="Conte um pouco sobre sua empresa, seus valores e o que faz... (opcional)"
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="tecnologia">Tecnologia</SelectItem>
-                    <SelectItem value="financas">Finanças</SelectItem>
-                    <SelectItem value="saude">Saúde</SelectItem>
-                    <SelectItem value="educacao">Educação</SelectItem>
-                    <SelectItem value="outros">Outros</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Size Category */}
-          <FormField
-            control={form.control}
-            name="size_category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center space-x-2">
-                  <Users className="h-4 w-4" />
-                  <span>Tamanho da Empresa *</span>
-                </FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <FormField
+              control={form.control}
+              name="company_culture"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cultura da Empresa</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tamanho" />
-                    </SelectTrigger>
+                    <Textarea 
+                      placeholder="Descreva a cultura, valores, benefícios e ambiente de trabalho... (opcional)"
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="1-10">1-10 funcionários</SelectItem>
-                    <SelectItem value="11-50">11-50 funcionários</SelectItem>
-                    <SelectItem value="51-200">51-200 funcionários</SelectItem>
-                    <SelectItem value="200+">200+ funcionários</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-          {/* Employee Count */}
-          <FormField
-            control={form.control}
-            name="employee_count"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center space-x-2">
-                  <Hash className="h-4 w-4" />
-                  <span>Número Exato de Funcionários</span>
-                </FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number"
-                    placeholder="Ex: 125" 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Informações da Empresa */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Informações da Empresa</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="industry"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Setor de Atuação *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o setor" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="tecnologia">Tecnologia</SelectItem>
+                        <SelectItem value="financas">Finanças</SelectItem>
+                        <SelectItem value="saude">Saúde</SelectItem>
+                        <SelectItem value="educacao">Educação</SelectItem>
+                        <SelectItem value="outros">Outros</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Website */}
-          <FormField
-            control={form.control}
-            name="website"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center space-x-2">
-                  <Globe className="h-4 w-4" />
-                  <span>Website da Empresa</span>
-                </FormLabel>
-                <FormControl>
-                  <Input 
-                    type="url"
-                    placeholder="https://www.exemplo.com.br" 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="size_category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tamanho da Empresa *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o tamanho" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="1-10">1-10 funcionários</SelectItem>
+                        <SelectItem value="11-50">11-50 funcionários</SelectItem>
+                        <SelectItem value="51-200">51-200 funcionários</SelectItem>
+                        <SelectItem value="200+">200+ funcionários</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* CNPJ */}
-          <FormField
-            control={form.control}
-            name="cnpj"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>CNPJ</FormLabel>
-                <FormControl>
-                  <MaskedInput 
-                    mask="99.999.999/9999-99"
-                    placeholder="00.000.000/0000-00" 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="employee_count"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Número Exato de Funcionários</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number"
+                        placeholder="Ex: 125" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* Founded Year */}
-          <FormField
-            control={form.control}
-            name="founded_year"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>Ano de Fundação</span>
-                </FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number"
-                    placeholder="Ex: 2010" 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+              <FormField
+                control={form.control}
+                name="founded_year"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ano de Fundação</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number"
+                        placeholder="Ex: 2010" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
 
-          {/* LinkedIn URL */}
-          <FormField
-            control={form.control}
-            name="linkedin_url"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center space-x-2">
-                  <Linkedin className="h-4 w-4" />
-                  <span>LinkedIn da Empresa</span>
-                </FormLabel>
-                <FormControl>
-                  <Input 
-                    type="url"
-                    placeholder="https://www.linkedin.com/company/..." 
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Dados Adicionais */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Dados Adicionais</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="cnpj"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>CNPJ</FormLabel>
+                    <FormControl>
+                      <MaskedInput 
+                        mask="99.999.999/9999-99"
+                        placeholder="00.000.000/0000-00" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="website"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Website da Empresa</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="url"
+                        placeholder="https://www.exemplo.com.br" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="linkedin_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>LinkedIn da Empresa</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="url"
+                        placeholder="https://www.linkedin.com/company/..." 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
 
           {/* Submit Button */}
           <div className="flex justify-end pt-4">
