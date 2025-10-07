@@ -286,7 +286,7 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
                             min={1000}
                             max={50000}
                             step={500}
-                            value={[field.value.min, field.value.max]}
+                            value={[field.value?.min ?? 5000, field.value?.max ?? 15000]}
                             onValueChange={(values) => {
                               // Garante que o mínimo nunca seja maior que o máximo
                               const [newMin, newMax] = values;
