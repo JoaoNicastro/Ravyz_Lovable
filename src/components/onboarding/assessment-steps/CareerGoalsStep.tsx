@@ -36,11 +36,12 @@ export const CareerGoalsStep: React.FC<CareerGoalsStepProps> = ({ onNext, onBack
     },
   });
 
-  const addRole = () => {
-    if (newRole.trim()) {
+  const addRole = (roleValue?: string) => {
+    const roleToAdd = roleValue || newRole;
+    if (roleToAdd.trim()) {
       const currentRoles = form.getValues("preferredRoles") || [];
-      if (!currentRoles.includes(newRole.trim())) {
-        form.setValue("preferredRoles", [...currentRoles, newRole.trim()]);
+      if (!currentRoles.includes(roleToAdd.trim())) {
+        form.setValue("preferredRoles", [...currentRoles, roleToAdd.trim()]);
         setNewRole("");
       }
     }
@@ -112,9 +113,7 @@ export const CareerGoalsStep: React.FC<CareerGoalsStepProps> = ({ onNext, onBack
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
                     onSelect={(value) => {
-                      setNewRole(value);
-                      // Auto-adicionar quando selecionar da lista
-                      setTimeout(() => addRole(), 0);
+                      addRole(value);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
@@ -123,7 +122,7 @@ export const CareerGoalsStep: React.FC<CareerGoalsStepProps> = ({ onNext, onBack
                       }
                     }}
                   />
-                  <Button type="button" onClick={addRole} size="sm">
+                  <Button type="button" onClick={() => addRole()} size="sm">
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
