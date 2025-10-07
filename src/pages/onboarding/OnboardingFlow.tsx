@@ -502,7 +502,7 @@ const OnboardingFlow = () => {
 
       console.log('✅ [Onboarding] Candidate profile created, active_profile set');
       toast.success("Onboarding concluído com sucesso!");
-      navigate("/onboarding/candidate/matching");
+      navigate("/onboarding/candidate/complete");
     } catch (error) {
       console.error("Error completing onboarding:", error);
       toast.error("Erro ao finalizar onboarding");
