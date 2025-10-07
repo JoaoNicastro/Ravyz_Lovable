@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { MaskedInput } from "@/components/ui/masked-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AutocompleteInput } from "@/components/onboarding/AutocompleteInput";
 
 
 const companyRegistrationSchema = z.object({
@@ -34,7 +35,86 @@ interface StepProps {
   data?: CompanyRegistrationData;
 }
 
+const LOCATIONS = [
+  "São Paulo, SP",
+  "Rio de Janeiro, RJ",
+  "Belo Horizonte, MG",
+  "Brasília, DF",
+  "Curitiba, PR",
+  "Porto Alegre, RS",
+  "Salvador, BA",
+  "Fortaleza, CE",
+  "Recife, PE",
+  "Manaus, AM",
+  "Belém, PA",
+  "Goiânia, GO",
+  "Campinas, SP",
+  "Vitória, ES",
+  "Florianópolis, SC",
+  "Natal, RN",
+  "João Pessoa, PB",
+  "Cuiabá, MT",
+  "Campo Grande, MS",
+  "Teresina, PI",
+  "São Luís, MA",
+  "Maceió, AL",
+  "Aracaju, SE",
+  "Palmas, TO",
+  "Porto Velho, RO",
+  "Boa Vista, RR",
+  "Macapá, AP",
+  "Rio Branco, AC",
+];
+
+const INDUSTRIES = [
+  "Tecnologia",
+  "Tecnologia da Informação",
+  "Software",
+  "Desenvolvimento de Software",
+  "Finanças",
+  "Financeiro",
+  "Serviços Financeiros",
+  "Bancos",
+  "Saúde",
+  "Saúde e Bem-estar",
+  "Medicina",
+  "Farmacêutica",
+  "Educação",
+  "Ensino",
+  "E-learning",
+  "Varejo",
+  "Comércio",
+  "E-commerce",
+  "Indústria",
+  "Manufatura",
+  "Automotivo",
+  "Construção Civil",
+  "Imobiliário",
+  "Agronegócio",
+  "Agricultura",
+  "Alimentação",
+  "Alimentos e Bebidas",
+  "Turismo",
+  "Hotelaria",
+  "Transporte",
+  "Logística",
+  "Telecomunicações",
+  "Energia",
+  "Petróleo e Gás",
+  "Consultoria",
+  "Serviços Profissionais",
+  "Marketing",
+  "Publicidade",
+  "Mídia",
+  "Entretenimento",
+  "Seguros",
+  "Jurídico",
+  "Outros",
+];
+
 const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
+  const [locationValue, setLocationValue] = useState(data?.location || "");
+  const [industryValue, setIndustryValue] = useState(data?.industry || "");
   const form = useForm<CompanyRegistrationData>({
     resolver: zodResolver(companyRegistrationSchema),
     defaultValues: data || {
@@ -98,9 +178,18 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
                   <FormItem>
                     <FormLabel>Localização *</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="Ex: São Paulo, SP" 
-                        {...field} 
+                      <AutocompleteInput
+                        suggestions={LOCATIONS}
+                        placeholder="Digite ou selecione a cidade"
+                        value={field.value}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          setLocationValue(e.target.value);
+                        }}
+                        onSelect={(value) => {
+                          field.onChange(value);
+                          setLocationValue(value);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -162,20 +251,21 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Setor de Atuação *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o setor" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="tecnologia">Tecnologia</SelectItem>
-                        <SelectItem value="financas">Finanças</SelectItem>
-                        <SelectItem value="saude">Saúde</SelectItem>
-                        <SelectItem value="educacao">Educação</SelectItem>
-                        <SelectItem value="outros">Outros</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <FormControl>
+                      <AutocompleteInput
+                        suggestions={INDUSTRIES}
+                        placeholder="Digite ou selecione o setor"
+                        value={field.value}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          setIndustryValue(e.target.value);
+                        }}
+                        onSelect={(value) => {
+                          field.onChange(value);
+                          setIndustryValue(value);
+                        }}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
