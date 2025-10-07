@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { AutocompleteInput } from "@/components/onboarding/AutocompleteInput";
@@ -102,17 +102,26 @@ export const CurrentPositionStep: React.FC<CurrentPositionStepProps> = ({ onNext
                 control={form.control}
                 name="yearsInRole"
                 render={({ field }) => (
-                  <FormItem className="max-w-xs">
-                    <FormLabel className="text-base">Há quantos anos está neste cargo?</FormLabel>
+                  <FormItem>
+                    <div className="flex items-center justify-between mb-2">
+                      <FormLabel className="text-base">Há quantos anos está neste cargo?</FormLabel>
+                      <span className="text-2xl font-bold text-primary">{field.value || 0}</span>
+                    </div>
                     <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        max="50"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      <Slider
+                        min={0}
+                        max={30}
+                        step={1}
+                        value={[field.value || 0]}
+                        onValueChange={(values) => field.onChange(values[0])}
+                        className="py-4"
                       />
                     </FormControl>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>0 anos</span>
+                      <span>15 anos</span>
+                      <span>30+ anos</span>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
