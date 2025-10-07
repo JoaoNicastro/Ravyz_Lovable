@@ -11,6 +11,8 @@ import NotFound from "./pages/NotFound";
 import ProfileSelection from "./pages/ProfileSelection";
 import OnboardingFlow from "./pages/onboarding/OnboardingFlow";
 import CandidateMatchingResults from "./pages/onboarding/CandidateMatchingResults";
+import CandidateProfileComplete from "./pages/onboarding/CandidateProfileComplete";
+import CompanyProfileComplete from "./pages/onboarding/CompanyProfileComplete";
 import CompanyProfile from "./pages/company/CompanyProfile";
 import CompanyOnboardingFlow from "./pages/onboarding/CompanyOnboardingFlow";
 import CandidateDashboard from "./pages/dashboard/CandidateDashboard";
@@ -36,7 +38,9 @@ const App = () => (
             <Route path="/profile-selection" element={<ProfileSelection />} />
             <Route path="/onboarding/candidate" element={<OnboardingFlow />} />
             <Route path="/onboarding/candidate/matching" element={<CandidateMatchingResults />} />
+            <Route path="/onboarding/candidate/complete" element={<ProtectedRoute><CandidateProfileComplete /></ProtectedRoute>} />
             <Route path="/onboarding/company" element={<CompanyOnboardingFlow />} />
+            <Route path="/onboarding/company/complete" element={<ProtectedRoute><CompanyProfileComplete /></ProtectedRoute>} />
             <Route path="/company/profile" element={<CompanyProfile />} />
             <Route path="/dashboard/candidate" element={<ProtectedRoute><CandidateDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/company" element={<ProtectedRoute><CompanyDashboard /></ProtectedRoute>} />
