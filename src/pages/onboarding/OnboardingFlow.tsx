@@ -189,15 +189,15 @@ const OnboardingFlow = () => {
           // Pre-fill data for subsequent steps
           const parsedData = data.parsedData;
           
-          // Pre-fill registration data
-          const registrationData: any = {
-            full_name: parsedData.full_name,
-            email: parsedData.email,
-            phone: parsedData.phone,
-            location: parsedData.location,
-            date_of_birth: parsedData.date_of_birth,
-            education: parsedData.education || [],
-            languages: parsedData.languages || [],
+            // Pre-fill registration data
+            const registrationData: any = {
+              full_name: parsedData.full_name,
+              email: parsedData.email,
+              phone: parsedData.phone,
+              location: parsedData.location,
+              date_of_birth: parsedData.date_of_birth ? new Date(parsedData.date_of_birth) : undefined,
+              education: parsedData.education || [],
+              languages: parsedData.languages || [],
           };
 
           // Pre-fill assessment data
@@ -346,7 +346,11 @@ const OnboardingFlow = () => {
         user_id: user.user.id,
         // Basic personal info from registration
         full_name: registrationData?.full_name || null,
-        date_of_birth: registrationData?.date_of_birth?.trim() ? registrationData.date_of_birth : null,
+        date_of_birth: registrationData?.date_of_birth 
+          ? (registrationData.date_of_birth instanceof Date 
+            ? registrationData.date_of_birth.toISOString().split('T')[0] 
+            : registrationData.date_of_birth)
+          : null,
         email: registrationData?.email || null,
         phone: registrationData?.phone || null,
         // Professional profile info

@@ -8,32 +8,37 @@ import { Form } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ReusableFormField } from "./FormField";
-import { ArrowRight, ArrowLeft, Upload, X, Plus, FileText, Loader2, Calendar } from "lucide-react";
+import { ArrowRight, ArrowLeft, Upload, X, Plus, FileText, Loader2, Calendar as CalendarIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { parseResumeEnhanced, type ParsedResumeData } from "@/lib/enhanced-resume-parser";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { AvatarUpload } from "@/components/AvatarUpload";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 const candidateProfileSchema = z.object({
   // Basic info fields
-  date_of_birth: z.string()
-    .min(1, "Data de nascimento é obrigatória")
+  date_of_birth: z.date({
+    required_error: "Data de nascimento é obrigatória",
+    invalid_type_error: "Data inválida",
+  })
     .refine((date) => {
-      const birthDate = new Date(date);
       const today = new Date();
-      const age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) 
+      const age = today.getFullYear() - date.getFullYear();
+      const monthDiff = today.getMonth() - date.getMonth();
+      const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate()) 
         ? age - 1 
         : age;
       return actualAge >= 16;
     }, "Você deve ter pelo menos 16 anos")
     .refine((date) => {
-      const birthDate = new Date(date);
       const today = new Date();
-      return birthDate < today;
+      return date < today;
     }, "Data de nascimento não pode ser no futuro"),
   phone: z.string()
     .min(14, "Telefone incompleto")
@@ -89,7 +94,7 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
   const form = useForm<CandidateProfileFormData>({
     resolver: zodResolver(candidateProfileSchema),
     defaultValues: {
-      date_of_birth: initialData?.date_of_birth || "",
+      date_of_birth: initialData?.date_of_birth ? new Date(initialData.date_of_birth) : undefined,
       phone: initialData?.phone || "",
       cpf: initialData?.cpf || "",
       gender: initialData?.gender || "",
@@ -133,7 +138,7 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
         form.setValue('phone', parsedData.phone);
       }
       if (parsedData.date_of_birth) {
-        form.setValue('date_of_birth', parsedData.date_of_birth);
+        form.setValue('date_of_birth', new Date(parsedData.date_of_birth));
       }
 
       toast.success('Currículo analisado com sucesso! Dados preenchidos automaticamente.');
@@ -218,16 +223,38 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
               description="Você deve ter pelo menos 16 anos"
             >
               {(field) => (
-                <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <Input 
-                    type="date" 
-                    className="pl-10"
-                    max={new Date().toISOString().split('T')[0]}
-                    min={new Date(new Date().setFullYear(new Date().getFullYear() - 100)).toISOString().split('T')[0]}
-                    {...field}
-                  />
-                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {field.value ? (
+                        format(field.value, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
+                      ) : (
+                        <span>Selecione sua data de nascimento</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1900-01-01")
+                      }
+                      initialFocus
+                      defaultMonth={field.value || new Date(2000, 0)}
+                      locale={ptBR}
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
               )}
             </ReusableFormField>
 

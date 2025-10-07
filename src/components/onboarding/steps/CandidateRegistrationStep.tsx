@@ -5,12 +5,16 @@ import { CandidateProfileForm } from "@/components/forms/CandidateProfileForm";
 
 const candidateSchema = z.object({
   // Basic info fields
-  date_of_birth: z.string().min(1, "Data de nascimento é obrigatória"),
+  date_of_birth: z.date({
+    required_error: "Data de nascimento é obrigatória",
+    invalid_type_error: "Data inválida",
+  }),
   phone: z.string()
-    .min(7, "Telefone deve ter no mínimo 7 caracteres")
-    .max(20, "Telefone deve ter no máximo 20 caracteres")
-    .regex(/^[+]?[0-9\s\-\(\)]+$/, "Formato de telefone inválido. Use apenas números, espaços, hífens, parênteses e +"),
-  cpf: z.string().min(11, "CPF é obrigatório e deve ter 11 dígitos"),
+    .min(14, "Telefone incompleto")
+    .regex(/^\(\d{2}\)\s\d{5}-\d{4}$/, "Formato de telefone inválido"),
+  cpf: z.string()
+    .min(14, "CPF incompleto")
+    .regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, "Formato de CPF inválido"),
   gender: z.string().optional(),
   // Address fields
   address_zipcode: z.string().optional(),
