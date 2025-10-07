@@ -6,20 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { CheckCircle, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AutocompleteInput } from "@/components/onboarding/AutocompleteInput";
-import { JOB_ROLE_SUGGESTIONS } from "@/lib/job-suggestions";
+import { JOB_ROLE_SUGGESTIONS, LOCATION_SUGGESTIONS, COMPANY_SIZE_SUGGESTIONS, WORK_MODEL_SUGGESTIONS } from "@/lib/job-suggestions";
 
 const dreamJobSchema = z.object({
   desiredRole: z.string().min(1, "Cargo desejado é obrigatório"),
-  preferredCompanySize: z.enum(["startup", "small", "medium", "large", "enterprise"]),
-  workModel: z.enum(["remote", "hybrid", "onsite"]),
+  preferredCompanySize: z.string().min(1, "Tamanho da empresa é obrigatório"),
+  workModel: z.string().min(1, "Modelo de trabalho é obrigatório"),
   salaryRange: z.object({
     min: z.number().min(0, "Salário mínimo deve ser positivo"),
     max: z.number().min(0, "Salário máximo deve ser positivo"),
@@ -38,20 +36,6 @@ interface StepProps {
   isLoading: boolean;
   data?: DreamJobData;
 }
-
-const companySizes = [
-  { value: "startup", label: "Startup (1-10 pessoas)" },
-  { value: "small", label: "Pequena (11-50 pessoas)" },
-  { value: "medium", label: "Média (51-200 pessoas)" },
-  { value: "large", label: "Grande (201-1000 pessoas)" },
-  { value: "enterprise", label: "Corporação (1000+ pessoas)" },
-];
-
-const workModels = [
-  { value: "remote", label: "Remoto" },
-  { value: "hybrid", label: "Híbrido" },
-  { value: "onsite", label: "Presencial" },
-];
 
 const industries = [
   "Tecnologia", "Fintech", "E-commerce", "Saúde", "Educação", 
@@ -72,11 +56,14 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
     },
   });
 
-  const addLocation = () => {
-    if (newLocation.trim()) {
+  const addLocation = (locationValue?: string) => {
+    const locationToAdd = locationValue || newLocation;
+    if (locationToAdd.trim()) {
       const currentLocations = form.getValues("preferredLocations");
-      form.setValue("preferredLocations", [...currentLocations, newLocation.trim()]);
-      setNewLocation("");
+      if (!currentLocations.includes(locationToAdd.trim())) {
+        form.setValue("preferredLocations", [...currentLocations, locationToAdd.trim()]);
+        setNewLocation("");
+      }
     }
   };
 
@@ -153,20 +140,14 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tamanho da Empresa</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o tamanho" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {companySizes.map((size) => (
-                            <SelectItem key={size.value} value={size.value}>
-                              {size.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <AutocompleteInput
+                          suggestions={COMPANY_SIZE_SUGGESTIONS}
+                          placeholder="ex: Startup, Média empresa..."
+                          {...field}
+                          onSelect={(value) => field.onChange(value)}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -178,20 +159,14 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Modelo de Trabalho</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o modelo" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {workModels.map((model) => (
-                            <SelectItem key={model.value} value={model.value}>
-                              {model.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <AutocompleteInput
+                          suggestions={WORK_MODEL_SUGGESTIONS}
+                          placeholder="ex: Remoto, Híbrido..."
+                          {...field}
+                          onSelect={(value) => field.onChange(value)}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -291,13 +266,22 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
               <div className="space-y-3">
                 <FormLabel>Localizações Preferidas</FormLabel>
                 <div className="flex gap-2">
-                  <Input
-                    placeholder="ex: São Paulo, Remote, Belo Horizonte..."
+                  <AutocompleteInput
+                    suggestions={LOCATION_SUGGESTIONS}
+                    placeholder="ex: São Paulo, Remoto, Belo Horizonte..."
                     value={newLocation}
                     onChange={(e) => setNewLocation(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addLocation())}
+                    onSelect={(value) => {
+                      addLocation(value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addLocation();
+                      }
+                    }}
                   />
-                  <Button type="button" onClick={addLocation} size="sm">
+                  <Button type="button" onClick={() => addLocation()} size="sm">
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>

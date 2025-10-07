@@ -149,3 +149,72 @@ export const COMPANY_SUGGESTIONS = [
   "KPMG",
   "Accenture",
 ];
+
+export const LOCATION_SUGGESTIONS = [
+  // Capitais - Sudeste
+  "São Paulo - SP",
+  "Rio de Janeiro - RJ",
+  "Belo Horizonte - MG",
+  "Vitória - ES",
+  
+  // Capitais - Sul
+  "Curitiba - PR",
+  "Porto Alegre - RS",
+  "Florianópolis - SC",
+  
+  // Capitais - Nordeste
+  "Salvador - BA",
+  "Recife - PE",
+  "Fortaleza - CE",
+  "Natal - RN",
+  "João Pessoa - PB",
+  "Maceió - AL",
+  "Aracaju - SE",
+  "Teresina - PI",
+  "São Luís - MA",
+  
+  // Capitais - Norte
+  "Manaus - AM",
+  "Belém - PA",
+  "Porto Velho - RO",
+  "Rio Branco - AC",
+  "Boa Vista - RR",
+  "Macapá - AP",
+  "Palmas - TO",
+  
+  // Capitais - Centro-Oeste
+  "Brasília - DF",
+  "Goiânia - GO",
+  "Campo Grande - MS",
+  "Cuiabá - MT",
+  
+  // Modelos de trabalho
+  "Remoto",
+  "Híbrido",
+  
+  // Regiões
+  "Região Metropolitana de São Paulo",
+  "Região Metropolitana do Rio de Janeiro",
+  "Interior de São Paulo",
+  "Interior do Rio de Janeiro",
+  "Vale do Silício (EUA)",
+  "Europa",
+];
+
+export const COMPANY_SIZE_SUGGESTIONS = [
+  "Startup (1-10 pessoas)",
+  "Pequena (11-50 pessoas)",
+  "Média (51-200 pessoas)",
+  "Grande (201-1000 pessoas)",
+  "Corporação (1000+ pessoas)",
+];
+
+export const WORK_MODEL_SUGGESTIONS = [
+  "Remoto",
+  "Híbrido",
+  "Presencial",
+  "Remoto com encontros trimestrais",
+  "Híbrido (2x por semana)",
+  "Híbrido (3x por semana)",
+  "Presencial com home office flexível",
+];
