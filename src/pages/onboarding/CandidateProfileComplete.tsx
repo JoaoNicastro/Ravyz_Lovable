@@ -258,26 +258,6 @@ export default function CandidateProfileComplete() {
           </Card>
         </div>
 
-        {/* Call to Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8 animate-fade-in">
-          <Button
-            size="lg"
-            className="gap-2"
-            onClick={() => navigate('/candidate-dashboard')}
-          >
-            <Search className="h-5 w-5" />
-            Explorar Vagas Compatíveis
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="gap-2"
-            onClick={() => navigate('/candidate-profile')}
-          >
-            <Edit className="h-5 w-5" />
-            Editar Perfil
-          </Button>
-        </div>
       </div>
     </div>
   );
