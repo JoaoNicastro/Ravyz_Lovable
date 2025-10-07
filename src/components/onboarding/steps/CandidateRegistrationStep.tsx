@@ -79,7 +79,6 @@ const CandidateRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
           <ul className="text-sm text-muted-foreground space-y-1">
             <li>• Preencha todos os dados pessoais para facilitar o contato</li>
             <li>• Informações de endereço ajudam em vagas presenciais</li>
-            <li>• Use o upload de currículo para preencher automaticamente</li>
             <li>• Adicione idiomas e formação acadêmica para melhor compatibilidade</li>
             <li>• CPF é necessário para formalização de contratação</li>
           </ul>
