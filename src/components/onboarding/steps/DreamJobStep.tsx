@@ -274,26 +274,28 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
             <CardContent className="space-y-6">
               {/* Salary Range */}
               <div className="space-y-4">
-                <FormLabel>Faixa Salarial Desejada (R$)</FormLabel>
-                <div className="space-y-6 pt-2">
+                <div className="text-lg font-semibold">
+                  Faixa Salarial Desejada: R$ {(salaryRange?.min ?? 5000).toLocaleString()} - R$ {(salaryRange?.max ?? 15000).toLocaleString()}
+                </div>
+                <div className="space-y-6">
+                  {/* Minimum Salary Slider */}
                   <FormField
                     control={form.control}
-                    name="salaryRange"
+                    name="salaryRange.min"
                     render={({ field }) => (
                       <FormItem>
+                        <FormLabel>Mínimo</FormLabel>
                         <FormControl>
                           <Slider
                             min={1000}
                             max={50000}
                             step={500}
-                            value={[field.value?.min ?? 5000, field.value?.max ?? 15000]}
+                            value={[field.value ?? 5000]}
                             onValueChange={(values) => {
-                              // Garante que o mínimo nunca seja maior que o máximo
-                              const [newMin, newMax] = values;
-                              field.onChange({
-                                min: Math.min(newMin, newMax),
-                                max: Math.max(newMin, newMax)
-                              });
+                              const newMin = values[0];
+                              const currentMax = form.getValues("salaryRange.max") ?? 15000;
+                              // Garante que o mínimo não ultrapasse o máximo
+                              field.onChange(Math.min(newMin, currentMax));
                             }}
                             className="w-full"
                           />
@@ -302,16 +304,33 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
                       </FormItem>
                     )}
                   />
-                  <div className="flex justify-between items-center">
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">Mínimo: </span>
-                      <span className="font-semibold">R$ {(salaryRange?.min ?? 5000).toLocaleString()}</span>
-                    </div>
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">Máximo: </span>
-                      <span className="font-semibold">R$ {(salaryRange?.max ?? 15000).toLocaleString()}</span>
-                    </div>
-                  </div>
+
+                  {/* Maximum Salary Slider */}
+                  <FormField
+                    control={form.control}
+                    name="salaryRange.max"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Máximo</FormLabel>
+                        <FormControl>
+                          <Slider
+                            min={1000}
+                            max={50000}
+                            step={500}
+                            value={[field.value ?? 15000]}
+                            onValueChange={(values) => {
+                              const newMax = values[0];
+                              const currentMin = form.getValues("salaryRange.min") ?? 5000;
+                              // Garante que o máximo não seja menor que o mínimo
+                              field.onChange(Math.max(newMax, currentMin));
+                            }}
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </div>
 
