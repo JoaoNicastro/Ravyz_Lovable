@@ -88,7 +88,7 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
   const salaryRange = form.watch("salaryRange");
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-xl font-semibold text-foreground">
           Vamos definir seu emprego dos sonhos
