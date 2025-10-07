@@ -2,3 +2,9 @@ project_id = "wmwpjbagtohitynxoqqx"
 
 [functions.parse-resume]
 verify_jwt = false
+
+[functions.parse-resume-health]
+verify_jwt = false
+
+[functions.parse-resume-test]
+verify_jwt = false

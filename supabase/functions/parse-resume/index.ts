@@ -6,14 +6,27 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+console.log('🚀 Edge Function parse-resume initializing...');
+
 serve(async (req) => {
+  console.log('📥 Received request:', req.method, req.url);
+  
   if (req.method === 'OPTIONS') {
+    console.log('✅ CORS preflight handled');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { resumeUrl, resumeAnalysisId, candidateId } = await req.json();
-    console.log('Processing resume:', { resumeUrl, resumeAnalysisId, candidateId });
+    const body = await req.json();
+    const { resumeUrl, resumeAnalysisId, candidateId } = body;
+    console.log('📄 Processing resume:', { 
+      resumeUrl: resumeUrl?.substring(0, 50) + '...', 
+      resumeAnalysisId, 
+      candidateId,
+      hasResumeUrl: !!resumeUrl,
+      hasAnalysisId: !!resumeAnalysisId,
+      hasCandidateId: !!candidateId
+    });
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
@@ -169,11 +182,18 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error processing resume:', error);
+    console.error('❌ FATAL ERROR processing resume:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      error: error
+    });
+    
     return new Response(
       JSON.stringify({ 
+        success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
-        details: error
+        stack: error instanceof Error ? error.stack : undefined,
+        timestamp: new Date().toISOString()
       }),
       { 
         status: 500,
@@ -182,3 +202,5 @@ serve(async (req) => {
     );
   }
 });
+
+console.log('✅ Edge Function parse-resume ready');
