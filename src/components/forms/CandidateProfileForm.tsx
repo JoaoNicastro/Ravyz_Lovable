@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { ReusableFormField } from "./FormField";
 import { ArrowRight, ArrowLeft, Upload, X, Plus, FileText, Loader2, Calendar as CalendarIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { parseResumeEnhanced, type ParsedResumeData } from "@/lib/enhanced-resume-parser";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -222,40 +222,79 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
               label="Data de nascimento *"
               description="Você deve ter pelo menos 16 anos"
             >
-              {(field) => (
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {field.value ? (
-                        format(field.value, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })
-                      ) : (
-                        <span>Selecione sua data de nascimento</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
+              {(field) => {
+                const [inputValue, setInputValue] = React.useState(
+                  field.value ? format(field.value, "dd/MM/yyyy") : ""
+                );
+
+                const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = e.target.value;
+                  setInputValue(value);
+                  
+                  // Parse DD/MM/YYYY format
+                  if (value.length === 10) {
+                    const [day, month, year] = value.split('/').map(Number);
+                    if (day && month && year) {
+                      const date = new Date(year, month - 1, day);
+                      if (!isNaN(date.getTime())) {
+                        field.onChange(date);
                       }
-                      initialFocus
-                      defaultMonth={field.value || new Date(2000, 0)}
-                      locale={ptBR}
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              )}
+                    }
+                  }
+                };
+
+                React.useEffect(() => {
+                  if (field.value) {
+                    setInputValue(format(field.value, "dd/MM/yyyy"));
+                  }
+                }, [field.value]);
+
+                return (
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                      <MaskedInput
+                        mask="99/99/9999"
+                        placeholder="DD/MM/AAAA"
+                        value={inputValue}
+                        onChange={handleInputChange}
+                        className="pl-10"
+                      />
+                    </div>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="shrink-0"
+                        >
+                          <CalendarIcon className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={(date) => {
+                            field.onChange(date);
+                            if (date) {
+                              setInputValue(format(date, "dd/MM/yyyy"));
+                            }
+                          }}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date("1900-01-01")
+                          }
+                          initialFocus
+                          defaultMonth={field.value || new Date(2000, 0)}
+                          locale={ptBR}
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                );
+              }}
             </ReusableFormField>
 
             <ReusableFormField
