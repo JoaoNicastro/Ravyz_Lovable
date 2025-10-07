@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ChevronRight, ChevronLeft } from "lucide-react";
+import { AutocompleteInput } from "@/components/onboarding/AutocompleteInput";
+import { JOB_ROLE_SUGGESTIONS, COMPANY_SUGGESTIONS } from "@/lib/job-suggestions";
 
 const positionSchema = z.object({
   currentRole: z.string().min(1, "Cargo atual é obrigatório"),
@@ -64,7 +66,12 @@ export const CurrentPositionStep: React.FC<CurrentPositionStepProps> = ({ onNext
                     <FormItem>
                       <FormLabel className="text-base">Cargo Atual</FormLabel>
                       <FormControl>
-                        <Input placeholder="ex: Desenvolvedor Frontend" {...field} />
+                        <AutocompleteInput
+                          suggestions={JOB_ROLE_SUGGESTIONS}
+                          placeholder="ex: Desenvolvedor Frontend"
+                          {...field}
+                          onSelect={(value) => field.onChange(value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -78,7 +85,12 @@ export const CurrentPositionStep: React.FC<CurrentPositionStepProps> = ({ onNext
                     <FormItem>
                       <FormLabel className="text-base">Empresa Atual</FormLabel>
                       <FormControl>
-                        <Input placeholder="ex: Tech Company Ltd" {...field} />
+                        <AutocompleteInput
+                          suggestions={COMPANY_SUGGESTIONS}
+                          placeholder="ex: Tech Company Ltd"
+                          {...field}
+                          onSelect={(value) => field.onChange(value)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

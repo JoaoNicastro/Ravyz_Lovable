@@ -4,12 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { ChevronRight, ChevronLeft, Plus, X } from "lucide-react";
+import { AutocompleteInput } from "@/components/onboarding/AutocompleteInput";
+import { JOB_ROLE_SUGGESTIONS } from "@/lib/job-suggestions";
 
 const goalsSchema = z.object({
   careerGoals: z.string().min(50, "Descreva seus objetivos de carreira (mínimo 50 caracteres)"),
@@ -105,10 +106,16 @@ export const CareerGoalsStep: React.FC<CareerGoalsStepProps> = ({ onNext, onBack
               <div className="space-y-3">
                 <Label className="text-base">Quais cargos você deseja?</Label>
                 <div className="flex gap-2">
-                  <Input
+                  <AutocompleteInput
+                    suggestions={JOB_ROLE_SUGGESTIONS}
                     placeholder="ex: Senior Developer, Tech Lead..."
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value)}
+                    onSelect={(value) => {
+                      setNewRole(value);
+                      // Auto-adicionar quando selecionar da lista
+                      setTimeout(() => addRole(), 0);
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();

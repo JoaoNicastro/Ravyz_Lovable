@@ -13,6 +13,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { CheckCircle, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { AutocompleteInput } from "@/components/onboarding/AutocompleteInput";
+import { JOB_ROLE_SUGGESTIONS } from "@/lib/job-suggestions";
 
 const dreamJobSchema = z.object({
   desiredRole: z.string().min(1, "Cargo desejado é obrigatório"),
@@ -124,7 +126,12 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
                   <FormItem>
                     <FormLabel>Qual cargo você gostaria de ocupar?</FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: Senior Frontend Developer, Product Manager..." {...field} />
+                      <AutocompleteInput
+                        suggestions={JOB_ROLE_SUGGESTIONS}
+                        placeholder="ex: Senior Frontend Developer, Product Manager..."
+                        {...field}
+                        onSelect={(value) => field.onChange(value)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
