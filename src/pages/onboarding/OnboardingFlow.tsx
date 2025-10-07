@@ -563,6 +563,7 @@ const OnboardingFlow = () => {
               {STEPS.map((step, index) => {
                 const isPast = index < currentStep;
                 const isCurrent = index === currentStep;
+                const isCompleted = completedSteps.has(index);
                 
                 return (
                   <div
@@ -570,13 +571,15 @@ const OnboardingFlow = () => {
                     className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm whitespace-nowrap ${
                       isCurrent
                         ? "bg-primary text-primary-foreground"
+                        : isCompleted
+                        ? "bg-success/20 text-success"
                         : isPast
                         ? "bg-success/20 text-success"
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
                     <span className="w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold">
-                      {isPast ? "✓" : index + 1}
+                      {isCompleted || isPast ? "✓" : index + 1}
                     </span>
                     {step.title}
                   </div>
