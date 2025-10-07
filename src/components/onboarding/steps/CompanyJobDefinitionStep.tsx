@@ -91,7 +91,7 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-xl font-semibold text-foreground">
           Crie sua primeira vaga
