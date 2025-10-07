@@ -305,11 +305,11 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
                   <div className="flex justify-between items-center">
                     <div className="text-sm">
                       <span className="text-muted-foreground">Mínimo: </span>
-                      <span className="font-semibold">R$ {salaryRange?.min?.toLocaleString()}</span>
+                      <span className="font-semibold">R$ {(salaryRange?.min ?? 5000).toLocaleString()}</span>
                     </div>
                     <div className="text-sm">
                       <span className="text-muted-foreground">Máximo: </span>
-                      <span className="font-semibold">R$ {salaryRange?.max?.toLocaleString()}</span>
+                      <span className="font-semibold">R$ {(salaryRange?.max ?? 15000).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
