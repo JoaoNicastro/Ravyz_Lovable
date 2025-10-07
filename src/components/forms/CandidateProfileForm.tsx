@@ -3,6 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MaskedInput } from "@/components/ui/masked-input";
 import { Form } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -19,10 +20,11 @@ const candidateProfileSchema = z.object({
   // Basic info fields
   date_of_birth: z.string().min(1, "Data de nascimento é obrigatória"),
   phone: z.string()
-    .min(7, "Telefone deve ter no mínimo 7 caracteres")
-    .max(20, "Telefone deve ter no máximo 20 caracteres")
-    .regex(/^[+]?[0-9\s\-\(\)]+$/, "Formato de telefone inválido. Use apenas números, espaços, hífens, parênteses e +"),
-  cpf: z.string().min(11, "CPF é obrigatório e deve ter 11 dígitos"),
+    .min(14, "Telefone incompleto")
+    .regex(/^\(\d{2}\)\s\d{5}-\d{4}$/, "Formato de telefone inválido"),
+  cpf: z.string()
+    .min(14, "CPF incompleto")
+    .regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, "Formato de CPF inválido"),
   gender: z.string().optional(),
   // Address fields
   address_zipcode: z.string().optional(),
@@ -206,7 +208,13 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
               name="phone"
               label="Telefone *"
             >
-              <Input placeholder="(xx) xxxxx-xxxx" />
+              {(field) => (
+                <MaskedInput 
+                  mask="(99) 99999-9999" 
+                  placeholder="(00) 00000-0000"
+                  {...field}
+                />
+              )}
             </ReusableFormField>
 
             <ReusableFormField
@@ -214,7 +222,13 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
               name="cpf"
               label="CPF *"
             >
-              <Input placeholder="000.000.000-00" maxLength={14} />
+              {(field) => (
+                <MaskedInput 
+                  mask="999.999.999-99" 
+                  placeholder="000.000.000-00"
+                  {...field}
+                />
+              )}
             </ReusableFormField>
 
             <ReusableFormField
@@ -249,7 +263,13 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
               name="address_zipcode"
               label="CEP"
             >
-              <Input placeholder="00000-000" />
+              {(field) => (
+                <MaskedInput 
+                  mask="99999-999" 
+                  placeholder="00000-000"
+                  {...field}
+                />
+              )}
             </ReusableFormField>
 
             <div className="md:col-span-2">

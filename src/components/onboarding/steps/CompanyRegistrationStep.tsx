@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { MaskedInput } from "@/components/ui/masked-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, Users, MapPin, Info, Globe, Calendar, Hash, Linkedin } from "lucide-react";
@@ -260,7 +261,8 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
               <FormItem>
                 <FormLabel>CNPJ</FormLabel>
                 <FormControl>
-                  <Input 
+                  <MaskedInput 
+                    mask="99.999.999/9999-99"
                     placeholder="00.000.000/0000-00" 
                     {...field} 
                   />
