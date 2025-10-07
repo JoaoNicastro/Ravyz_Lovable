@@ -263,24 +263,26 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
               </div>
 
               {/* Locations */}
-              <div className="space-y-3">
+              <div className="space-y-3 w-full">
                 <FormLabel>Localizações Preferidas</FormLabel>
-                <div className="flex gap-2">
-                  <AutocompleteInput
-                    suggestions={LOCATION_SUGGESTIONS}
-                    placeholder="ex: São Paulo, Remoto, Belo Horizonte..."
-                    value={newLocation}
-                    onChange={(e) => setNewLocation(e.target.value)}
-                    onSelect={(value) => {
-                      addLocation(value);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        addLocation();
-                      }
-                    }}
-                  />
+                <div className="flex gap-2 w-full">
+                  <div className="flex-1">
+                    <AutocompleteInput
+                      suggestions={LOCATION_SUGGESTIONS}
+                      placeholder="ex: São Paulo, Remoto, Belo Horizonte..."
+                      value={newLocation}
+                      onChange={(e) => setNewLocation(e.target.value)}
+                      onSelect={(value) => {
+                        addLocation(value);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addLocation();
+                        }
+                      }}
+                    />
+                  </div>
                   <Button type="button" onClick={() => addLocation()} size="sm">
                     <Plus className="w-4 h-4" />
                   </Button>
