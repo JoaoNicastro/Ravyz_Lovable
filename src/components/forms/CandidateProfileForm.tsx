@@ -250,7 +250,6 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
                   <SelectContent>
                     <SelectItem value="masculino">Masculino</SelectItem>
                     <SelectItem value="feminino">Feminino</SelectItem>
-                    <SelectItem value="nao-binario">Não-binário</SelectItem>
                     <SelectItem value="prefiro-nao-dizer">Prefiro não informar</SelectItem>
                   </SelectContent>
                 </Select>
