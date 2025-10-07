@@ -90,7 +90,8 @@ serve(async (req) => {
       // Generate signed URL for private bucket
       console.log('🔐 Generating signed URL for resume access');
       const urlParts = new URL(resumeUrl);
-      const pathMatch = urlParts.pathname.match(/\/storage\/v1\/object\/public\/resumes\/(.+)/);
+      // Extract path after /storage/v1/object/ (handles both public and sign paths)
+      const pathMatch = urlParts.pathname.match(/\/storage\/v1\/object\/(?:public|sign)\/resumes\/(.+)/);
       
       let fileUrlForAffinda = resumeUrl;
       
@@ -110,7 +111,12 @@ serve(async (req) => {
         if (signedData?.signedUrl) {
           fileUrlForAffinda = signedData.signedUrl;
           console.log('✅ Signed URL generated successfully');
+          console.log('🔗 Signed URL (first 80 chars):', fileUrlForAffinda.substring(0, 80) + '...');
+        } else {
+          console.warn('⚠️ No signed URL returned, using original URL');
         }
+      } else {
+        console.warn('⚠️ Could not extract file path from URL, using original URL');
       }
 
       // Call Affinda API
@@ -130,8 +136,13 @@ serve(async (req) => {
       console.log('📥 Affinda response status:', affindaResponse.status);
 
       if (!affindaResponse.ok) {
-        const errorText = await affindaResponse.text();
-        console.error('❌ Affinda API error:', errorText);
+        let errorText = '';
+        try {
+          errorText = await affindaResponse.text();
+        } catch (e) {
+          errorText = 'No error message available';
+        }
+        console.error('❌ Affinda API error:', affindaResponse.status, errorText.substring(0, 500));
         
         await supabase
           .from('resume_analyses')
@@ -144,10 +155,11 @@ serve(async (req) => {
           JSON.stringify({ 
             success: false,
             message: 'Falha ao processar currículo com a API externa',
-            details: `Status ${affindaResponse.status}: ${errorText.substring(0, 200)}`
+            status: affindaResponse.status,
+            details: errorText.substring(0, 300)
           }),
           { 
-            status: 500,
+            status: 502,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
           }
         );
