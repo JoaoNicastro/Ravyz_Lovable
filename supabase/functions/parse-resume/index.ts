@@ -119,18 +119,24 @@ serve(async (req) => {
         console.warn('⚠️ Could not extract file path from URL, using original URL');
       }
 
-      // Call Affinda API
-      console.log('📤 Sending to Affinda API:', fileUrlForAffinda.substring(0, 80) + '...');
-      const affindaResponse = await fetch('https://api.affinda.com/v3/resumes', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${affindaApiKey}`,
-          'Content-Type': 'application/json',
+      // Download file from Supabase and send binary to Affinda
+      console.log('📄 Fazendo download do arquivo do Supabase...');
+      const fileResponse = await fetch(fileUrlForAffinda);
+      if (!fileResponse.ok) {
+        throw new Error(`Erro ao baixar o PDF (${fileResponse.status})`);
+      }
+
+      const fileBlob = await fileResponse.blob();
+      const formData = new FormData();
+      formData.append("file", fileBlob, "resume.pdf");
+
+      console.log('📤 Enviando arquivo binário para a Affinda API...');
+      const affindaResponse = await fetch("https://api.affinda.com/v3/resumes", {
+        method: "POST",
+        headers: { 
+          Authorization: `Bearer ${affindaApiKey}`,
         },
-        body: JSON.stringify({
-          url: fileUrlForAffinda,
-          wait: true,
-        }),
+        body: formData,
       });
 
       console.log('📥 Affinda response status:', affindaResponse.status);
@@ -166,7 +172,11 @@ serve(async (req) => {
       }
 
       const affindaData = await affindaResponse.json();
-      console.log('✅ Affinda response received successfully');
+      console.log('✅ Affinda retornou dados:', {
+        fullName: affindaData.data?.name?.raw,
+        email: affindaData.data?.emails?.[0],
+        skills: affindaData.data?.skills?.length
+      });
 
       // Extract relevant data from Affinda response
       const parsedData = {
