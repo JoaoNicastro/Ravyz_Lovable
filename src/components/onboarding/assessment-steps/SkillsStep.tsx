@@ -69,7 +69,7 @@ export const SkillsStep: React.FC<SkillsStepProps> = ({ onNext, onBack, data, he
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Card className="border-l-4 border-l-primary">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <span>💪</span> Principais Habilidades
