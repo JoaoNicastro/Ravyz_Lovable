@@ -9,6 +9,7 @@ import ravyzLogo from "@/assets/ravyz-logo.png";
 import { useLinkedInAuth } from "@/hooks/useLinkedInAuth";
 
 // Step components
+import ResumeUploadStep from "@/components/onboarding/steps/ResumeUploadStep";
 import CandidateRegistrationStep from "@/components/onboarding/steps/CandidateRegistrationStep";
 import CandidateValidationStep from "@/components/onboarding/steps/CandidateValidationStep";
 import ProfessionalAssessmentStep from "@/components/onboarding/steps/ProfessionalAssessmentStep";
@@ -31,6 +32,12 @@ interface StepComponentProps {
 }
 
 const STEPS: StepData[] = [
+  {
+    id: "resume-upload",
+    title: "Upload de Currículo",
+    description: "Envie seu currículo para preenchimento automático",
+    component: ResumeUploadStep,
+  },
   {
     id: "registration",
     title: "Informações para Candidatura",
@@ -69,6 +76,7 @@ const OnboardingFlow = () => {
   const [stepData, setStepData] = useState<Record<string, any>>({});
   const [linkedInDataImported, setLinkedInDataImported] = useState(false);
   const [linkedInPrefilledData, setLinkedInPrefilledData] = useState<Record<string, any>>({});
+  const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   
@@ -172,7 +180,50 @@ const OnboardingFlow = () => {
           ...prev,
           [STEPS[currentStep].id]: data
         }));
+
+        // Handle resume upload step
+        if (STEPS[currentStep].id === 'resume-upload' && data.resumeProcessed && data.parsedData) {
+          // Mark registration and assessment steps as completed
+          setCompletedSteps(new Set([1, 2])); // Steps 1 and 2 (after resume-upload)
+          
+          // Pre-fill data for subsequent steps
+          const parsedData = data.parsedData;
+          
+          // Pre-fill registration data
+          const registrationData: any = {
+            full_name: parsedData.full_name,
+            email: parsedData.email,
+            phone: parsedData.phone,
+            location: parsedData.location,
+            date_of_birth: parsedData.date_of_birth,
+            education: parsedData.education || [],
+            languages: parsedData.languages || [],
+          };
+
+          // Pre-fill assessment data
+          const assessmentData: any = {
+            headline: parsedData.work_experience?.[0]?.title || '',
+            currentRole: parsedData.work_experience?.[0]?.title || '',
+            currentCompany: parsedData.work_experience?.[0]?.company || '',
+            years_experience: parsedData.years_of_experience || 0,
+            skills: parsedData.skills || [],
+            work_experience: parsedData.work_experience || [],
+          };
+
+          setLinkedInPrefilledData({
+            registration: registrationData,
+            assessment: assessmentData,
+          });
+
+          toast.success(
+            "Preenchemos automaticamente suas informações com base no seu currículo. Revise e confirme antes de continuar.",
+            { duration: 6000 }
+          );
+        }
       }
+
+      // Mark current step as completed
+      setCompletedSteps(prev => new Set(prev).add(currentStep));
 
       // If this is the last step, complete onboarding
       if (currentStep === STEPS.length - 1) {
