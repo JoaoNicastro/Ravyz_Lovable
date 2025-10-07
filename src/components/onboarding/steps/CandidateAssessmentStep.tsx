@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { InteractiveScale } from '@/components/onboarding/InteractiveScale';
-import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // MATCH RAVYZ Assessment Questions (30 questions across 4 pillars)
@@ -50,11 +49,6 @@ const CANDIDATE_ASSESSMENT_QUESTIONS = [
   { id: 'q30', text: 'Você mede seu sucesso pela sua evolução pessoal e profissional?', pillar: 'crescimento' }
 ];
 
-const motivationalMessages = [
-  { at: 10, message: "Ótimo progresso! Você está indo muito bem! 🎯", icon: Sparkles },
-  { at: 20, message: "Já estamos na reta final! Continue assim! 🚀", icon: Sparkles },
-];
-
 // Schema for form validation
 const candidateAssessmentSchema = z.object(
   CANDIDATE_ASSESSMENT_QUESTIONS.reduce((acc, question) => {
@@ -79,7 +73,6 @@ export default function CandidateAssessmentStep({
   data 
 }: CandidateAssessmentStepProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [showMotivation, setShowMotivation] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
   const form = useForm<CandidateAssessmentData>({
@@ -93,16 +86,6 @@ export default function CandidateAssessmentStep({
   const answeredCount = Object.keys(form.getValues()).filter(key => 
     form.getValues()[key as keyof CandidateAssessmentData] !== undefined
   ).length;
-
-  // Check for motivational message
-  useEffect(() => {
-    const motivationPoint = motivationalMessages.find(m => m.at === answeredCount);
-    if (motivationPoint) {
-      setShowMotivation(true);
-      const timer = setTimeout(() => setShowMotivation(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [answeredCount]);
 
   const handleAnswerSelect = (value: number) => {
     setIsAnimating(true);
@@ -267,20 +250,6 @@ export default function CandidateAssessmentStep({
           </span>
         </div>
       </div>
-
-      {/* Motivational Message */}
-      {showMotivation && (
-        <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20 animate-fade-in">
-          <CardContent className="py-4 px-6">
-            <div className="flex items-center gap-3">
-              <Sparkles className="h-6 w-6 text-primary animate-pulse" />
-              <p className="font-medium text-primary">
-                {motivationalMessages.find(m => m.at === answeredCount)?.message}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Question Card */}
       <Card className={cn(
