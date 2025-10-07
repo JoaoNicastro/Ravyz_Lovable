@@ -5,6 +5,7 @@ import { Upload, FileText, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
+import { useResumeData } from "@/hooks/useResumeData";
 
 interface StepProps {
   onNext: (data?: { resumeProcessed: boolean; parsedData?: any; resumeAnalysisId?: string }) => void;
@@ -18,6 +19,8 @@ const ResumeUploadStep: React.FC<StepProps> = ({ onNext, onBack, isLoading }) =>
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [candidateId, setCandidateId] = useState<string | null>(null);
+  const { resumeData, refetch: refetchResumeData } = useResumeData(candidateId || undefined);
 
   const handleFileSelect = (file: File) => {
     if (file.type !== 'application/pdf' && !file.name.endsWith('.docx')) {
@@ -95,6 +98,7 @@ const ResumeUploadStep: React.FC<StepProps> = ({ onNext, onBack, isLoading }) =>
         profile = newProfile;
       }
 
+      setCandidateId(profile.id);
       setUploadProgress(40);
 
       // Upload file to Supabase Storage
@@ -136,6 +140,7 @@ const ResumeUploadStep: React.FC<StepProps> = ({ onNext, onBack, isLoading }) =>
       setUploadProgress(80);
 
       // Call Edge Function to process resume
+      console.log('📤 Invoking parse-resume function...');
       const { data: parseResult, error: parseError } = await supabase.functions.invoke('parse-resume', {
         body: {
           resumeUrl: publicUrl,
@@ -144,10 +149,27 @@ const ResumeUploadStep: React.FC<StepProps> = ({ onNext, onBack, isLoading }) =>
         }
       });
 
+      console.log('📥 Parse response:', { parseResult, parseError });
+
       if (parseError) {
-        console.error('Parse error:', parseError);
-        throw new Error('Erro ao processar currículo');
+        console.error('❌ Error parsing resume:', parseError);
+        toast.error(parseError.message || 'Falha na análise do documento. Tente novamente.');
+        throw parseError;
       }
+
+      // Check if function returned an error in the data
+      if (parseResult && !parseResult.success) {
+        console.error('❌ Function returned error:', parseResult);
+        toast.error(parseResult.message || 'Falha ao processar currículo. Verifique o formato do arquivo.');
+        throw new Error(parseResult.message || 'Processing failed');
+      }
+
+      console.log('✅ Resume processed successfully:', parseResult);
+
+      setUploadProgress(90);
+
+      // Refetch resume data to get auto-filled information
+      await refetchResumeData();
 
       setUploadProgress(100);
 
@@ -156,12 +178,12 @@ const ResumeUploadStep: React.FC<StepProps> = ({ onNext, onBack, isLoading }) =>
       // Pass parsed data to next step
       onNext({ 
         resumeProcessed: true, 
-        parsedData: parseResult.parsedData,
+        parsedData: parseResult?.parsedData,
         resumeAnalysisId: resumeAnalysis.id
       });
 
     } catch (error: any) {
-      console.error('Error uploading resume:', error);
+      console.error('❌ Error uploading resume:', error);
       toast.error(error.message || 'Não conseguimos processar seu currículo. Você pode preencher manualmente.');
       setUploadProgress(0);
     } finally {

@@ -9,6 +9,7 @@ const corsHeaders = {
 console.log('🚀 Edge Function parse-resume initializing...');
 
 serve(async (req) => {
+  console.log('🚀 parse-resume init - function started');
   console.log('📥 Received request:', req.method, req.url);
   
   if (req.method === 'OPTIONS') {
@@ -32,12 +33,17 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
     const affindaApiKey = Deno.env.get('AFFINDA_API_KEY');
 
+    console.log('🔑 Environment check:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasSupabaseKey: !!supabaseKey,
+      hasAffindaKey: !!affindaApiKey
+    });
+
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     if (!affindaApiKey) {
-      console.warn('AFFINDA_API_KEY not set, using fallback parsing');
+      console.warn('⚠️ AFFINDA_API_KEY not set, using fallback parsing');
       
-      // Update status to completed with empty data
       await supabase
         .from('resume_analyses')
         .update({
@@ -56,8 +62,34 @@ serve(async (req) => {
       );
     }
 
+    // Generate signed URL for private bucket
+    console.log('🔐 Generating signed URL for resume access');
+    const urlParts = new URL(resumeUrl);
+    const pathMatch = urlParts.pathname.match(/\/storage\/v1\/object\/public\/resumes\/(.+)/);
+    
+    let fileUrlForAffinda = resumeUrl;
+    
+    if (pathMatch) {
+      const filePath = pathMatch[1];
+      console.log('📂 File path extracted:', filePath);
+      
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from('resumes')
+        .createSignedUrl(filePath, 3600);
+
+      if (signedError) {
+        console.error('❌ Error creating signed URL:', signedError);
+        throw new Error(`Failed to create signed URL: ${signedError.message}`);
+      }
+
+      if (signedData?.signedUrl) {
+        fileUrlForAffinda = signedData.signedUrl;
+        console.log('✅ Signed URL generated successfully');
+      }
+    }
+
     // Call Affinda API
-    console.log('Calling Affinda API...');
+    console.log('📤 Sending to Affinda API:', fileUrlForAffinda.substring(0, 80) + '...');
     const affindaResponse = await fetch('https://api.affinda.com/v3/resumes', {
       method: 'POST',
       headers: {
@@ -65,19 +97,39 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        url: resumeUrl,
+        url: fileUrlForAffinda,
         wait: true,
       }),
     });
 
+    console.log('📥 Affinda response status:', affindaResponse.status);
+
     if (!affindaResponse.ok) {
       const errorText = await affindaResponse.text();
-      console.error('Affinda API error:', errorText);
-      throw new Error(`Affinda API error: ${affindaResponse.status}`);
+      console.error('❌ Affinda API error:', errorText);
+      
+      await supabase
+        .from('resume_analyses')
+        .update({
+          processing_status: 'failed',
+        })
+        .eq('id', resumeAnalysisId);
+
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          message: 'Falha ao processar currículo com a API externa',
+          details: `Status ${affindaResponse.status}: ${errorText.substring(0, 200)}`
+        }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     const affindaData = await affindaResponse.json();
-    console.log('Affinda response received');
+    console.log('✅ Affinda response received successfully');
 
     // Extract relevant data from Affinda response
     const parsedData = {
@@ -191,7 +243,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        message: 'Erro ao processar currículo. Verifique o formato do arquivo.',
+        details: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
         timestamp: new Date().toISOString()
       }),
