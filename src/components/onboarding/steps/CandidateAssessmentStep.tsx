@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { InteractiveScale } from '@/components/onboarding/InteractiveScale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { calculatePillarScores, determineArchetype, getArchetypeNarrative } from '@/lib/archetype-calculator';
 
 // MATCH RAVYZ Assessment Questions (30 questions across 4 pillars)
 const CANDIDATE_ASSESSMENT_QUESTIONS = [
@@ -118,77 +119,30 @@ export default function CandidateAssessmentStep({
   };
 
   const handleSubmit = (formData: CandidateAssessmentData) => {
-    // Calculate pillar scores according to MATCH RAVYZ methodology
-    const pillarScores = {
-      compensation: 0,
-      ambiente: 0,
-      proposito: 0,
-      crescimento: 0
-    };
+    // Calcular scores dos pilares usando a lógica centralizada
+    const pillarScores = calculatePillarScores(formData);
 
-    const pillarCounts = {
-      compensation: 0,
-      ambiente: 0,
-      proposito: 0,
-      crescimento: 0
-    };
+    // Determinar arquétipo com a lógica aprimorada
+    const archetypeResult = determineArchetype(pillarScores);
 
-    // Sum scores for each pillar
-    CANDIDATE_ASSESSMENT_QUESTIONS.forEach(question => {
-      const score = formData[question.id as keyof CandidateAssessmentData];
-      const adjustedScore = question.isContrasting ? (6 - score) : score; // Invert contrasting questions
-      
-      pillarScores[question.pillar as keyof typeof pillarScores] += adjustedScore;
-      pillarCounts[question.pillar as keyof typeof pillarCounts]++;
-    });
+    // Obter narrativa consultiva completa
+    const narrative = getArchetypeNarrative(archetypeResult.archetype);
 
-    // Calculate averages for each pillar
-    Object.keys(pillarScores).forEach(pillar => {
-      pillarScores[pillar as keyof typeof pillarScores] = 
-        pillarScores[pillar as keyof typeof pillarScores] / pillarCounts[pillar as keyof typeof pillarCounts];
-    });
-
-    // Determine archetype based on dominant pillars
-    const archetype = determineArchetype(pillarScores);
-
-    // Validate consistency (compare direct vs contrasting questions)
+    // Validar consistência das respostas
     const consistencyIssues = validateConsistency(formData);
 
     onNext({
       responses: formData,
-      pillar_scores: pillarScores,
-      archetype,
+      pillar_scores: archetypeResult.pillarScores,
+      archetype: archetypeResult.archetype,
+      archetype_confidence: archetypeResult.confidence,
+      dominant_pillars: archetypeResult.dominantPillars,
+      archetype_description: archetypeResult.description,
+      archetype_narrative: narrative,
       consistency_issues: consistencyIssues
     });
   };
 
-  const determineArchetype = (scores: any) => {
-    // Get top 2 pillars
-    const sortedPillars = Object.entries(scores)
-      .sort(([,a], [,b]) => (b as number) - (a as number))
-      .slice(0, 2);
-
-    const [pillar1, pillar2] = sortedPillars.map(([pillar]) => pillar);
-
-    // Archetype mapping based on dominant pillars (from MATCH RAVYZ document)
-    const archetypeMappings: Record<string, string> = {
-      'crescimento_proposito': 'Protagonista',
-      'proposito_crescimento': 'Protagonista',
-      'ambiente_crescimento': 'Construtor',
-      'crescimento_ambiente': 'Construtor',
-      'proposito_ambiente': 'Visionário',
-      'ambiente_proposito': 'Idealista',
-      'compensation_ambiente': 'Guardião',
-      'ambiente_compensation': 'Guardião',
-      'compensation_crescimento': 'Pragmático',
-      'crescimento_compensation': 'Pragmático',
-      'crescimento_ambiente_alt': 'Mobilizador',
-      'proposito_crescimento_alt': 'Transformador'
-    };
-
-    const key = `${pillar1}_${pillar2}`;
-    return archetypeMappings[key] || 'Equilibrado';
-  };
 
   const validateConsistency = (formData: CandidateAssessmentData) => {
     const issues: string[] = [];
