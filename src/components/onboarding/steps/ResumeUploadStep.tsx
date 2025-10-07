@@ -123,11 +123,23 @@ const ResumeUploadStep: React.FC<StepProps> = ({ onNext, onBack, isLoading }) =>
 
       setUploadProgress(70);
 
-      // Create resume analysis record
+      // Get the latest version for this candidate
+      const { data: latestAnalysis } = await supabase
+        .from('resume_analyses')
+        .select('version')
+        .eq('candidate_id', profile.id)
+        .order('version', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const nextVersion = (latestAnalysis?.version || 0) + 1;
+
+      // Create resume analysis record with incremented version
       const { data: resumeAnalysis, error: analysisError } = await supabase
         .from('resume_analyses')
         .insert({
           candidate_id: profile.id,
+          version: nextVersion,
           file_url: publicUrl,
           original_filename: selectedFile.name,
           processing_status: 'processing'
