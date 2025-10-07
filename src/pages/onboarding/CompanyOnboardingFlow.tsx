@@ -211,13 +211,20 @@ const CompanyOnboardingFlow: React.FC = () => {
         companyProfile = data;
       }
 
+      // Combine description tags with "other" field
+      const descriptionParts = [...(jobData.description || [])];
+      if (jobData.descriptionOther?.trim()) {
+        descriptionParts.push(jobData.descriptionOther.trim());
+      }
+      const fullDescription = descriptionParts.join('; ');
+
       // Create the first job with all data
       const { data: newJob, error: jobError } = await supabase
         .from('jobs')
         .insert({
           company_id: companyProfile.id,
           title: jobData.title,
-          description: jobData.description,
+          description: fullDescription,
           requirements: jobData.requirements || {},
           location: jobData.location,
           work_model: jobData.work_model,

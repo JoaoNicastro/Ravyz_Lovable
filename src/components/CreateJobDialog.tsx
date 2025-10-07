@@ -110,10 +110,17 @@ export function CreateJobDialog({ companyId, onJobCreated }: CreateJobDialogProp
       const technicalSkillsData = allStepData["technical-skills"];
       const assessmentData = allStepData["company-assessment"];
 
+      // Combine description tags with "other" field
+      const descriptionParts = [...(jobData.description || [])];
+      if (jobData.descriptionOther?.trim()) {
+        descriptionParts.push(jobData.descriptionOther.trim());
+      }
+      const fullDescription = descriptionParts.join('; ');
+
       const { error } = await supabase.from('jobs').insert({
         company_id: companyId,
         title: jobData.title,
-        description: jobData.description,
+        description: fullDescription,
         location: jobData.location,
         salary_min: jobData.salary_min,
         salary_max: jobData.salary_max,

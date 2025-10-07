@@ -14,7 +14,8 @@ import { AutocompleteInput } from "@/components/onboarding/AutocompleteInput";
 
 const jobDefinitionSchema = z.object({
   title: z.string().min(1, "Título da vaga é obrigatório"),
-  description: z.string().min(1, "Descrição da vaga é obrigatória"),
+  description: z.array(z.string()).min(1, "Selecione pelo menos uma descrição"),
+  descriptionOther: z.string().optional(),
   location: z.string().optional(),
   level: z.enum(["junior", "pleno", "senior"], {
     required_error: "Nível é obrigatório",
@@ -40,6 +41,24 @@ interface StepProps {
   isLoading: boolean;
   data?: JobDefinitionData;
 }
+
+const DESCRIPTION_OPTIONS = [
+  "Desenvolver e manter aplicações",
+  "Trabalhar em equipe multidisciplinar",
+  "Participar de reuniões de planejamento",
+  "Realizar code reviews",
+  "Implementar novas funcionalidades",
+  "Corrigir bugs e problemas técnicos",
+  "Otimizar performance de sistemas",
+  "Documentar código e processos",
+  "Criar e executar testes automatizados",
+  "Gerenciar projetos e prazos",
+  "Dar suporte técnico ao time",
+  "Analisar requisitos do negócio",
+  "Propor soluções técnicas inovadoras",
+  "Treinar e mentorar outros profissionais",
+  "Acompanhar métricas e KPIs",
+];
 
 const BENEFITS_OPTIONS = [
   "Vale Refeição",
@@ -145,12 +164,15 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [titleValue, setTitleValue] = useState(data?.title || "");
   const [locationValue, setLocationValue] = useState(data?.location || "");
+  const [selectedDescriptions, setSelectedDescriptions] = useState<string[]>(data?.description || []);
+  const [descriptionOther, setDescriptionOther] = useState(data?.descriptionOther || "");
 
   const form = useForm<JobDefinitionData>({
     resolver: zodResolver(jobDefinitionSchema),
     defaultValues: data || {
       title: "",
-      description: "",
+      description: [],
+      descriptionOther: "",
       location: "",
       level: "pleno",
       salary_min: undefined,
@@ -175,6 +197,14 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
 
   const handleRemoveBenefit = (benefit: string) => {
     form.setValue("benefits", benefits.filter(b => b !== benefit));
+  };
+
+  const toggleDescription = (description: string) => {
+    const newDescriptions = selectedDescriptions.includes(description)
+      ? selectedDescriptions.filter(d => d !== description)
+      : [...selectedDescriptions, description];
+    setSelectedDescriptions(newDescriptions);
+    form.setValue("description", newDescriptions);
   };
 
   return (
@@ -224,16 +254,40 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
           <FormField
             control={form.control}
             name="description"
-            render={({ field }) => (
+            render={() => (
               <FormItem>
                 <FormLabel>Descrição da Vaga *</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Descreva as responsabilidades, requisitos e benefícios da posição..."
-                    className="min-h-[120px]"
-                    {...field} 
-                  />
-                </FormControl>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {DESCRIPTION_OPTIONS.map((option) => {
+                      const isSelected = selectedDescriptions.includes(option);
+                      return (
+                        <div
+                          key={option}
+                          className={`text-sm cursor-pointer p-3 rounded border hover:bg-muted transition-colors ${
+                            isSelected ? "bg-muted font-medium border-primary" : ""
+                          }`}
+                          onClick={() => toggleDescription(option)}
+                        >
+                          {option}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  
+                  <div>
+                    <FormLabel className="text-sm mb-2 block">Outros (opcional)</FormLabel>
+                    <Input
+                      placeholder="Outras responsabilidades..."
+                      value={descriptionOther}
+                      onChange={(e) => {
+                        setDescriptionOther(e.target.value);
+                        form.setValue("descriptionOther", e.target.value);
+                      }}
+                      className="text-sm"
+                    />
+                  </div>
+                </div>
                 <FormMessage />
               </FormItem>
             )}
