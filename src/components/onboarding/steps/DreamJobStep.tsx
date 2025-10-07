@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { CheckCircle, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -274,48 +275,41 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
               {/* Salary Range */}
               <div className="space-y-4">
                 <FormLabel>Faixa Salarial Desejada (R$)</FormLabel>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="salaryRange.min"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Mínimo</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="5000"
-                              {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="salaryRange.max"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Máximo</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder="15000"
-                              {...field}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                <div className="space-y-6 pt-2">
+                  <FormField
+                    control={form.control}
+                    name="salaryRange"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Slider
+                            min={1000}
+                            max={50000}
+                            step={500}
+                            value={[field.value.min, field.value.max]}
+                            onValueChange={(values) => {
+                              field.onChange({
+                                min: values[0],
+                                max: values[1]
+                              });
+                            }}
+                            className="w-full"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Mínimo: </span>
+                      <span className="font-semibold">R$ {salaryRange?.min?.toLocaleString()}</span>
+                    </div>
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Máximo: </span>
+                      <span className="font-semibold">R$ {salaryRange?.max?.toLocaleString()}</span>
+                    </div>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Entre R$ {salaryRange?.min?.toLocaleString()} e R$ {salaryRange?.max?.toLocaleString()}
-                  </p>
                 </div>
               </div>
 
