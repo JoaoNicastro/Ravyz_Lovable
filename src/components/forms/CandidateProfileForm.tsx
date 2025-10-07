@@ -273,6 +273,26 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
                   mask="99999-999" 
                   placeholder="00000-000"
                   {...field}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    const cep = e.target.value.replace(/\D/g, '');
+                    if (cep.length === 8) {
+                      fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                        .then(res => res.json())
+                        .then(data => {
+                          if (!data.erro) {
+                            form.setValue('address_street', data.logradouro || '');
+                            form.setValue('address_neighborhood', data.bairro || '');
+                            form.setValue('address_city', data.localidade || '');
+                            form.setValue('address_state', data.uf || '');
+                            toast.success('Endereço encontrado!');
+                          } else {
+                            toast.error('CEP não encontrado');
+                          }
+                        })
+                        .catch(() => toast.error('Erro ao buscar CEP'));
+                    }
+                  }}
                 />
               )}
             </ReusableFormField>
