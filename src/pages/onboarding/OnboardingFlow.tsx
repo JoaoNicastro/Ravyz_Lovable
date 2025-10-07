@@ -390,8 +390,14 @@ const OnboardingFlow = () => {
           salary_max: dreamJobData?.salaryRange?.max,
           preferred_locations: dreamJobData?.preferredLocations || [],
           industry_interests: dreamJobData?.industryPreferences || [],
-          deal_breakers: dreamJobData?.dealBreakers,
-          additional_preferences: dreamJobData?.additionalPreferences
+          deal_breakers: [
+            ...(dreamJobData?.dealBreakers || []),
+            ...(dreamJobData?.dealBreakersOther ? [dreamJobData.dealBreakersOther] : [])
+          ],
+          additional_preferences: [
+            ...(dreamJobData?.additionalPreferences || []),
+            ...(dreamJobData?.additionalPreferencesOther ? [dreamJobData.additionalPreferencesOther] : [])
+          ]
         }
       };
 

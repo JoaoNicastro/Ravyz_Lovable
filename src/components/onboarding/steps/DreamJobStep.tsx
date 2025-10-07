@@ -24,8 +24,10 @@ const dreamJobSchema = z.object({
   }),
   preferredLocations: z.array(z.string()).min(1, "Adicione pelo menos 1 localização"),
   industryPreferences: z.array(z.string()).min(1, "Adicione pelo menos 1 setor"),
-  dealBreakers: z.string().optional(),
-  additionalPreferences: z.string().optional(),
+  dealBreakers: z.array(z.string()).default([]),
+  dealBreakersOther: z.string().optional(),
+  additionalPreferences: z.array(z.string()).default([]),
+  additionalPreferencesOther: z.string().optional(),
 });
 
 type DreamJobData = z.infer<typeof dreamJobSchema>;
@@ -43,15 +45,45 @@ const industries = [
   "Agronegócio", "Energia", "Entretenimento", "Governo", "ONG"
 ];
 
+const dealBreakerOptions = [
+  "Não trabalhar aos fins de semana",
+  "Trabalho 100% remoto",
+  "Sem viagens",
+  "Sem trabalho noturno",
+  "Sem horas extras obrigatórias",
+  "Não trabalhar feriados",
+  "Sem mudança de cidade",
+  "Horário de entrada flexível"
+];
+
+const preferenceOptions = [
+  "Cultura de diversidade",
+  "Horários flexíveis",
+  "Plano de carreira claro",
+  "Home office",
+  "Vale-alimentação",
+  "Plano de saúde",
+  "Auxílio educação",
+  "Day off no aniversário",
+  "Programa de mentoria",
+  "Ambiente descontraído",
+  "Foco em sustentabilidade",
+  "Política de férias generosa"
+];
+
 const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
   const [newLocation, setNewLocation] = useState("");
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>(data?.industryPreferences || []);
+  const [selectedDealBreakers, setSelectedDealBreakers] = useState<string[]>(data?.dealBreakers || []);
+  const [selectedPreferences, setSelectedPreferences] = useState<string[]>(data?.additionalPreferences || []);
 
   const form = useForm<DreamJobData>({
     resolver: zodResolver(dreamJobSchema),
     defaultValues: data || {
       preferredLocations: [],
       industryPreferences: [],
+      dealBreakers: [],
+      additionalPreferences: [],
       salaryRange: { min: 5000, max: 15000 },
     },
   });
@@ -86,6 +118,24 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
     
     setSelectedIndustries(updated);
     form.setValue("industryPreferences", updated);
+  };
+
+  const toggleDealBreaker = (dealBreaker: string) => {
+    const updated = selectedDealBreakers.includes(dealBreaker)
+      ? selectedDealBreakers.filter(d => d !== dealBreaker)
+      : [...selectedDealBreakers, dealBreaker];
+    
+    setSelectedDealBreakers(updated);
+    form.setValue("dealBreakers", updated);
+  };
+
+  const togglePreference = (preference: string) => {
+    const updated = selectedPreferences.includes(preference)
+      ? selectedPreferences.filter(p => p !== preference)
+      : [...selectedPreferences, preference];
+    
+    setSelectedPreferences(updated);
+    form.setValue("additionalPreferences", updated);
   };
 
   const onSubmit = (formData: DreamJobData) => {
@@ -328,48 +378,92 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
             <CardHeader>
               <CardTitle>Preferências Adicionais</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="dealBreakers"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Deal Breakers (Opcional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="ex: Não aceito trabalhar fins de semana, não aceito viagens constantes..."
-                        className="min-h-[80px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Situações ou condições que você definitivamente não aceita
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <CardContent className="space-y-6">
+              {/* Deal Breakers */}
+              <div className="space-y-3">
+                <FormLabel>Deal Breakers (Opcional)</FormLabel>
+                <FormDescription>
+                  Selecione situações ou condições que você definitivamente não aceita
+                </FormDescription>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {dealBreakerOptions.map((dealBreaker) => (
+                    <button
+                      key={dealBreaker}
+                      type="button"
+                      onClick={() => toggleDealBreaker(dealBreaker)}
+                      className={`p-3 text-sm rounded-lg border transition-colors text-left ${
+                        selectedDealBreakers.includes(dealBreaker)
+                          ? "bg-destructive/10 text-destructive border-destructive"
+                          : "bg-background border-border hover:border-destructive/30"
+                      }`}
+                    >
+                      {dealBreaker}
+                      {selectedDealBreakers.includes(dealBreaker) && (
+                        <CheckCircle className="w-3 h-3 inline ml-1" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <FormField
+                  control={form.control}
+                  name="dealBreakersOther"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">Outros (Opcional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Adicione outros deal breakers não listados..."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-              <FormField
-                control={form.control}
-                name="additionalPreferences"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Outras Preferências (Opcional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="ex: Gostaria de uma empresa com foco em sustentabilidade, valorizo diversidade..."
-                        className="min-h-[80px]"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Qualquer outra preferência ou valor importante para você
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Additional Preferences */}
+              <div className="space-y-3">
+                <FormLabel>Outras Preferências (Opcional)</FormLabel>
+                <FormDescription>
+                  Selecione valores e benefícios importantes para você
+                </FormDescription>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {preferenceOptions.map((preference) => (
+                    <button
+                      key={preference}
+                      type="button"
+                      onClick={() => togglePreference(preference)}
+                      className={`p-3 text-sm rounded-lg border transition-colors text-left ${
+                        selectedPreferences.includes(preference)
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border hover:border-primary/30"
+                      }`}
+                    >
+                      {preference}
+                      {selectedPreferences.includes(preference) && (
+                        <CheckCircle className="w-3 h-3 inline ml-1" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+                <FormField
+                  control={form.control}
+                  name="additionalPreferencesOther"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">Outros (Opcional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Adicione outras preferências não listadas..."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </CardContent>
           </Card>
 
