@@ -131,12 +131,12 @@ serve(async (req) => {
       formData.append("file", fileBlob, "resume.pdf");
 
       console.log('📤 Enviando arquivo binário para a Affinda API...');
-      const affindaResponse = await fetch("https://api.affinda.com/v3/resumes", {
+      const affindaResponse = await fetch("https://api.affinda.com/v1/documents/", {
         method: "POST",
         headers: { 
-          Authorization: `Bearer ${affindaApiKey}`,
+          Authorization: `Bearer ${affindaApiKey}`
         },
-        body: formData,
+        body: formData
       });
 
       console.log('📥 Affinda response status:', affindaResponse.status);
