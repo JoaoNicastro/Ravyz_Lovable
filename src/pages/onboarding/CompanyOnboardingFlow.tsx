@@ -322,7 +322,7 @@ const CompanyOnboardingFlow: React.FC = () => {
 
       {/* Footer Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 shadow-lg">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
+        <div className="max-w-4xl mx-auto px-6 flex justify-between items-center">
           <Button
             variant="outline"
             onClick={handleBack}
