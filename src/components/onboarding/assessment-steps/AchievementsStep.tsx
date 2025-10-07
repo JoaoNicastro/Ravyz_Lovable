@@ -1,15 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { ChevronRight, ChevronLeft, CheckCircle } from "lucide-react";
 
 const achievementsSchema = z.object({
-  keyAchievements: z.string().min(50, "Descreva suas principais conquistas (mínimo 50 caracteres)"),
+  keyAchievements: z.array(z.string()).min(1, "Selecione pelo menos uma conquista"),
+  keyAchievementsOther: z.string().optional(),
 });
 
 type AchievementsData = z.infer<typeof achievementsSchema>;
@@ -20,19 +21,43 @@ interface AchievementsStepProps {
   data?: AchievementsData;
 }
 
+const achievementOptions = [
+  "Liderança de equipe ou projeto",
+  "Aumento de performance/eficiência",
+  "Redução de custos",
+  "Implementação de novo sistema/tecnologia",
+  "Melhoria de processos",
+  "Crescimento de receita/vendas",
+  "Reconhecimento ou premiação",
+  "Mentoria de colaboradores",
+  "Certificação ou especialização",
+  "Resolução de problema crítico",
+  "Lançamento de produto bem-sucedido",
+  "Expansão para novos mercados"
+];
+
 export const AchievementsStep: React.FC<AchievementsStepProps> = ({ onNext, onBack, data }) => {
+  const [selectedAchievements, setSelectedAchievements] = useState<string[]>(data?.keyAchievements || []);
+  
   const form = useForm<AchievementsData>({
     resolver: zodResolver(achievementsSchema),
     defaultValues: data || {
-      keyAchievements: "",
+      keyAchievements: [],
     },
   });
+
+  const toggleAchievement = (achievement: string) => {
+    const updated = selectedAchievements.includes(achievement)
+      ? selectedAchievements.filter(a => a !== achievement)
+      : [...selectedAchievements, achievement];
+    
+    setSelectedAchievements(updated);
+    form.setValue("keyAchievements", updated, { shouldValidate: true });
+  };
 
   const onSubmit = (formData: AchievementsData) => {
     onNext(formData);
   };
-
-  const currentLength = form.watch("keyAchievements")?.length || 0;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -53,28 +78,57 @@ export const AchievementsStep: React.FC<AchievementsStepProps> = ({ onNext, onBa
                 <span>⭐</span> Principais Conquistas
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              <FormLabel className="text-base">Do que você mais se orgulha na sua carreira?</FormLabel>
+              <FormDescription>
+                Selecione as conquistas que destacam sua trajetória profissional
+              </FormDescription>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {achievementOptions.map((achievement) => (
+                  <button
+                    key={achievement}
+                    type="button"
+                    onClick={() => toggleAchievement(achievement)}
+                    className={`p-3 text-sm rounded-lg border transition-colors text-left ${
+                      selectedAchievements.includes(achievement)
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border hover:border-primary/30"
+                    }`}
+                  >
+                    {achievement}
+                    {selectedAchievements.includes(achievement) && (
+                      <CheckCircle className="w-3 h-3 inline ml-1" />
+                    )}
+                  </button>
+                ))}
+              </div>
+
               <FormField
                 control={form.control}
                 name="keyAchievements"
+                render={() => (
+                  <FormItem>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="keyAchievementsOther"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-base">Do que você mais se orgulha na sua carreira?</FormLabel>
+                    <FormLabel className="text-sm">Outros (Opcional)</FormLabel>
                     <FormControl>
-                      <Textarea
-                        placeholder="ex: Liderei o desenvolvimento de uma aplicação que aumentou a eficiência da equipe em 40%..."
-                        className="min-h-[150px] resize-none"
+                      <Input
+                        placeholder="Adicione outras conquistas não listadas..."
                         {...field}
                       />
                     </FormControl>
-                    <div className="flex justify-between items-center">
-                      <p className="text-xs text-muted-foreground">
-                        💡 Seja específico e mencione resultados!
-                      </p>
-                      <span className={`text-xs ${currentLength >= 50 ? 'text-success' : 'text-muted-foreground'}`}>
-                        {currentLength}/50
-                      </span>
-                    </div>
+                    <FormDescription>
+                      💡 Seja específico e mencione resultados!
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

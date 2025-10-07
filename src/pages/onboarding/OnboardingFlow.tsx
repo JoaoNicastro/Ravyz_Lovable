@@ -378,7 +378,10 @@ const OnboardingFlow = () => {
         education: registrationData?.education || [],
         // Current position data
         current_position: assessmentData?.currentRole || null,
-        key_achievements: assessmentData?.keyAchievements || null,
+        key_achievements: [
+          ...(assessmentData?.keyAchievements || []),
+          ...(assessmentData?.keyAchievementsOther ? [assessmentData.keyAchievementsOther] : [])
+        ].join('; ') || null,
         preferred_roles: assessmentData?.preferredRoles || [],
         career_goals: assessmentData?.careerGoals || null,
         preferences: {
