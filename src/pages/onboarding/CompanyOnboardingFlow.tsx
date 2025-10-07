@@ -152,11 +152,19 @@ const CompanyOnboardingFlow: React.FC = () => {
           .from('company_profiles')
           .update({
             company_name: companyData.company_name,
-            description: companyData.description,
+            description: [
+              ...(companyData.description || []),
+              ...(companyData.descriptionOther ? [companyData.descriptionOther] : [])
+            ].join('; ') || null,
             industry: companyData.industry,
             size_category: companyData.size_category,
             location: companyData.location,
-            company_culture: companyData.company_culture ? { description: companyData.company_culture } : undefined,
+            company_culture: {
+              description: [
+                ...(companyData.company_culture || []),
+                ...(companyData.companyCultureOther ? [companyData.companyCultureOther] : [])
+              ].join('; ') || ''
+            },
             website: companyData.website || null,
             cnpj: companyData.cnpj || null,
             founded_year: companyData.founded_year ? Number(companyData.founded_year) : null,
@@ -177,11 +185,19 @@ const CompanyOnboardingFlow: React.FC = () => {
           .insert({
             user_id: user.user.id,
             company_name: companyData.company_name,
-            description: companyData.description,
+            description: [
+              ...(companyData.description || []),
+              ...(companyData.descriptionOther ? [companyData.descriptionOther] : [])
+            ].join('; ') || null,
             industry: companyData.industry,
             size_category: companyData.size_category,
             location: companyData.location,
-            company_culture: companyData.company_culture ? { description: companyData.company_culture } : undefined,
+            company_culture: {
+              description: [
+                ...(companyData.company_culture || []),
+                ...(companyData.companyCultureOther ? [companyData.companyCultureOther] : [])
+              ].join('; ') || ''
+            },
             website: companyData.website || null,
             cnpj: companyData.cnpj || null,
             founded_year: companyData.founded_year ? Number(companyData.founded_year) : null,

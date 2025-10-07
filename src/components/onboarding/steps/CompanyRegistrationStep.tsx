@@ -4,12 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage, Form } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription, Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { MaskedInput } from "@/components/ui/masked-input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AutocompleteInput } from "@/components/onboarding/AutocompleteInput";
+import { CheckCircle } from "lucide-react";
 
 
 const companyRegistrationSchema = z.object({
@@ -17,8 +17,10 @@ const companyRegistrationSchema = z.object({
   industry: z.string().min(1, "Setor é obrigatório"),
   size_category: z.string().min(1, "Tamanho da empresa é obrigatório"),
   location: z.string().min(1, "Localização é obrigatória"),
-  description: z.string().optional(),
-  company_culture: z.string().optional(),
+  description: z.array(z.string()).default([]),
+  descriptionOther: z.string().optional(),
+  company_culture: z.array(z.string()).default([]),
+  companyCultureOther: z.string().optional(),
   website: z.string().url("URL inválida").optional().or(z.literal("")),
   cnpj: z.string().regex(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, "CNPJ inválido. Use o formato 00.000.000/0000-00").optional().or(z.literal("")),
   founded_year: z.coerce.number().min(1800, "Ano inválido").max(new Date().getFullYear(), "Ano não pode ser no futuro").optional().or(z.literal("")),
@@ -112,9 +114,46 @@ const INDUSTRIES = [
   "Outros",
 ];
 
+const descriptionOptions = [
+  "Empresa inovadora e tecnológica",
+  "Foco em soluções digitais",
+  "Líder de mercado no segmento",
+  "Empresa em crescimento acelerado",
+  "Multinacional estabelecida",
+  "Startup em expansão",
+  "Empresa familiar tradicional",
+  "Foco em sustentabilidade",
+  "Produtos/serviços de qualidade premium",
+  "Orientada a resultados",
+  "Centrada no cliente",
+  "Ambiente colaborativo"
+];
+
+const companyCultureOptions = [
+  "Horários flexíveis",
+  "Trabalho remoto disponível",
+  "Cultura de inovação",
+  "Ambiente informal e descontraído",
+  "Foco em diversidade e inclusão",
+  "Plano de carreira estruturado",
+  "Investimento em capacitação",
+  "Home office",
+  "Benefícios competitivos",
+  "Equilíbrio vida-trabalho",
+  "Meritocracia",
+  "Autonomia e responsabilidade",
+  "Feedbacks constantes",
+  "Ambiente colaborativo",
+  "Política de férias generosa",
+  "Day off no aniversário"
+];
+
 const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
   const [locationValue, setLocationValue] = useState(data?.location || "");
   const [industryValue, setIndustryValue] = useState(data?.industry || "");
+  const [selectedDescriptions, setSelectedDescriptions] = useState<string[]>(data?.description || []);
+  const [selectedCulture, setSelectedCulture] = useState<string[]>(data?.company_culture || []);
+  
   const form = useForm<CompanyRegistrationData>({
     resolver: zodResolver(companyRegistrationSchema),
     defaultValues: data || {
@@ -122,8 +161,8 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
       industry: "",
       size_category: "",
       location: "",
-      description: "",
-      company_culture: "",
+      description: [],
+      company_culture: [],
       website: "",
       cnpj: "",
       founded_year: "",
@@ -131,6 +170,24 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
       linkedin_url: "",
     },
   });
+
+  const toggleDescription = (desc: string) => {
+    const updated = selectedDescriptions.includes(desc)
+      ? selectedDescriptions.filter(d => d !== desc)
+      : [...selectedDescriptions, desc];
+    
+    setSelectedDescriptions(updated);
+    form.setValue("description", updated);
+  };
+
+  const toggleCulture = (culture: string) => {
+    const updated = selectedCulture.includes(culture)
+      ? selectedCulture.filter(c => c !== culture)
+      : [...selectedCulture, culture];
+    
+    setSelectedCulture(updated);
+    form.setValue("company_culture", updated);
+  };
 
   const handleSubmit = (formData: CompanyRegistrationData) => {
     onNext(formData);
@@ -203,41 +260,91 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Sobre a Empresa</h3>
             
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição da Empresa</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Conte um pouco sobre sua empresa, seus valores e o que faz... (opcional)"
-                      className="min-h-[100px]"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-3">
+              <FormLabel>Descrição da Empresa (Opcional)</FormLabel>
+              <FormDescription>
+                Selecione características que descrevem sua empresa
+              </FormDescription>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {descriptionOptions.map((desc) => (
+                  <button
+                    key={desc}
+                    type="button"
+                    onClick={() => toggleDescription(desc)}
+                    className={`p-3 text-sm rounded-lg border transition-colors text-left ${
+                      selectedDescriptions.includes(desc)
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border hover:border-primary/30"
+                    }`}
+                  >
+                    {desc}
+                    {selectedDescriptions.includes(desc) && (
+                      <CheckCircle className="w-3 h-3 inline ml-1" />
+                    )}
+                  </button>
+                ))}
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="descriptionOther"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Outros (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Adicione outras características não listadas..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-            <FormField
-              control={form.control}
-              name="company_culture"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cultura da Empresa</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Descreva a cultura, valores, benefícios e ambiente de trabalho... (opcional)"
-                      className="min-h-[100px]"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="space-y-3">
+              <FormLabel>Cultura da Empresa (Opcional)</FormLabel>
+              <FormDescription>
+                Selecione valores, benefícios e características do ambiente de trabalho
+              </FormDescription>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {companyCultureOptions.map((culture) => (
+                  <button
+                    key={culture}
+                    type="button"
+                    onClick={() => toggleCulture(culture)}
+                    className={`p-3 text-sm rounded-lg border transition-colors text-left ${
+                      selectedCulture.includes(culture)
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border hover:border-primary/30"
+                    }`}
+                  >
+                    {culture}
+                    {selectedCulture.includes(culture) && (
+                      <CheckCircle className="w-3 h-3 inline ml-1" />
+                    )}
+                  </button>
+                ))}
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="companyCultureOther"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Outros (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Adicione outros aspectos da cultura não listados..."
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
 
           {/* Informações da Empresa */}
