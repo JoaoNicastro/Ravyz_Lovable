@@ -4,16 +4,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ChevronRight, ChevronLeft, Plus, X } from "lucide-react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { ChevronRight, ChevronLeft, Plus, X, CheckCircle } from "lucide-react";
 import { AutocompleteInput } from "@/components/onboarding/AutocompleteInput";
 import { JOB_ROLE_SUGGESTIONS } from "@/lib/job-suggestions";
 
 const goalsSchema = z.object({
-  careerGoals: z.string().min(50, "Descreva seus objetivos de carreira (mínimo 50 caracteres)"),
+  careerGoals: z.array(z.string()).min(1, "Selecione pelo menos um objetivo"),
+  careerGoalsOther: z.string().optional(),
   preferredRoles: z.array(z.string()).min(1, "Adicione pelo menos 1 cargo de interesse"),
 });
 
@@ -25,16 +26,41 @@ interface CareerGoalsStepProps {
   data?: GoalsData;
 }
 
+const careerGoalOptions = [
+  "Crescer como líder técnico",
+  "Assumir cargo de gestão",
+  "Especializar-me em nova tecnologia",
+  "Trabalhar em projetos internacionais",
+  "Empreender ou ter meu próprio negócio",
+  "Tornar-me referência na área",
+  "Trabalhar remotamente",
+  "Equilibrar vida pessoal e profissional",
+  "Aumentar minha remuneração significativamente",
+  "Contribuir com projetos open source",
+  "Mentorar outros profissionais",
+  "Mudar de área/setor"
+];
+
 export const CareerGoalsStep: React.FC<CareerGoalsStepProps> = ({ onNext, onBack, data }) => {
   const [newRole, setNewRole] = useState("");
+  const [selectedGoals, setSelectedGoals] = useState<string[]>(data?.careerGoals || []);
 
   const form = useForm<GoalsData>({
     resolver: zodResolver(goalsSchema),
     defaultValues: data || {
-      careerGoals: "",
+      careerGoals: [],
       preferredRoles: [],
     },
   });
+
+  const toggleGoal = (goal: string) => {
+    const updated = selectedGoals.includes(goal)
+      ? selectedGoals.filter(g => g !== goal)
+      : [...selectedGoals, goal];
+    
+    setSelectedGoals(updated);
+    form.setValue("careerGoals", updated, { shouldValidate: true });
+  };
 
   const addRole = (roleValue?: string) => {
     const roleToAdd = roleValue || newRole;
@@ -56,8 +82,6 @@ export const CareerGoalsStep: React.FC<CareerGoalsStepProps> = ({ onNext, onBack
     onNext(formData);
   };
 
-  const currentLength = form.watch("careerGoals")?.length || 0;
-
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center space-y-2 mb-8">
@@ -78,31 +102,62 @@ export const CareerGoalsStep: React.FC<CareerGoalsStepProps> = ({ onNext, onBack
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <FormField
-                control={form.control}
-                name="careerGoals"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-base">Onde você se vê daqui a alguns anos?</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="ex: Busco crescer como líder técnico, aprender novas tecnologias..."
-                        className="min-h-[120px] resize-none"
-                        {...field}
-                      />
-                    </FormControl>
-                    <div className="flex justify-between items-center">
-                      <p className="text-xs text-muted-foreground">
+              <div className="space-y-3">
+                <FormLabel className="text-base">Onde você se vê daqui a alguns anos?</FormLabel>
+                <FormDescription>
+                  Selecione os objetivos que representam suas ambições profissionais
+                </FormDescription>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {careerGoalOptions.map((goal) => (
+                    <button
+                      key={goal}
+                      type="button"
+                      onClick={() => toggleGoal(goal)}
+                      className={`p-3 text-sm rounded-lg border transition-colors text-left ${
+                        selectedGoals.includes(goal)
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border hover:border-primary/30"
+                      }`}
+                    >
+                      {goal}
+                      {selectedGoals.includes(goal) && (
+                        <CheckCircle className="w-3 h-3 inline ml-1" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                <FormField
+                  control={form.control}
+                  name="careerGoals"
+                  render={() => (
+                    <FormItem>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="careerGoalsOther"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">Outros (Opcional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Adicione outros objetivos não listados..."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
                         💡 Seja ambicioso e específico!
-                      </p>
-                      <span className={`text-xs ${currentLength >= 50 ? 'text-success' : 'text-muted-foreground'}`}>
-                        {currentLength}/50
-                      </span>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <div className="space-y-3">
                 <Label className="text-base">Quais cargos você deseja?</Label>

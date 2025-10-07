@@ -383,7 +383,10 @@ const OnboardingFlow = () => {
           ...(assessmentData?.keyAchievementsOther ? [assessmentData.keyAchievementsOther] : [])
         ].join('; ') || null,
         preferred_roles: assessmentData?.preferredRoles || [],
-        career_goals: assessmentData?.careerGoals || null,
+        career_goals: [
+          ...(assessmentData?.careerGoals || []),
+          ...(assessmentData?.careerGoalsOther ? [assessmentData.careerGoalsOther] : [])
+        ].join('; ') || null,
         preferences: {
           completionLevel: 100,
           desired_role: dreamJobData?.desiredRole,

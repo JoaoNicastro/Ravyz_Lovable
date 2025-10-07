@@ -14,7 +14,8 @@ type AssessmentData = {
   yearsInRole: number;
   keyAchievements: string[];
   keyAchievementsOther?: string;
-  careerGoals: string;
+  careerGoals: string[];
+  careerGoalsOther?: string;
   preferredRoles: string[];
 };
 interface StepProps {
@@ -87,7 +88,8 @@ const ProfessionalAssessmentStep: React.FC<StepProps> = ({
         }} />;
       case 4:
         return <CareerGoalsStep onNext={handleSubStepNext} onBack={handleSubStepBack} data={{
-          careerGoals: assessmentData.careerGoals || "",
+          careerGoals: assessmentData.careerGoals || [],
+          careerGoalsOther: assessmentData.careerGoalsOther,
           preferredRoles: assessmentData.preferredRoles || []
         }} />;
       default:
