@@ -129,6 +129,22 @@ const CompanyOnboardingFlow: React.FC = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error("Usuário não encontrado");
 
+      // Garantir que o usuário existe na tabela users
+      const { error: userUpsertError } = await supabase
+        .from('users')
+        .upsert({
+          id: user.user.id,
+          email: user.user.email || '',
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'id',
+          ignoreDuplicates: false
+        });
+
+      if (userUpsertError) {
+        console.error('Error ensuring user exists:', userUpsertError);
+      }
+
       const companyData = allStepData["company-registration"];
       const jobData = allStepData["job-definition"];
       const candidateBasicData = allStepData["candidate-basic-profile"];
