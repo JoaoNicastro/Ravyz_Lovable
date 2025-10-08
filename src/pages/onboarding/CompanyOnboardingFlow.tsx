@@ -127,7 +127,12 @@ const CompanyOnboardingFlow: React.FC = () => {
     
     try {
       const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não encontrado");
+      if (!user.user) {
+        toast.error("Sua sessão expirou. Faça login para concluir o onboarding.");
+        setIsLoading(false);
+        navigate("/auth");
+        return;
+      }
 
       // Garantir que o usuário existe na tabela users
       const { error: userUpsertError } = await supabase
