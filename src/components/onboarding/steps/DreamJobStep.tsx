@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle, Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -198,14 +199,20 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Tamanho da Empresa</FormLabel>
-                      <FormControl>
-                        <AutocompleteInput
-                          suggestions={COMPANY_SIZE_SUGGESTIONS}
-                          placeholder="ex: Startup, Média empresa..."
-                          {...field}
-                          onSelect={(value) => field.onChange(value)}
-                        />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o tamanho da empresa" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {COMPANY_SIZE_SUGGESTIONS.map((size) => (
+                            <SelectItem key={size} value={size}>
+                              {size}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -217,14 +224,20 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Modelo de Trabalho</FormLabel>
-                      <FormControl>
-                        <AutocompleteInput
-                          suggestions={WORK_MODEL_SUGGESTIONS}
-                          placeholder="ex: Remoto, Híbrido..."
-                          {...field}
-                          onSelect={(value) => field.onChange(value)}
-                        />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o modelo de trabalho" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {WORK_MODEL_SUGGESTIONS.map((model) => (
+                            <SelectItem key={model} value={model}>
+                              {model}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
