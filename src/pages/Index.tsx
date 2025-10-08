@@ -335,7 +335,7 @@ const Index = () => {
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/auth?tab=register">
-                <Button size="lg" variant="secondary" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90">
+                <Button size="lg" variant="outline" className="border-primary-foreground/20 text-primary hover:bg-primary-foreground/10">
                   <Users className="mr-2 h-5 w-5" />
                   Cadastrar como Candidato
                 </Button>
