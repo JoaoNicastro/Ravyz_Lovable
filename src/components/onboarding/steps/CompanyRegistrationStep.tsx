@@ -154,6 +154,13 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
   const [selectedDescriptions, setSelectedDescriptions] = useState<string[]>(data?.description || []);
   const [selectedCulture, setSelectedCulture] = useState<string[]>(data?.company_culture || []);
   
+  // Prevent form submission on Enter key press in text inputs
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
+  };
+  
   const form = useForm<CompanyRegistrationData>({
     resolver: zodResolver(companyRegistrationSchema),
     defaultValues: data || {
@@ -220,6 +227,7 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
                     <FormControl>
                       <Input 
                         placeholder="Ex: Tech Innovation Ltda" 
+                        onKeyDown={handleKeyDown}
                         {...field} 
                       />
                     </FormControl>
@@ -294,6 +302,7 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
                     <FormControl>
                       <Input
                         placeholder="Adicione outras características não listadas..."
+                        onKeyDown={handleKeyDown}
                         {...field}
                       />
                     </FormControl>
@@ -337,6 +346,7 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
                     <FormControl>
                       <Input
                         placeholder="Adicione outros aspectos da cultura não listados..."
+                        onKeyDown={handleKeyDown}
                         {...field}
                       />
                     </FormControl>
@@ -411,7 +421,8 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
                     <FormControl>
                       <Input 
                         type="number"
-                        placeholder="Ex: 125" 
+                        placeholder="Ex: 125"
+                        onKeyDown={handleKeyDown}
                         {...field} 
                       />
                     </FormControl>
@@ -429,7 +440,8 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
                     <FormControl>
                       <Input 
                         type="number"
-                        placeholder="Ex: 2010" 
+                        placeholder="Ex: 2010"
+                        onKeyDown={handleKeyDown}
                         {...field} 
                       />
                     </FormControl>
@@ -472,7 +484,8 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
                     <FormControl>
                       <Input 
                         type="url"
-                        placeholder="https://www.exemplo.com.br" 
+                        placeholder="https://www.exemplo.com.br"
+                        onKeyDown={handleKeyDown}
                         {...field} 
                       />
                     </FormControl>
@@ -490,7 +503,8 @@ const CompanyRegistrationStep: React.FC<StepProps> = ({ onNext, data }) => {
                     <FormControl>
                       <Input 
                         type="url"
-                        placeholder="https://www.linkedin.com/company/..." 
+                        placeholder="https://www.linkedin.com/company/..."
+                        onKeyDown={handleKeyDown}
                         {...field} 
                       />
                     </FormControl>
