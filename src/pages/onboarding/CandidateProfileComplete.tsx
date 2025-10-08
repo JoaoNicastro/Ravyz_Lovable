@@ -350,31 +350,68 @@ export default function CandidateProfileComplete() {
           </Card>
 
           {/* Preferências */}
-          <Card className="hover-scale">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                Preferências
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {preferences.workModel && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Home className="h-4 w-4 text-muted-foreground" />
-                  <span>{preferences.workModel}</span>
-                </div>
-              )}
-              {preferences.salaryRange && (
-                <div className="flex items-center gap-2 text-sm">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span>
-                    R$ {preferences.salaryRange.min?.toLocaleString()} - 
-                    R$ {preferences.salaryRange.max?.toLocaleString()}
-                  </span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {(preferences.preferred_locations?.length > 0 || 
+            preferences.industry_interests?.length > 0 || 
+            preferences.deal_breakers?.length > 0 ||
+            preferences.additional_preferences?.length > 0) && (
+            <Card className="hover-scale">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  Preferências
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {preferences.preferred_locations?.length > 0 && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Locais Preferidos</p>
+                    <div className="flex flex-wrap gap-2">
+                      {preferences.preferred_locations.map((location: string, idx: number) => (
+                        <Badge key={idx} variant="outline" className="text-xs">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          {location}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {preferences.industry_interests?.length > 0 && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Indústrias de Interesse</p>
+                    <div className="flex flex-wrap gap-2">
+                      {preferences.industry_interests.map((industry: string, idx: number) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {industry}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {preferences.deal_breakers?.length > 0 && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Deal Breakers</p>
+                    <div className="flex flex-wrap gap-2">
+                      {preferences.deal_breakers.map((item: string, idx: number) => (
+                        <Badge key={idx} variant="destructive" className="text-xs">
+                          {item}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {preferences.additional_preferences?.length > 0 && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Preferências Adicionais</p>
+                    <div className="space-y-1">
+                      {preferences.additional_preferences.map((pref: string, idx: number) => (
+                        <p key={idx} className="text-sm">{pref}</p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
 
       </div>
