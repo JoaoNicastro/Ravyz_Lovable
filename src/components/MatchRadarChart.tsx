@@ -82,6 +82,10 @@ export const MatchRadarChart = ({ candidatePillars, jobPillars }: RadarChartProp
               border: '1px solid hsl(var(--border))',
               borderRadius: '8px',
             }}
+            formatter={(value: any) => {
+              const num = typeof value === 'number' ? value : parseFloat(value);
+              return isNaN(num) ? '0.0' : num.toFixed(1);
+            }}
           />
           <Legend />
         </RadarChart>
