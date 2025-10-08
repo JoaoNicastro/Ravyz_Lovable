@@ -4,40 +4,51 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { MatchRadarChart } from '@/components/MatchRadarChart';
 import { 
   Sparkles, 
   MapPin, 
   Users, 
-  Globe,
-  Award,
   Briefcase,
-  Gift,
   Building2,
-  Edit,
-  Search,
+  Target,
+  ArrowRight,
   Heart,
   Handshake,
   Zap,
-  LogOut
+  Award,
+  DollarSign,
+  Clock
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { shortArchetypeDescriptions } from '@/lib/archetype-descriptions';
 
 export default function CompanyProfileComplete() {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [profile, setProfile] = React.useState<any>(null);
-  const [jobsCount, setJobsCount] = React.useState(0);
+  const [firstJob, setFirstJob] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
-
-  const handleLogout = async () => {
-    await signOut();
-    navigate('/auth');
-  };
+  const [countdown, setCountdown] = React.useState(7);
 
   React.useEffect(() => {
     loadProfile();
-  }, [user]);
+    
+    // Countdown timer
+    const countdownInterval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(countdownInterval);
+          navigate('/dashboard/company');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(countdownInterval);
+  }, [user, navigate]);
 
   const loadProfile = async () => {
     if (!user) return;
@@ -51,15 +62,19 @@ export default function CompanyProfileComplete() {
 
       if (companyError) throw companyError;
 
-      // Count active jobs
-      const { count } = await supabase
+      // Get the first job created
+      const { data: jobData, error: jobError } = await supabase
         .from('jobs')
-        .select('*', { count: 'exact', head: true })
+        .select('*')
         .eq('company_id', companyData.id)
-        .eq('status', 'active');
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (jobError && jobError.code !== 'PGRST116') throw jobError;
 
       setProfile(companyData);
-      setJobsCount(count || 0);
+      setFirstJob(jobData);
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
     } finally {
@@ -80,14 +95,15 @@ export default function CompanyProfileComplete() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center space-y-4">
           <p className="text-muted-foreground">Perfil não encontrado</p>
-          <Button onClick={() => navigate('/onboarding')}>Voltar</Button>
+          <Button onClick={() => navigate('/onboarding/company')}>Voltar</Button>
         </div>
       </div>
     );
   }
 
   const culture = profile.company_culture || {};
-  const socialLinks = profile.social_links || {};
+  const pillarScores = firstJob?.pillar_scores || {};
+  const archetype = firstJob?.archetype || 'Equilibrado';
   
   // Map culture values to icons
   const cultureIcons: Record<string, any> = {
@@ -100,243 +116,176 @@ export default function CompanyProfileComplete() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
-        {/* Logout Button */}
-        <div className="flex justify-end">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleLogout}
-            className="gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            Sair
-          </Button>
+        
+        {/* Countdown Timer */}
+        <div className="fixed top-4 right-4 z-50">
+          <div className="bg-card/95 backdrop-blur border border-border rounded-lg px-4 py-2 shadow-lg">
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">
+                Redirecionando em <span className="font-bold text-primary">{countdown}s</span>
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Hero Section */}
+        {/* Hero Section - Company Header (Resumido) */}
         <div className="text-center space-y-4 animate-fade-in">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
             <Sparkles className="h-5 w-5" />
-            <span className="font-medium">Perfil Completo</span>
+            <span className="font-medium">Perfil Ativo</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold">
-            O perfil de {profile.company_name} está pronto para atrair os melhores talentos!
+          <h1 className="text-3xl md:text-4xl font-bold">
+            Parabéns, o perfil da {profile.company_name} está ativo!
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Sua empresa agora tem uma presença profissional completa na plataforma.
-          </p>
+          
+          {/* Company Info Compact */}
+          <div className="flex flex-wrap items-center justify-center gap-4 text-muted-foreground">
+            {profile.industry && (
+              <div className="flex items-center gap-2">
+                <Briefcase className="h-4 w-4" />
+                <span className="text-sm">{profile.industry}</span>
+              </div>
+            )}
+            {profile.location && (
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                <span className="text-sm">{profile.location}</span>
+              </div>
+            )}
+            {profile.employee_count && (
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                <span className="text-sm">{profile.employee_count} funcionários</span>
+              </div>
+            )}
+          </div>
+
+          {/* Culture Values */}
+          {culture.values && culture.values.length > 0 && (
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              {culture.values.slice(0, 4).map((value: string, idx: number) => {
+                const Icon = cultureIcons[value] || Award;
+                return (
+                  <div key={idx} className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/50">
+                    <Icon className="h-3 w-3 text-primary" />
+                    <span className="text-xs font-medium">{value}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
-        {/* Card Principal - Identidade da Marca */}
-        <Card className="border-2 border-primary/20 shadow-lg animate-scale-in overflow-hidden">
-          {/* Banner/Header Image */}
-          <div className="h-48 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 relative">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Building2 className="h-24 w-24 text-primary/20" />
-            </div>
-          </div>
-          
-          {/* Logo and Company Info */}
-          <CardContent className="relative -mt-16 space-y-6">
-            <div className="flex flex-col items-center space-y-4">
-              <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
-                <AvatarImage src={profile.logo_url} />
-                <AvatarFallback className="text-3xl bg-primary/10">
-                  {profile.company_name?.[0] || 'C'}
-                </AvatarFallback>
-              </Avatar>
+        {/* Main Feature: Job Card with Archetype */}
+        {firstJob && (
+          <Card className="border-2 border-primary/30 shadow-2xl animate-scale-in max-w-5xl mx-auto">
+            <CardHeader className="text-center space-y-2 bg-gradient-to-br from-primary/5 to-transparent">
+              <div className="inline-flex items-center justify-center gap-2 mx-auto px-4 py-1 rounded-full bg-primary/10 mb-2">
+                <Target className="h-4 w-4 text-primary" />
+                <span className="text-xs font-semibold text-primary">SUA PRIMEIRA VAGA</span>
+              </div>
+              <CardTitle className="text-3xl md:text-4xl font-bold">
+                {firstJob.title}
+              </CardTitle>
               
-              <div className="text-center space-y-2">
-                <h2 className="text-3xl font-bold">{profile.company_name}</h2>
-                {profile.description && (
-                  <p className="text-muted-foreground max-w-2xl">
-                    {profile.description}
+              {/* Job Key Info */}
+              <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground pt-2">
+                {firstJob.location && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    <span>{firstJob.location}</span>
+                  </div>
+                )}
+                {firstJob.work_model && (
+                  <Badge variant="secondary" className="capitalize">
+                    {firstJob.work_model}
+                  </Badge>
+                )}
+                {(firstJob.salary_min || firstJob.salary_max) && (
+                  <div className="flex items-center gap-1">
+                    <DollarSign className="h-4 w-4" />
+                    <span>
+                      R$ {firstJob.salary_min?.toLocaleString() || '—'} - 
+                      R$ {firstJob.salary_max?.toLocaleString() || '—'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-8 pt-8">
+              {/* Archetype Highlight */}
+              <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-lg p-8 border border-primary/20">
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20">
+                    <Award className="h-5 w-5 text-primary" />
+                    <span className="font-semibold text-primary text-sm">PERFIL IDEAL</span>
+                  </div>
+                  
+                  <h2 className="text-4xl font-bold text-primary">
+                    {archetype}
+                  </h2>
+                  
+                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                    {shortArchetypeDescriptions[archetype] || 'Perfil profissional único identificado.'}
                   </p>
-                )}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Grid de Cards Secundários */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Sobre Nós */}
-          <Card className="hover-scale">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-primary" />
-                Sobre Nós
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {profile.industry && (
-                <div className="flex items-start gap-2 text-sm">
-                  <Briefcase className="h-4 w-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Setor</p>
-                    <p className="font-medium">{profile.industry}</p>
-                  </div>
+              {/* Radar Chart */}
+              <div className="space-y-4">
+                <div className="text-center">
+                  <h3 className="text-xl font-semibold mb-2">Perfil Comportamental da Vaga</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Baseado nos 5 pilares RAVYZ
+                  </p>
                 </div>
-              )}
-              {profile.location && (
-                <div className="flex items-start gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Localização</p>
-                    <p className="font-medium">{profile.location}</p>
-                  </div>
+                
+                <div className="w-full max-w-2xl mx-auto">
+                  <MatchRadarChart
+                    candidatePillars={pillarScores}
+                    jobPillars={{}}
+                  />
                 </div>
-              )}
-              {profile.employee_count && (
-                <div className="flex items-start gap-2 text-sm">
-                  <Users className="h-4 w-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Funcionários</p>
-                    <p className="font-medium">{profile.employee_count}</p>
-                  </div>
-                </div>
-              )}
-              {profile.founded_year && (
-                <div className="flex items-start gap-2 text-sm">
-                  <Award className="h-4 w-4 text-muted-foreground mt-0.5" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Fundada em</p>
-                    <p className="font-medium">{profile.founded_year}</p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
 
-          {/* Cultura e Valores */}
-          <Card className="hover-scale">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Heart className="h-5 w-5 text-primary" />
-                Cultura e Valores
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {culture.values && culture.values.length > 0 ? (
-                <div className="space-y-3">
-                  {culture.values.map((value: string, idx: number) => {
-                    const Icon = cultureIcons[value] || Award;
-                    return (
-                      <div key={idx} className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <Icon className="h-4 w-4 text-primary" />
-                        </div>
-                        <span className="font-medium text-sm">{value}</span>
+                {/* Pillar Scores */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 pt-4">
+                  {Object.entries(pillarScores).map(([pillar, score]) => (
+                    <div key={pillar} className="text-center space-y-1 p-3 rounded-lg bg-muted/50">
+                      <div className="text-2xl font-bold text-primary">
+                        {typeof score === 'number' ? score.toFixed(1) : '0.0'}
                       </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Nenhum valor cadastrado</p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Vagas Abertas */}
-          <Card className="hover-scale">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Briefcase className="h-5 w-5 text-primary" />
-                Vagas Abertas
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center py-6">
-                <div className="text-4xl font-bold text-primary mb-2">
-                  {jobsCount}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {jobsCount === 0 ? 'Nenhuma vaga ativa' :
-                   jobsCount === 1 ? 'Vaga ativa' : 'Vagas ativas'}
-                </p>
-              </div>
-              {jobsCount === 0 && (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => navigate('/company-dashboard')}
-                >
-                  Criar Primeira Vaga
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Links e Conectividade */}
-          {(profile.website || Object.keys(socialLinks).length > 0) && (
-            <Card className="hover-scale md:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-primary" />
-                  Conectividade
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {profile.website && (
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <a
-                      href={profile.website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary hover:underline"
-                    >
-                      {profile.website}
-                    </a>
-                  </div>
-                )}
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(socialLinks).map(([platform, url]: [string, any]) => (
-                    <Badge key={platform} variant="secondary">
-                      {platform}
-                    </Badge>
+                      <div className="text-xs text-muted-foreground capitalize">
+                        {pillar}
+                      </div>
+                    </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              </div>
 
-          {/* Tamanho da Empresa */}
-          {profile.size_category && (
-            <Card className="hover-scale">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Categoria de Tamanho
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Badge variant="outline" className="text-base">
-                  {profile.size_category}
-                </Badge>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+              {/* Job Description Preview */}
+              {firstJob.description && (
+                <div className="space-y-2 pt-4 border-t">
+                  <h4 className="font-semibold text-sm text-muted-foreground">Descrição</h4>
+                  <p className="text-sm leading-relaxed line-clamp-3">
+                    {firstJob.description}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Call to Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8 animate-fade-in">
+        {/* Call to Action */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 animate-fade-in">
           <Button
             size="lg"
-            className="gap-2"
-            onClick={() => navigate('/company-dashboard')}
+            className="gap-2 group"
+            onClick={() => navigate('/dashboard/company')}
           >
-            <Search className="h-5 w-5" />
-            Buscar Candidatos
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="gap-2"
-            onClick={() => navigate('/company-profile')}
-          >
-            <Edit className="h-5 w-5" />
-            Editar Perfil da Empresa
+            Ir para o Dashboard
+            <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
       </div>

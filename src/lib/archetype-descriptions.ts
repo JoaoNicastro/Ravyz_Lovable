@@ -23,10 +23,29 @@ export const archetypeDescriptions: Record<string, string> = {
   
   "Idealista": "Profissional movido por valores e princípios. Prioriza propósito, impacto social e alinhamento com suas crenças pessoais. Valoriza organizações com missão clara, responsabilidade social e oportunidades de contribuir para causas maiores que resultados puramente financeiros.",
   
-  "Pragmático": "Profissional orientado a resultados e recompensas concretas. Foca em entregas tangíveis, métricas claras e retorno objetivo de seus esforços. Valoriza ambientes meritocráticos com compensação competitiva, metas bem definidas e reconhecimento baseado em performance."
+  "Pragmático": "Profissional orientado a resultados e recompensas concretas. Foca em entregas tangíveis, métricas claras e retorno objetivo de seus esforços. Valoriza ambientes meritocráticos com compensação competitiva, metas bem definidas e reconhecimento baseado em performance.",
+  
+  "Proativo": "Profissional que combina autonomia com disposição ao risco. Age sem esperar direção, toma iniciativa e experimenta novas abordagens. Valoriza liberdade para testar ideias e ambientes que recompensem proatividade e inovação prática."
 };
 
 export const getArchetypeDescription = (archetype: string | null): string => {
   if (!archetype) return "Arquétipo em processamento. Complete seu perfil para descobrir seu arquétipo profissional único.";
   return archetypeDescriptions[archetype] || "Arquétipo único identificado através da análise RAVYZ do seu perfil profissional.";
+};
+
+// Descrições curtas para a tela de celebração da vaga
+export const shortArchetypeDescriptions: Record<string, string> = {
+  "Protagonista": "Busca estar no centro da ação, liderando mudanças.",
+  "Construtor": "Cria estruturas sólidas e legado duradouro.",
+  "Visionário": "Focado em futuro, inovação e impacto transformador.",
+  "Mobilizador": "Engaja e move pessoas em torno de objetivos.",
+  "Guardião": "Prioriza estabilidade, segurança e previsibilidade.",
+  "Explorador": "Movido por novidades, diversidade e risco.",
+  "Colaborador": "Orientado a relações humanas e harmonia.",
+  "Equilibrado": "Pondera todas dimensões da carreira igualmente.",
+  "Estrategista": "Pensa no todo e desenha planos de longo prazo.",
+  "Transformador": "Acelera mudanças e desafia o status quo.",
+  "Idealista": "Movido por valores e propósito.",
+  "Pragmático": "Focado em resultados e recompensas concretas.",
+  "Proativo": "Combina autonomia com disposição ao risco."
 };
