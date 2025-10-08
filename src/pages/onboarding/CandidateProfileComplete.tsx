@@ -120,7 +120,7 @@ export default function CandidateProfileComplete() {
             <span className="font-medium">Perfil Completo</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold">
-            Seu perfil está pronto para brilhar, {profile.full_name?.split(' ')[0]}!
+            Seu perfil está pronto para brilhar, {user?.user_metadata?.full_name?.split(' ')[0] || 'candidato'}!
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Agora você pode começar a explorar oportunidades alinhadas com seu perfil profissional único.
@@ -173,12 +173,24 @@ export default function CandidateProfileComplete() {
               <CardTitle className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={profile.avatar_url} />
-                  <AvatarFallback>{profile.full_name?.[0] || 'U'}</AvatarFallback>
+                  <AvatarFallback>{user?.user_metadata?.full_name?.[0] || 'U'}</AvatarFallback>
                 </Avatar>
                 Informações Pessoais
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              {user?.user_metadata?.full_name && (
+                <div className="pb-2">
+                  <p className="text-xs text-muted-foreground mb-1">Nome Completo</p>
+                  <p className="text-sm font-medium">{user.user_metadata.full_name}</p>
+                </div>
+              )}
+              {user?.email && (
+                <div className="pb-2">
+                  <p className="text-xs text-muted-foreground mb-1">Email</p>
+                  <p className="text-sm font-medium">{user.email}</p>
+                </div>
+              )}
               {profile.headline && (
                 <div className="pb-2">
                   <p className="text-xs text-muted-foreground mb-1">Headline</p>
