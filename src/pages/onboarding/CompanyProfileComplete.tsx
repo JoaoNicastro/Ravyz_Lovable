@@ -385,17 +385,6 @@ export default function CompanyProfileComplete() {
           </Card>
         )}
 
-        {/* Call to Action */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4 animate-fade-in">
-          <Button
-            size="lg"
-            className="gap-2 group"
-            onClick={() => navigate('/dashboard/company')}
-          >
-            Ir para o Dashboard
-            <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-          </Button>
-        </div>
       </div>
     </div>
   );
