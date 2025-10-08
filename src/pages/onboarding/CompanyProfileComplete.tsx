@@ -302,11 +302,16 @@ export default function CompanyProfileComplete() {
                     Habilidades Técnicas Requeridas
                   </h4>
                   <div className="flex flex-wrap gap-2">
-                    {firstJob.technical_skills.map((skill: string, idx: number) => (
-                      <Badge key={idx} variant="secondary">
-                        {skill}
-                      </Badge>
-                    ))}
+                    {firstJob.technical_skills.map((skill: any, idx: number) => {
+                      const skillName = typeof skill === 'string' ? skill : skill.name || skill.skill;
+                      const skillLevel = typeof skill === 'object' ? skill.level : null;
+                      return (
+                        <Badge key={idx} variant="secondary">
+                          {skillName}
+                          {skillLevel && <span className="ml-1 text-xs opacity-70">({skillLevel})</span>}
+                        </Badge>
+                      );
+                    })}
                   </div>
                 </div>
               )}
