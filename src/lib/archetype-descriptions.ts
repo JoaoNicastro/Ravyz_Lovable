@@ -1,21 +1,29 @@
 // Descrições dos arquétipos RAVYZ baseadas na metodologia de matching
 
 export const archetypeDescriptions: Record<string, string> = {
-  "Explorador Ambicioso": "Profissional orientado por desafios e crescimento acelerado. Busca ambientes dinâmicos onde possa testar seus limites, assumir riscos calculados e alcançar resultados excepcionais. Valoriza autonomia, recompensas competitivas e oportunidades de liderança.",
+  "Protagonista": "Profissional que quer estar no centro da ação, liderando mudanças e sendo referência. Busca visibilidade, reconhecimento e oportunidades de protagonizar transformações. Valoriza ambientes onde possa tomar decisões importantes e influenciar resultados estratégicos.",
   
-  "Construtor Estratégico": "Líder visionário que une propósito e pragmatismo. Busca criar impacto sustentável através de planejamento de longo prazo e execução disciplinada. Valoriza ambientes que permitam construir legados e transformar organizações.",
+  "Construtor": "Profissional focado em criar estruturas sólidas, legado e consistência. Busca construir bases duradouras e projetos de impacto de longo prazo. Valoriza organizações onde possa estabelecer processos, desenvolver sistemas e deixar sua marca através de realizações concretas.",
   
-  "Colaborador Inspirado": "Profissional que prospera em equipes coesas e culturas fortes. Prioriza o ambiente de trabalho, relações interpessoais e alinhamento de valores. Busca propósito no trabalho e valoriza o bem-estar coletivo tanto quanto resultados individuais.",
+  "Visionário": "Profissional orientado ao futuro, inovação e impacto transformador. Busca antecipar tendências e criar soluções disruptivas. Valoriza ambientes que estimulam pensamento estratégico, experimentação e oportunidades de moldar o amanhã da organização e do mercado.",
   
-  "Inovador Criativo": "Mente criativa que busca revolucionar processos e criar soluções originais. Valoriza liberdade para experimentar, ambientes que estimulam a criatividade e oportunidades de trabalhar em projetos únicos e transformadores.",
+  "Mobilizador": "Profissional que engaja e move pessoas, criando movimento coletivo em torno de objetivos compartilhados. Busca inspirar equipes e construir consensos. Valoriza ambientes colaborativos onde possa exercer influência, conectar pessoas e catalisar energia coletiva.",
   
-  "Especialista Técnico": "Profundo conhecedor da sua área, que busca excelência técnica e reconhecimento pela expertise. Valoriza ambientes que permitam aprofundamento contínuo, compartilhamento de conhecimento e trabalho em projetos complexos.",
+  "Guardião": "Profissional que busca estabilidade, segurança e previsibilidade. Prioriza ambientes estruturados com processos claros e expectativas bem definidas. Valoriza organizações sólidas que ofereçam segurança no longo prazo, benefícios consistentes e carreira estável.",
   
-  "Equilibrista Sustentável": "Profissional que busca harmonia entre todas as dimensões da carreira. Valoriza equilíbrio entre vida pessoal e profissional, estabilidade financeira, propósito e desenvolvimento contínuo sem sacrificar qualidade de vida.",
+  "Explorador": "Profissional movido por novidades, diversidade e disposição ao risco. Busca constantemente novos desafios, experiências variadas e oportunidades de aprendizado. Valoriza ambientes dinâmicos que ofereçam rotação de projetos, exposição a diferentes áreas e liberdade para experimentar.",
   
-  "Executor Pragmático": "Profissional focado em resultados tangíveis e eficiência operacional. Valoriza clareza de objetivos, processos bem definidos e compensação alinhada à entrega. Busca ambientes meritocráticos e oportunidades de crescimento baseadas em performance.",
+  "Colaborador": "Profissional orientado a relações humanas e harmonia no ambiente de trabalho. Prioriza cultura organizacional, trabalho em equipe e conexões interpessoais. Valoriza ambientes acolhedores onde possa contribuir para o bem-estar coletivo e construir relacionamentos significativos.",
   
-  "Líder Transformador": "Profissional orientado a liderar mudanças significativas e desenvolver pessoas. Combina visão estratégica com habilidades interpessoais excepcionais. Busca ambientes onde possa mentorear, influenciar cultura e criar impacto através da liderança.",
+  "Equilibrado": "Profissional que pondera crescimento, ambiente e compensação de forma equilibrada. Busca harmonia entre todas as dimensões da carreira sem sacrificar uma pela outra. Valoriza organizações que ofereçam desenvolvimento, qualidade de vida e recompensas justas simultaneamente.",
+  
+  "Estrategista": "Profissional que pensa no todo, avalia cenários e desenha planos de longo prazo. Busca compreender o panorama completo antes de agir. Valoriza ambientes que permitam análise profunda, planejamento estruturado e decisões baseadas em visão sistêmica.",
+  
+  "Transformador": "Profissional que acelera mudanças e desafia o status quo. Busca revolucionar processos, questionar paradigmas e implementar inovações. Valoriza ambientes que incentivem disrupção, tolerem falhas no processo de inovação e recompensem iniciativas transformadoras.",
+  
+  "Idealista": "Profissional movido por valores e princípios. Prioriza propósito, impacto social e alinhamento com suas crenças pessoais. Valoriza organizações com missão clara, responsabilidade social e oportunidades de contribuir para causas maiores que resultados puramente financeiros.",
+  
+  "Pragmático": "Profissional orientado a resultados e recompensas concretas. Foca em entregas tangíveis, métricas claras e retorno objetivo de seus esforços. Valoriza ambientes meritocráticos com compensação competitiva, metas bem definidas e reconhecimento baseado em performance."
 };
 
 export const getArchetypeDescription = (archetype: string | null): string => {
