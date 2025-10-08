@@ -79,6 +79,23 @@ export default function CandidateProfileComplete() {
   const skills = profile.skills || [];
   const education = profile.education || [];
   const preferences = profile.preferences || {};
+  const languages = profile.languages || [];
+  const preferredRoles = profile.preferred_roles || [];
+  
+  // Calculate age from date_of_birth
+  const getAge = (dateOfBirth: string) => {
+    if (!dateOfBirth) return null;
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+  
+  const age = profile.date_of_birth ? getAge(profile.date_of_birth) : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
@@ -150,7 +167,7 @@ export default function CandidateProfileComplete() {
 
         {/* Grid de Cards Secundários */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Informações de Contato */}
+          {/* Informações Pessoais */}
           <Card className="hover-scale">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -158,43 +175,66 @@ export default function CandidateProfileComplete() {
                   <AvatarImage src={profile.avatar_url} />
                   <AvatarFallback>{profile.full_name?.[0] || 'U'}</AvatarFallback>
                 </Avatar>
-                Informações de Contato
+                Informações Pessoais
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-start gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <span>{profile.location || 'Não informado'}</span>
-              </div>
-              <div className="flex items-start gap-2 text-sm">
-                <Briefcase className="h-4 w-4 text-muted-foreground mt-0.5" />
-                <span>{profile.current_position || 'Não informado'}</span>
-              </div>
               {profile.headline && (
-                <p className="text-sm text-muted-foreground pt-2">
-                  {profile.headline}
-                </p>
+                <div className="pb-2">
+                  <p className="text-xs text-muted-foreground mb-1">Headline</p>
+                  <p className="text-sm font-medium">{profile.headline}</p>
+                </div>
+              )}
+              {age && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Award className="h-4 w-4 text-muted-foreground" />
+                  <span>{age} anos</span>
+                </div>
+              )}
+              {profile.gender && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-xs text-muted-foreground">Gênero:</span>
+                  <span className="capitalize">{profile.gender}</span>
+                </div>
+              )}
+              {profile.phone && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-xs text-muted-foreground">Telefone:</span>
+                  <span>{profile.phone}</span>
+                </div>
+              )}
+              {profile.location && (
+                <div className="flex items-start gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <span>{profile.location}</span>
+                </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Experiência */}
+          {/* Experiência Profissional */}
           <Card className="hover-scale">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Briefcase className="h-5 w-5 text-primary" />
-                Experiência
+                Experiência Profissional
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              {profile.current_position && (
+                <div className="pb-2">
+                  <p className="text-xs text-muted-foreground mb-1">Posição Atual</p>
+                  <p className="text-sm font-medium">{profile.current_position}</p>
+                </div>
+              )}
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Anos de Experiência</span>
+                <span className="text-sm text-muted-foreground">Experiência</span>
                 <Badge variant="secondary">{profile.years_experience || 0} anos</Badge>
               </div>
-              {profile.career_goals && (
+              {profile.key_achievements && (
                 <div className="pt-2">
-                  <p className="text-xs text-muted-foreground mb-1">Objetivos de Carreira</p>
-                  <p className="text-sm">{profile.career_goals}</p>
+                  <p className="text-xs text-muted-foreground mb-1">Principais Realizações</p>
+                  <p className="text-sm">{profile.key_achievements}</p>
                 </div>
               )}
             </CardContent>
@@ -226,12 +266,72 @@ export default function CandidateProfileComplete() {
             </CardContent>
           </Card>
 
+          {/* Idiomas */}
+          {languages.length > 0 && (
+            <Card className="hover-scale">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                  Idiomas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {languages.map((lang: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{lang.language}</span>
+                      <Badge variant="outline" className="text-xs capitalize">
+                        {lang.level}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Funções Preferidas */}
+          {preferredRoles.length > 0 && (
+            <Card className="hover-scale">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  Funções de Interesse
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {preferredRoles.map((role: string, idx: number) => (
+                    <Badge key={idx} variant="secondary" className="text-sm">
+                      {role}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Objetivos de Carreira */}
+          {profile.career_goals && (
+            <Card className="hover-scale">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  Objetivos de Carreira
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm">{profile.career_goals}</p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Habilidades */}
-          <Card className="hover-scale md:col-span-2">
+          <Card className="hover-scale md:col-span-2 lg:col-span-3">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                Habilidades Chave
+                <Award className="h-5 w-5 text-primary" />
+                Habilidades Técnicas
               </CardTitle>
             </CardHeader>
             <CardContent>
