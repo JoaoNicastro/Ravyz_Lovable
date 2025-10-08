@@ -131,7 +131,7 @@ serve(async (req) => {
       formData.append("file", fileBlob, "resume.pdf");
 
       console.log('📤 Enviando arquivo binário para a Affinda API...');
-      const affindaResponse = await fetch("https://api.affinda.com/v1/documents/", {
+      const affindaResponse = await fetch("https://api.affinda.com/v3/documents", {
         method: "POST",
         headers: { 
           Authorization: `Bearer ${affindaApiKey}`
@@ -269,7 +269,13 @@ serve(async (req) => {
         throw profileError;
       }
 
-      console.log('Resume processing completed successfully');
+      console.log('✅ Resume processed successfully:', {
+        candidateId,
+        fieldsExtracted: Object.keys(updateData).join(', '),
+        skillsCount: parsedData.skills?.length || 0,
+        educationCount: parsedData.education?.length || 0,
+        languagesCount: parsedData.languages?.length || 0
+      });
 
       return new Response(
         JSON.stringify({ 
