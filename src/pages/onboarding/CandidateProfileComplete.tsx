@@ -15,16 +15,22 @@ import {
   DollarSign,
   Home,
   Edit,
-  Search
+  Search,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function CandidateProfileComplete() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [profile, setProfile] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   React.useEffect(() => {
     loadProfile();
@@ -77,6 +83,19 @@ export default function CandidateProfileComplete() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
+        {/* Logout Button */}
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+            className="gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Sair
+          </Button>
+        </div>
+
         {/* Hero Section */}
         <div className="text-center space-y-4 animate-fade-in">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
