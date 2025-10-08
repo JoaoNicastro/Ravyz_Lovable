@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { getArchetypeDescription } from '@/lib/archetype-descriptions';
 
 export default function CandidateProfileComplete() {
   const navigate = useNavigate();
@@ -137,6 +138,9 @@ export default function CandidateProfileComplete() {
             <CardTitle className="text-3xl font-bold text-primary">
               {archetype}
             </CardTitle>
+            <p className="text-base text-muted-foreground mt-4 leading-relaxed">
+              {getArchetypeDescription(archetype)}
+            </p>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex justify-center">
