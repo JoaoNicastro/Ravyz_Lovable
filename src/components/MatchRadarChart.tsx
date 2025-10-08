@@ -16,29 +16,24 @@ export const MatchRadarChart = ({ candidatePillars, jobPillars }: RadarChartProp
 
   const pillarMappings = [
     { 
-      label: 'Autonomia', 
-      candidateKeys: ['autonomia', 'Autonomia', 'autonomy'],
-      jobKeys: ['autonomia', 'Autonomia', 'autonomy']
+      label: 'Ambiente', 
+      candidateKeys: ['ambiente', 'Ambiente', 'environment'],
+      jobKeys: ['ambiente', 'Ambiente', 'environment']
     },
     { 
-      label: 'Liderança', 
-      candidateKeys: ['lideranca', 'Liderança', 'leadership'],
-      jobKeys: ['lideranca', 'Liderança', 'leadership']
+      label: 'Propósito', 
+      candidateKeys: ['proposito', 'Propósito', 'purpose'],
+      jobKeys: ['proposito', 'Propósito', 'purpose']
     },
     { 
-      label: 'Trabalho em Grupo', 
-      candidateKeys: ['trabalho_grupo', 'TrabalhoGrupo', 'teamwork'],
-      jobKeys: ['trabalho_grupo', 'TrabalhoGrupo', 'teamwork']
+      label: 'Crescimento', 
+      candidateKeys: ['crescimento', 'Crescimento', 'growth'],
+      jobKeys: ['crescimento', 'Crescimento', 'growth']
     },
     { 
-      label: 'Risco', 
-      candidateKeys: ['risco', 'Risco', 'risk'],
-      jobKeys: ['risco', 'Risco', 'risk']
-    },
-    { 
-      label: 'Ambição', 
-      candidateKeys: ['ambicao', 'Ambição', 'ambition'],
-      jobKeys: ['ambicao', 'Ambição', 'ambition']
+      label: 'Remuneração', 
+      candidateKeys: ['compensation', 'Remuneração', 'remuneracao'],
+      jobKeys: ['compensation', 'Remuneração', 'remuneracao']
     },
   ];
 
