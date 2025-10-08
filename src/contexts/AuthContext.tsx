@@ -73,18 +73,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         let errorMessage: string;
         
-        switch (error.message) {
-          case 'User already registered':
-            errorMessage = 'Este email já está cadastrado. Tente fazer login.';
-            break;
-          case 'Password should be at least 6 characters':
-            errorMessage = 'A senha deve ter pelo menos 6 caracteres.';
-            break;
-          case 'Invalid email':
-            errorMessage = 'Email inválido. Verifique o formato.';
-            break;
-          default:
-            errorMessage = 'Erro ao criar conta. Tente novamente.';
+        // Tratamento específico para rate limiting
+        if (error.message.includes('For security purposes')) {
+          const match = error.message.match(/after (\d+) seconds/);
+          const seconds = match ? match[1] : '60';
+          errorMessage = `Por questões de segurança, aguarde ${seconds} segundos antes de tentar novamente.`;
+        } else if (error.status === 429 || error.message.includes('rate limit')) {
+          errorMessage = 'Muitas tentativas de cadastro. Aguarde alguns minutos e tente novamente.';
+        } else {
+          switch (error.message) {
+            case 'User already registered':
+              errorMessage = 'Este email já está cadastrado. Tente fazer login.';
+              break;
+            case 'Password should be at least 6 characters':
+              errorMessage = 'A senha deve ter pelo menos 6 caracteres.';
+              break;
+            case 'Invalid email':
+              errorMessage = 'Email inválido. Verifique o formato.';
+              break;
+            default:
+              errorMessage = 'Erro ao criar conta. Tente novamente.';
+          }
         }
         
         toast({
@@ -92,14 +101,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: errorMessage,
           variant: "destructive"
         });
-      } else {
-        // Check if email confirmation is disabled (for development)
-        if (data.user && !data.session) {
+        
+        return { error };
+      }
+      
+      // Sucesso no cadastro
+      if (data.user) {
+        if (!data.session) {
+          // Email confirmation required
           toast({
-            title: "Conta criada!",
-            description: "Verifique seu email para confirmar a conta.",
+            title: "Conta criada com sucesso!",
+            description: "Verifique seu email para confirmar a conta antes de fazer login.",
           });
-        } else if (data.session) {
+        } else {
+          // Auto login (email confirmation disabled)
           toast({
             title: "Conta criada!",
             description: "Redirecionando para seleção de perfil...",
@@ -107,11 +122,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
 
-      return { error };
-    } catch (error) {
+      return { error: null };
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      
+      const errorMessage = error?.message?.includes('rate limit') 
+        ? 'Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.'
+        : 'Erro inesperado. Tente novamente.';
+      
       toast({
         title: "Erro no cadastro",
-        description: "Erro inesperado. Tente novamente.",
+        description: errorMessage,
         variant: "destructive"
       });
       return { error };
