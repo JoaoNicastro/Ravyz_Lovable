@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Briefcase, MapPin, DollarSign, Plus, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AutocompleteInput } from "@/components/onboarding/AutocompleteInput";
+import { Slider } from "@/components/ui/slider";
 
 const jobDefinitionSchema = z.object({
   title: z.string().min(1, "Título da vaga é obrigatório"),
@@ -186,6 +187,8 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
   };
 
   const benefits = form.watch("benefits") || [];
+  const salaryMin = form.watch("salary_min");
+  const salaryMax = form.watch("salary_max");
 
   const handleAddCustomBenefit = () => {
     if (customBenefit.trim() && !benefits.includes(customBenefit.trim())) {
@@ -356,39 +359,59 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
           <div className="space-y-4">
             <FormLabel className="flex items-center space-x-2">
               <DollarSign className="h-4 w-4" />
-              <span>Faixa Salarial (R$) - opcional</span>
+              <span>Faixa Salarial - opcional</span>
             </FormLabel>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="text-lg font-semibold">
+              R$ {(salaryMin ?? 5000).toLocaleString()} - R$ {(salaryMax ?? 15000).toLocaleString()}
+            </div>
+            <div className="space-y-6">
+              {/* Minimum Salary Slider */}
               <FormField
                 control={form.control}
                 name="salary_min"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Salário Mínimo</FormLabel>
+                    <FormLabel>Mínimo</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number"
-                        placeholder="3000"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      <Slider
+                        min={1000}
+                        max={50000}
+                        step={500}
+                        value={[field.value ?? 5000]}
+                        onValueChange={(values) => {
+                          const newMin = values[0];
+                          const currentMax = form.getValues("salary_max") ?? 15000;
+                          // Garante que o mínimo não ultrapasse o máximo
+                          field.onChange(Math.min(newMin, currentMax));
+                        }}
+                        className="w-full"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {/* Maximum Salary Slider */}
               <FormField
                 control={form.control}
                 name="salary_max"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Salário Máximo</FormLabel>
+                    <FormLabel>Máximo</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number"
-                        placeholder="5000"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      <Slider
+                        min={1000}
+                        max={50000}
+                        step={500}
+                        value={[field.value ?? 15000]}
+                        onValueChange={(values) => {
+                          const newMax = values[0];
+                          const currentMin = form.getValues("salary_min") ?? 5000;
+                          // Garante que o máximo não seja menor que o mínimo
+                          field.onChange(Math.max(newMax, currentMin));
+                        }}
+                        className="w-full"
                       />
                     </FormControl>
                     <FormMessage />
