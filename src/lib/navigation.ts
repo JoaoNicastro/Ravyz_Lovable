@@ -51,13 +51,13 @@ export async function getDefaultDashboardRoute(
           .eq('user_id', userId)
           .maybeSingle();
         
-        if (companyProfile) {
-          console.log('✅ [Navigation] Company profile exists → /dashboard/company');
-          return '/dashboard/company';
-        } else {
-          console.log('⚠️ [Navigation] Active profile is company but no company_profile found → /onboarding/company');
-          return '/onboarding/company';
-        }
+      if (companyProfile) {
+        console.log('✅ [Navigation] Company profile exists → /onboarding/company/complete');
+        return '/onboarding/company/complete';
+      } else {
+        console.log('⚠️ [Navigation] Active profile is company but no company_profile found → /onboarding/company');
+        return '/onboarding/company';
+      }
       }
     }
 
@@ -101,14 +101,14 @@ export async function getDefaultDashboardRoute(
     }
 
     if (companyProfile && !candidateProfile) {
-      console.log('✅ [Navigation] Only company profile exists → /dashboard/company');
+      console.log('✅ [Navigation] Only company profile exists → /onboarding/company/complete');
       // Update active_profile in background
       supabase
         .from('users')
         .update({ active_profile: 'company' })
         .eq('id', userId)
         .then(() => console.log('✅ [Navigation] Updated active_profile to company'));
-      return '/dashboard/company';
+      return '/onboarding/company/complete';
     }
 
     // 5. If both profiles exist, choose the most recently updated
@@ -127,7 +127,7 @@ export async function getDefaultDashboardRoute(
         .eq('id', userId)
         .then(() => console.log(`✅ [Navigation] Updated active_profile to ${mostRecent}`));
 
-      return mostRecent === 'candidate' ? '/onboarding/candidate/complete' : '/dashboard/company';
+      return mostRecent === 'candidate' ? '/onboarding/candidate/complete' : '/onboarding/company/complete';
     }
 
     // 6. Fallback: no profiles exist → profile selection
