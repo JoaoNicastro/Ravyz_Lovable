@@ -17,8 +17,7 @@ import {
   Handshake,
   Zap,
   Award,
-  DollarSign,
-  Clock
+  DollarSign
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,25 +29,10 @@ export default function CompanyProfileComplete() {
   const [profile, setProfile] = React.useState<any>(null);
   const [firstJob, setFirstJob] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
-  const [countdown, setCountdown] = React.useState(7);
 
   React.useEffect(() => {
     loadProfile();
-    
-    // Countdown timer
-    const countdownInterval = setInterval(() => {
-      setCountdown(prev => {
-        if (prev <= 1) {
-          clearInterval(countdownInterval);
-          navigate('/dashboard/company');
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(countdownInterval);
-  }, [user, navigate]);
+  }, [user]);
 
   const loadProfile = async () => {
     if (!user) return;
@@ -117,18 +101,6 @@ export default function CompanyProfileComplete() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
         
-        {/* Countdown Timer */}
-        <div className="fixed top-4 right-4 z-50">
-          <div className="bg-card/95 backdrop-blur border border-border rounded-lg px-4 py-2 shadow-lg">
-            <div className="flex items-center gap-2 text-sm">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">
-                Redirecionando em <span className="font-bold text-primary">{countdown}s</span>
-              </span>
-            </div>
-          </div>
-        </div>
-
         {/* Hero Section - Company Header (Resumido) */}
         <div className="text-center space-y-4 animate-fade-in">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
