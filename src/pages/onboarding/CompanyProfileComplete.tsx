@@ -101,8 +101,8 @@ export default function CompanyProfileComplete() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
         
-        {/* Hero Section - Company Header (Resumido) */}
-        <div className="text-center space-y-4 animate-fade-in">
+        {/* Hero Section - Company Profile */}
+        <div className="text-center space-y-6 animate-fade-in">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
             <Sparkles className="h-5 w-5" />
             <span className="font-medium">Perfil Ativo</span>
@@ -110,41 +110,86 @@ export default function CompanyProfileComplete() {
           <h1 className="text-3xl md:text-4xl font-bold">
             Parabéns, o perfil da {profile.company_name} está ativo!
           </h1>
+
+          {/* Company Logo and Description */}
+          <div className="flex flex-col items-center space-y-4">
+            <Avatar className="h-24 w-24 border-4 border-primary/20 shadow-lg">
+              <AvatarImage src={profile.logo_url} />
+              <AvatarFallback className="text-2xl bg-primary/10">
+                {profile.company_name?.[0] || 'C'}
+              </AvatarFallback>
+            </Avatar>
+            
+            {profile.description && (
+              <p className="text-muted-foreground max-w-2xl">
+                {profile.description}
+              </p>
+            )}
+          </div>
           
-          {/* Company Info Compact */}
-          <div className="flex flex-wrap items-center justify-center gap-4 text-muted-foreground">
+          {/* Company Info Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
             {profile.industry && (
-              <div className="flex items-center gap-2">
-                <Briefcase className="h-4 w-4" />
-                <span className="text-sm">{profile.industry}</span>
-              </div>
+              <Card className="p-4">
+                <div className="space-y-2 text-center">
+                  <Briefcase className="h-5 w-5 mx-auto text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Setor</p>
+                    <p className="font-medium text-sm">{profile.industry}</p>
+                  </div>
+                </div>
+              </Card>
             )}
             {profile.location && (
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                <span className="text-sm">{profile.location}</span>
-              </div>
+              <Card className="p-4">
+                <div className="space-y-2 text-center">
+                  <MapPin className="h-5 w-5 mx-auto text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Localização</p>
+                    <p className="font-medium text-sm">{profile.location}</p>
+                  </div>
+                </div>
+              </Card>
             )}
             {profile.employee_count && (
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span className="text-sm">{profile.employee_count} funcionários</span>
-              </div>
+              <Card className="p-4">
+                <div className="space-y-2 text-center">
+                  <Users className="h-5 w-5 mx-auto text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Funcionários</p>
+                    <p className="font-medium text-sm">{profile.employee_count}</p>
+                  </div>
+                </div>
+              </Card>
+            )}
+            {profile.founded_year && (
+              <Card className="p-4">
+                <div className="space-y-2 text-center">
+                  <Building2 className="h-5 w-5 mx-auto text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Fundada em</p>
+                    <p className="font-medium text-sm">{profile.founded_year}</p>
+                  </div>
+                </div>
+              </Card>
             )}
           </div>
 
           {/* Culture Values */}
           {culture.values && culture.values.length > 0 && (
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-              {culture.values.slice(0, 4).map((value: string, idx: number) => {
-                const Icon = cultureIcons[value] || Award;
-                return (
-                  <div key={idx} className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/50">
-                    <Icon className="h-3 w-3 text-primary" />
-                    <span className="text-xs font-medium">{value}</span>
-                  </div>
-                );
-              })}
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-muted-foreground">Nossos Valores</p>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                {culture.values.map((value: string, idx: number) => {
+                  const Icon = cultureIcons[value] || Award;
+                  return (
+                    <div key={idx} className="flex items-center gap-2 px-4 py-2 rounded-full bg-muted/50 border border-border">
+                      <Icon className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium">{value}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
@@ -236,15 +281,101 @@ export default function CompanyProfileComplete() {
                 </div>
               </div>
 
-              {/* Job Description Preview */}
+              {/* Job Description */}
               {firstJob.description && (
-                <div className="space-y-2 pt-4 border-t">
-                  <h4 className="font-semibold text-sm text-muted-foreground">Descrição</h4>
-                  <p className="text-sm leading-relaxed line-clamp-3">
+                <div className="space-y-3 pt-4 border-t">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Briefcase className="h-4 w-4 text-primary" />
+                    Descrição da Vaga
+                  </h4>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
                     {firstJob.description}
                   </p>
                 </div>
               )}
+
+              {/* Technical Skills */}
+              {firstJob.technical_skills && firstJob.technical_skills.length > 0 && (
+                <div className="space-y-3 pt-4 border-t">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Award className="h-4 w-4 text-primary" />
+                    Habilidades Técnicas Requeridas
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {firstJob.technical_skills.map((skill: string, idx: number) => (
+                      <Badge key={idx} variant="secondary">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Education & Industries */}
+              <div className="grid md:grid-cols-2 gap-6 pt-4 border-t">
+                {firstJob.education_levels && firstJob.education_levels.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm flex items-center gap-2">
+                      <Award className="h-4 w-4 text-primary" />
+                      Formação Desejada
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {firstJob.education_levels.map((level: string, idx: number) => (
+                        <Badge key={idx} variant="outline">
+                          {level}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {firstJob.industries && firstJob.industries.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm flex items-center gap-2">
+                      <Briefcase className="h-4 w-4 text-primary" />
+                      Experiência em Setores
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {firstJob.industries.map((industry: string, idx: number) => (
+                        <Badge key={idx} variant="outline">
+                          {industry}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Candidate Profile Requirements */}
+              <div className="grid md:grid-cols-2 gap-6 pt-4 border-t">
+                {firstJob.age_ranges && firstJob.age_ranges.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm flex items-center gap-2">
+                      <Users className="h-4 w-4 text-primary" />
+                      Faixa Etária
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {firstJob.age_ranges.map((range: string, idx: number) => (
+                        <Badge key={idx} variant="outline">
+                          {range}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {firstJob.gender_preference && firstJob.gender_preference !== 'indiferente' && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm flex items-center gap-2">
+                      <Users className="h-4 w-4 text-primary" />
+                      Preferência de Gênero
+                    </h4>
+                    <Badge variant="outline" className="capitalize">
+                      {firstJob.gender_preference}
+                    </Badge>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         )}
