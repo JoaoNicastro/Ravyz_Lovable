@@ -36,13 +36,13 @@ export async function getDefaultDashboardRoute(
           .eq('user_id', userId)
           .maybeSingle();
         
-        if (candidateProfile) {
-          console.log('✅ [Navigation] Candidate profile exists → /dashboard/candidate');
-          return '/dashboard/candidate';
-        } else {
-          console.log('⚠️ [Navigation] Active profile is candidate but no candidate_profile found → /onboarding/candidate');
-          return '/onboarding/candidate';
-        }
+      if (candidateProfile) {
+        console.log('✅ [Navigation] Candidate profile exists → /onboarding/candidate/complete');
+        return '/onboarding/candidate/complete';
+      } else {
+        console.log('⚠️ [Navigation] Active profile is candidate but no candidate_profile found → /onboarding/candidate');
+        return '/onboarding/candidate';
+      }
       }
       if (userData.active_profile === 'company') {
         const { data: companyProfile } = await supabase
@@ -90,14 +90,14 @@ export async function getDefaultDashboardRoute(
 
     // 4. If only one profile exists, use it and update active_profile
     if (candidateProfile && !companyProfile) {
-      console.log('✅ [Navigation] Only candidate profile exists → /dashboard/candidate');
+      console.log('✅ [Navigation] Only candidate profile exists → /onboarding/candidate/complete');
       // Update active_profile in background
       supabase
         .from('users')
         .update({ active_profile: 'candidate' })
         .eq('id', userId)
         .then(() => console.log('✅ [Navigation] Updated active_profile to candidate'));
-      return '/dashboard/candidate';
+      return '/onboarding/candidate/complete';
     }
 
     if (companyProfile && !candidateProfile) {
@@ -127,7 +127,7 @@ export async function getDefaultDashboardRoute(
         .eq('id', userId)
         .then(() => console.log(`✅ [Navigation] Updated active_profile to ${mostRecent}`));
 
-      return mostRecent === 'candidate' ? '/dashboard/candidate' : '/dashboard/company';
+      return mostRecent === 'candidate' ? '/onboarding/candidate/complete' : '/dashboard/company';
     }
 
     // 6. Fallback: no profiles exist → profile selection
