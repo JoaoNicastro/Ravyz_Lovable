@@ -434,8 +434,13 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
                         onValueChange={(values) => {
                           const newMin = values[0];
                           const currentMax = form.getValues("salary_max") ?? 15000;
-                          // Garante que o mínimo não ultrapasse o máximo
-                          field.onChange(Math.min(newMin, currentMax));
+                          
+                          field.onChange(newMin);
+                          
+                          // Se o mínimo ultrapassar o máximo, ajusta o máximo também
+                          if (newMin > currentMax) {
+                            form.setValue("salary_max", newMin);
+                          }
                         }}
                         className="w-full"
                       />
@@ -461,8 +466,13 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
                         onValueChange={(values) => {
                           const newMax = values[0];
                           const currentMin = form.getValues("salary_min") ?? 5000;
-                          // Garante que o máximo não seja menor que o mínimo
-                          field.onChange(Math.max(newMax, currentMin));
+                          
+                          field.onChange(newMax);
+                          
+                          // Se o máximo for menor que o mínimo, ajusta o mínimo também
+                          if (newMax < currentMin) {
+                            form.setValue("salary_min", newMax);
+                          }
                         }}
                         className="w-full"
                       />
