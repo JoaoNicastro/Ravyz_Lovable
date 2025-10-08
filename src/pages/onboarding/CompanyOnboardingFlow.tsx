@@ -260,7 +260,7 @@ const CompanyOnboardingFlow: React.FC = () => {
 
       console.log('✅ [Onboarding] Company profile created, active_profile set');
       toast.success("Onboarding concluído com sucesso!");
-      navigate("/dashboard/company");
+      navigate("/onboarding/company/complete");
       
     } catch (error) {
       console.error("Erro ao completar onboarding:", error);
