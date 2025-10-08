@@ -166,7 +166,8 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
   const [titleValue, setTitleValue] = useState(data?.title || "");
   const [locationValue, setLocationValue] = useState(data?.location || "");
   const [selectedDescriptions, setSelectedDescriptions] = useState<string[]>(data?.description || []);
-  const [descriptionOther, setDescriptionOther] = useState(data?.descriptionOther || "");
+  const [customDescriptions, setCustomDescriptions] = useState<string[]>([]);
+  const [newDescription, setNewDescription] = useState("");
 
   const form = useForm<JobDefinitionData>({
     resolver: zodResolver(jobDefinitionSchema),
@@ -208,6 +209,21 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
       : [...selectedDescriptions, description];
     setSelectedDescriptions(newDescriptions);
     form.setValue("description", newDescriptions);
+  };
+
+  const addCustomDescription = () => {
+    if (newDescription.trim()) {
+      const updated = [...customDescriptions, newDescription.trim()];
+      setCustomDescriptions(updated);
+      form.setValue("descriptionOther", updated.join("; "));
+      setNewDescription("");
+    }
+  };
+
+  const removeCustomDescription = (index: number) => {
+    const updated = customDescriptions.filter((_, i) => i !== index);
+    setCustomDescriptions(updated);
+    form.setValue("descriptionOther", updated.join("; "));
   };
 
   return (
@@ -278,16 +294,53 @@ const CompanyJobDefinitionStep: React.FC<StepProps> = ({ onNext, data, isLoading
                     })}
                   </div>
                   
-                  <div>
-                    <FormLabel className="text-sm mb-2 block">Outros (opcional)</FormLabel>
-                    <Input
-                      placeholder="Outras responsabilidades..."
-                      value={descriptionOther}
-                      onChange={(e) => {
-                        setDescriptionOther(e.target.value);
-                        form.setValue("descriptionOther", e.target.value);
-                      }}
-                      className="text-sm"
+                  <div className="space-y-2">
+                    <FormLabel className="text-sm">Outros (opcional)</FormLabel>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Adicione outras responsabilidades..."
+                        value={newDescription}
+                        onChange={(e) => setNewDescription(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addCustomDescription();
+                          }
+                        }}
+                        className="text-sm"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={addCustomDescription}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    {customDescriptions.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {customDescriptions.map((desc, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-1 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm"
+                          >
+                            <span>{desc}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeCustomDescription(index)}
+                              className="hover:bg-primary/20 rounded-full p-0.5"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <FormField
+                      control={form.control}
+                      name="descriptionOther"
+                      render={({ field }) => <input type="hidden" {...field} />}
                     />
                   </div>
                 </div>
