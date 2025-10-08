@@ -15,10 +15,31 @@ export const MatchRadarChart = ({ candidatePillars, jobPillars }: RadarChartProp
   };
 
   const pillarMappings = [
-    { label: 'Remuneração', candidateKeys: ['Compensation', 'compensation', 'remuneracao'], jobKeys: ['Ambição', 'ambicao'] },
-    { label: 'Ambiente', candidateKeys: ['Ambiente', 'ambiente'], jobKeys: ['TrabalhoGrupo', 'trabalho_grupo'] },
-    { label: 'Propósito', candidateKeys: ['Propósito', 'proposito', 'purpose'], jobKeys: ['Liderança', 'lideranca'] },
-    { label: 'Crescimento', candidateKeys: ['Crescimento', 'crescimento', 'growth'], jobKeys: ['Autonomia', 'autonomia'] },
+    { 
+      label: 'Autonomia', 
+      candidateKeys: ['Autonomia', 'autonomia', 'autonomy'],
+      jobKeys: ['Autonomia', 'autonomia', 'autonomy']
+    },
+    { 
+      label: 'Liderança', 
+      candidateKeys: ['Liderança', 'lideranca', 'leadership'],
+      jobKeys: ['Liderança', 'lideranca', 'leadership']
+    },
+    { 
+      label: 'Trabalho em Grupo', 
+      candidateKeys: ['TrabalhoGrupo', 'trabalho_grupo', 'teamwork'],
+      jobKeys: ['TrabalhoGrupo', 'trabalho_grupo', 'teamwork']
+    },
+    { 
+      label: 'Risco', 
+      candidateKeys: ['Risco', 'risco', 'risk'],
+      jobKeys: ['Risco', 'risco', 'risk']
+    },
+    { 
+      label: 'Ambição', 
+      candidateKeys: ['Ambição', 'ambicao', 'ambition'],
+      jobKeys: ['Ambição', 'ambicao', 'ambition']
+    },
   ];
 
   // Create data array with mapped values
@@ -27,15 +48,6 @@ export const MatchRadarChart = ({ candidatePillars, jobPillars }: RadarChartProp
     candidate: getPillarValue(candidatePillars, ...candidateKeys),
     job: Object.keys(jobPillars).length > 0 ? getPillarValue(jobPillars, ...jobKeys) : undefined,
   }));
-
-  // Add risk pillar if available in job
-  if (jobPillars['Risco'] !== undefined || jobPillars['risco'] !== undefined) {
-    data.push({
-      pillar: 'Risco',
-      candidate: getPillarValue(candidatePillars, 'Crescimento', 'crescimento', 'growth'),
-      job: getPillarValue(jobPillars, 'Risco', 'risco'),
-    });
-  }
 
   const hasJobData = Object.keys(jobPillars).length > 0;
 

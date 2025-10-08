@@ -287,16 +287,25 @@ export default function CompanyProfileComplete() {
 
                 {/* Pillar Scores */}
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4 pt-4">
-                  {Object.entries(pillarScores).map(([pillar, score]) => (
-                    <div key={pillar} className="text-center space-y-1 p-3 rounded-lg bg-muted/50">
-                      <div className="text-2xl font-bold text-primary">
-                        {typeof score === 'number' ? score.toFixed(1) : '0.0'}
+                  {Object.entries(pillarScores).map(([pillar, score]) => {
+                    const pillarLabels: Record<string, string> = {
+                      'autonomy': 'Autonomia',
+                      'leadership': 'Liderança',
+                      'teamwork': 'Trabalho em Grupo',
+                      'risk': 'Risco',
+                      'ambition': 'Ambição'
+                    };
+                    return (
+                      <div key={pillar} className="text-center space-y-1 p-3 rounded-lg bg-muted/50">
+                        <div className="text-2xl font-bold text-primary">
+                          {typeof score === 'number' ? score.toFixed(1) : '0.0'}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {pillarLabels[pillar] || pillar}
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground capitalize">
-                        {pillar}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
