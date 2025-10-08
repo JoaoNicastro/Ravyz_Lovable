@@ -143,7 +143,7 @@ export default function CandidateProfileComplete() {
               <div className="w-full max-w-2xl">
                 <MatchRadarChart
                   candidatePillars={pillarScores}
-                  jobPillars={pillarScores}
+                  jobPillars={{}}
                 />
               </div>
             </div>

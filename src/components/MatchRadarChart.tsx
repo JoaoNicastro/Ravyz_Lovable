@@ -6,30 +6,38 @@ interface RadarChartProps {
 }
 
 export const MatchRadarChart = ({ candidatePillars, jobPillars }: RadarChartProps) => {
-  // Map candidate pillars to job pillars for comparison
-  // Based on MATCH RAVYZ methodology
+  // Map candidate pillars - try both capitalized and lowercase keys
+  const getPillarValue = (obj: Record<string, number>, ...keys: string[]) => {
+    for (const key of keys) {
+      if (obj[key] !== undefined) return obj[key];
+    }
+    return 0;
+  };
+
   const pillarMappings = [
-    { label: 'Compensação', candidate: 'Compensation', job: 'Ambição' },
-    { label: 'Ambiente', candidate: 'Ambiente', job: 'TrabalhoGrupo' },
-    { label: 'Propósito', candidate: 'Propósito', job: 'Liderança' },
-    { label: 'Crescimento', candidate: 'Crescimento', job: 'Autonomia' },
+    { label: 'Remuneração', candidateKeys: ['Compensation', 'compensation', 'remuneracao'], jobKeys: ['Ambição', 'ambicao'] },
+    { label: 'Ambiente', candidateKeys: ['Ambiente', 'ambiente'], jobKeys: ['TrabalhoGrupo', 'trabalho_grupo'] },
+    { label: 'Propósito', candidateKeys: ['Propósito', 'proposito', 'purpose'], jobKeys: ['Liderança', 'lideranca'] },
+    { label: 'Crescimento', candidateKeys: ['Crescimento', 'crescimento', 'growth'], jobKeys: ['Autonomia', 'autonomia'] },
   ];
 
   // Create data array with mapped values
-  const data = pillarMappings.map(({ label, candidate, job }) => ({
+  const data = pillarMappings.map(({ label, candidateKeys, jobKeys }) => ({
     pillar: label,
-    candidate: candidatePillars[candidate] || 0,
-    job: jobPillars[job] || 0,
+    candidate: getPillarValue(candidatePillars, ...candidateKeys),
+    job: Object.keys(jobPillars).length > 0 ? getPillarValue(jobPillars, ...jobKeys) : undefined,
   }));
 
   // Add risk pillar if available in job
-  if (jobPillars['Risco'] !== undefined) {
+  if (jobPillars['Risco'] !== undefined || jobPillars['risco'] !== undefined) {
     data.push({
       pillar: 'Risco',
-      candidate: candidatePillars['Crescimento'] || 0, // Growth correlates with risk
-      job: jobPillars['Risco'] || 0,
+      candidate: getPillarValue(candidatePillars, 'Crescimento', 'crescimento', 'growth'),
+      job: getPillarValue(jobPillars, 'Risco', 'risco'),
     });
   }
+
+  const hasJobData = Object.keys(jobPillars).length > 0;
 
   return (
     <div className="w-full h-64">
@@ -51,14 +59,16 @@ export const MatchRadarChart = ({ candidatePillars, jobPillars }: RadarChartProp
             fillOpacity={0.2}
             strokeWidth={2}
           />
-          <Radar
-            name="Vaga"
-            dataKey="job"
-            stroke="hsl(var(--secondary))"
-            fill="hsl(var(--secondary))"
-            fillOpacity={0.2}
-            strokeWidth={2}
-          />
+          {hasJobData && (
+            <Radar
+              name="Vaga"
+              dataKey="job"
+              stroke="hsl(var(--secondary))"
+              fill="hsl(var(--secondary))"
+              fillOpacity={0.2}
+              strokeWidth={2}
+            />
+          )}
           <Tooltip 
             contentStyle={{
               backgroundColor: 'hsl(var(--card))',
