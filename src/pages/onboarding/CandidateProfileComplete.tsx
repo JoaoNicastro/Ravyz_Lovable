@@ -152,16 +152,18 @@ export default function CandidateProfileComplete() {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 pt-4">
               {Object.entries(pillarScores).map(([pillar, score]) => (
                 <div key={pillar} className="text-center space-y-1">
                   <div className="text-2xl font-bold text-primary">
                     {typeof score === 'number' ? score.toFixed(1) : '0.0'}
                   </div>
                   <div className="text-sm text-muted-foreground capitalize">
-                    {pillar === 'compensation' ? 'Remuneração' :
-                     pillar === 'ambiente' ? 'Ambiente' :
-                     pillar === 'proposito' ? 'Propósito' : 'Crescimento'}
+                    {pillar === 'autonomia' ? 'Autonomia' :
+                     pillar === 'lideranca' ? 'Liderança' :
+                     pillar === 'trabalho_grupo' ? 'Trabalho em Grupo' :
+                     pillar === 'risco' ? 'Risco' :
+                     pillar === 'ambicao' ? 'Ambição' : pillar}
                   </div>
                 </div>
               ))}

@@ -17,28 +17,28 @@ export const MatchRadarChart = ({ candidatePillars, jobPillars }: RadarChartProp
   const pillarMappings = [
     { 
       label: 'Autonomia', 
-      candidateKeys: ['Autonomia', 'autonomia', 'autonomy'],
-      jobKeys: ['Autonomia', 'autonomia', 'autonomy']
+      candidateKeys: ['autonomia', 'Autonomia', 'autonomy'],
+      jobKeys: ['autonomia', 'Autonomia', 'autonomy']
     },
     { 
       label: 'Liderança', 
-      candidateKeys: ['Liderança', 'lideranca', 'leadership'],
-      jobKeys: ['Liderança', 'lideranca', 'leadership']
+      candidateKeys: ['lideranca', 'Liderança', 'leadership'],
+      jobKeys: ['lideranca', 'Liderança', 'leadership']
     },
     { 
       label: 'Trabalho em Grupo', 
-      candidateKeys: ['TrabalhoGrupo', 'trabalho_grupo', 'teamwork'],
-      jobKeys: ['TrabalhoGrupo', 'trabalho_grupo', 'teamwork']
+      candidateKeys: ['trabalho_grupo', 'TrabalhoGrupo', 'teamwork'],
+      jobKeys: ['trabalho_grupo', 'TrabalhoGrupo', 'teamwork']
     },
     { 
       label: 'Risco', 
-      candidateKeys: ['Risco', 'risco', 'risk'],
-      jobKeys: ['Risco', 'risco', 'risk']
+      candidateKeys: ['risco', 'Risco', 'risk'],
+      jobKeys: ['risco', 'Risco', 'risk']
     },
     { 
       label: 'Ambição', 
-      candidateKeys: ['Ambição', 'ambicao', 'ambition'],
-      jobKeys: ['Ambição', 'ambicao', 'ambition']
+      candidateKeys: ['ambicao', 'Ambição', 'ambition'],
+      jobKeys: ['ambicao', 'Ambição', 'ambition']
     },
   ];
 
