@@ -37,16 +37,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
-        setSession(session);
-        setUser(session?.user ?? null);
+        
+        // Clear invalid tokens on sign out
+        if (event === 'SIGNED_OUT') {
+          localStorage.removeItem('supabase.auth.token');
+          setSession(null);
+          setUser(null);
+        } else {
+          setSession(session);
+          setUser(session?.user ?? null);
+        }
         setLoading(false);
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Session error:', error);
+        localStorage.clear(); // Clear all localStorage if session is corrupted
+      }
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -148,23 +160,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         let errorMessage: string;
+        let errorTitle = "Erro no login";
+        
+        console.error('Login error:', error);
         
         switch (error.message) {
           case 'Invalid login credentials':
-            errorMessage = 'Email ou senha incorretos.';
+            errorMessage = 'Email ou senha incorretos. Se você acabou de se cadastrar, verifique seu email para confirmar a conta.';
+            errorTitle = "Credenciais inválidas";
             break;
           case 'Email not confirmed':
-            errorMessage = 'Email não confirmado. Verifique sua caixa de entrada.';
+            errorMessage = 'Email não confirmado. Verifique sua caixa de entrada e clique no link de confirmação.';
+            errorTitle = "Email não confirmado";
             break;
           case 'Too many requests':
             errorMessage = 'Muitas tentativas. Tente novamente em alguns minutos.';
             break;
           default:
-            errorMessage = 'Erro ao fazer login. Tente novamente.';
+            errorMessage = error.message || 'Erro ao fazer login. Tente novamente.';
         }
         
         toast({
-          title: "Erro no login",
+          title: errorTitle,
           description: errorMessage,
           variant: "destructive"
         });
@@ -177,10 +194,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       return { error };
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Unexpected login error:', error);
       toast({
         title: "Erro no login",
-        description: "Erro inesperado. Tente novamente.",
+        description: error?.message || "Erro inesperado. Tente novamente.",
         variant: "destructive"
       });
       return { error };
