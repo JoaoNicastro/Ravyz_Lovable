@@ -28,43 +28,62 @@ export async function getDefaultDashboardRoute(
         profiles: userData.profiles,
       });
 
-      // If active_profile is set, check if profile exists in database
+      // If active_profile is set, check if profile exists and is complete
       if (userData.active_profile === 'candidate') {
         const { data: candidateProfile } = await supabase
           .from('candidate_profiles')
-          .select('id')
+          .select('id, full_name, skills, preferred_roles, pillar_scores')
           .eq('user_id', userId)
           .maybeSingle();
         
-      if (candidateProfile) {
-        console.log('✅ [Navigation] Candidate profile exists → /onboarding/candidate/complete');
-        return '/onboarding/candidate/complete';
-      } else {
-        console.log('⚠️ [Navigation] Active profile is candidate but no candidate_profile found → /onboarding/candidate');
-        return '/onboarding/candidate';
-      }
+        const isComplete = candidateProfile && 
+          candidateProfile.full_name && 
+          candidateProfile.skills && 
+          Array.isArray(candidateProfile.skills) && 
+          candidateProfile.skills.length > 0 &&
+          candidateProfile.pillar_scores &&
+          Object.keys(candidateProfile.pillar_scores).length > 0;
+        
+        if (candidateProfile && isComplete) {
+          console.log('✅ [Navigation] Candidate profile complete → /onboarding/candidate/complete');
+          return '/onboarding/candidate/complete';
+        } else if (candidateProfile) {
+          console.log('⚠️ [Navigation] Candidate profile incomplete → /onboarding/candidate');
+          return '/onboarding/candidate';
+        } else {
+          console.log('⚠️ [Navigation] Active profile is candidate but no candidate_profile found → /onboarding/candidate');
+          return '/onboarding/candidate';
+        }
       }
       if (userData.active_profile === 'company') {
         const { data: companyProfile } = await supabase
           .from('company_profiles')
-          .select('id')
+          .select('id, company_name, description, industry')
           .eq('user_id', userId)
           .maybeSingle();
         
-      if (companyProfile) {
-        console.log('✅ [Navigation] Company profile exists → /onboarding/company/complete');
-        return '/onboarding/company/complete';
-      } else {
-        console.log('⚠️ [Navigation] Active profile is company but no company_profile found → /onboarding/company');
-        return '/onboarding/company';
-      }
+        const isComplete = companyProfile && 
+          companyProfile.company_name && 
+          companyProfile.description && 
+          companyProfile.industry;
+        
+        if (companyProfile && isComplete) {
+          console.log('✅ [Navigation] Company profile complete → /onboarding/company/complete');
+          return '/onboarding/company/complete';
+        } else if (companyProfile) {
+          console.log('⚠️ [Navigation] Company profile incomplete → /onboarding/company');
+          return '/onboarding/company';
+        } else {
+          console.log('⚠️ [Navigation] Active profile is company but no company_profile found → /onboarding/company');
+          return '/onboarding/company';
+        }
       }
     }
 
-    // 2. Check if candidate_profile exists
+    // 2. Check if candidate_profile exists and is complete
     const { data: candidateProfile, error: candidateError } = await supabase
       .from('candidate_profiles')
-      .select('id, created_at')
+      .select('id, created_at, full_name, skills, preferred_roles, pillar_scores')
       .eq('user_id', userId)
       .maybeSingle();
 
@@ -72,10 +91,19 @@ export async function getDefaultDashboardRoute(
       console.error('❌ [Navigation] Error checking candidate profile:', candidateError);
     }
 
-    // 3. Check if company_profile exists
+    // Check if candidate profile is complete (has essential fields)
+    const isCandidateProfileComplete = candidateProfile && 
+      candidateProfile.full_name && 
+      candidateProfile.skills && 
+      Array.isArray(candidateProfile.skills) && 
+      candidateProfile.skills.length > 0 &&
+      candidateProfile.pillar_scores &&
+      Object.keys(candidateProfile.pillar_scores).length > 0;
+
+    // 3. Check if company_profile exists and is complete
     const { data: companyProfile, error: companyError } = await supabase
       .from('company_profiles')
-      .select('id, created_at')
+      .select('id, created_at, company_name, description, industry')
       .eq('user_id', userId)
       .maybeSingle();
 
@@ -83,42 +111,63 @@ export async function getDefaultDashboardRoute(
       console.error('❌ [Navigation] Error checking company profile:', companyError);
     }
 
-    console.log('📊 [Navigation] Profile existence:', {
+    // Check if company profile is complete (has essential fields)
+    const isCompanyProfileComplete = companyProfile && 
+      companyProfile.company_name && 
+      companyProfile.description && 
+      companyProfile.industry;
+
+    console.log('📊 [Navigation] Profile status:', {
       candidateProfile: !!candidateProfile,
+      candidateComplete: isCandidateProfileComplete,
       companyProfile: !!companyProfile,
+      companyComplete: isCompanyProfileComplete,
     });
 
-    // 4. If only one profile exists, use it and update active_profile
+    // 4. If only one profile exists, check if complete
     if (candidateProfile && !companyProfile) {
-      console.log('✅ [Navigation] Only candidate profile exists → /onboarding/candidate/complete');
       // Update active_profile in background
       supabase
         .from('users')
         .update({ active_profile: 'candidate' })
         .eq('id', userId)
         .then(() => console.log('✅ [Navigation] Updated active_profile to candidate'));
-      return '/onboarding/candidate/complete';
+      
+      if (isCandidateProfileComplete) {
+        console.log('✅ [Navigation] Candidate profile complete → /onboarding/candidate/complete');
+        return '/onboarding/candidate/complete';
+      } else {
+        console.log('⚠️ [Navigation] Candidate profile incomplete → /onboarding/candidate');
+        return '/onboarding/candidate';
+      }
     }
 
     if (companyProfile && !candidateProfile) {
-      console.log('✅ [Navigation] Only company profile exists → /onboarding/company/complete');
       // Update active_profile in background
       supabase
         .from('users')
         .update({ active_profile: 'company' })
         .eq('id', userId)
         .then(() => console.log('✅ [Navigation] Updated active_profile to company'));
-      return '/onboarding/company/complete';
+      
+      if (isCompanyProfileComplete) {
+        console.log('✅ [Navigation] Company profile complete → /onboarding/company/complete');
+        return '/onboarding/company/complete';
+      } else {
+        console.log('⚠️ [Navigation] Company profile incomplete → /onboarding/company');
+        return '/onboarding/company';
+      }
     }
 
-    // 5. If both profiles exist, choose the most recently updated
+    // 5. If both profiles exist, choose the most recently updated and check completeness
     if (candidateProfile && companyProfile) {
       console.log('⚠️ [Navigation] Both profiles exist, choosing most recent');
       const candidateDate = new Date(candidateProfile.created_at);
       const companyDate = new Date(companyProfile.created_at);
       
       const mostRecent = candidateDate > companyDate ? 'candidate' : 'company';
-      console.log(`✅ [Navigation] Most recent: ${mostRecent}`);
+      const isComplete = mostRecent === 'candidate' ? isCandidateProfileComplete : isCompanyProfileComplete;
+      console.log(`✅ [Navigation] Most recent: ${mostRecent}, complete: ${isComplete}`);
       
       // Update active_profile
       supabase
@@ -127,7 +176,11 @@ export async function getDefaultDashboardRoute(
         .eq('id', userId)
         .then(() => console.log(`✅ [Navigation] Updated active_profile to ${mostRecent}`));
 
-      return mostRecent === 'candidate' ? '/onboarding/candidate/complete' : '/onboarding/company/complete';
+      if (isComplete) {
+        return mostRecent === 'candidate' ? '/onboarding/candidate/complete' : '/onboarding/company/complete';
+      } else {
+        return mostRecent === 'candidate' ? '/onboarding/candidate' : '/onboarding/company';
+      }
     }
 
     // 6. Fallback: no profiles exist → profile selection
