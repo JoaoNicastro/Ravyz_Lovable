@@ -4,13 +4,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { ChevronRight, ChevronLeft, CheckCircle } from "lucide-react";
+import { AddableInput } from "@/components/onboarding/AddableInput";
 
 const achievementsSchema = z.object({
   keyAchievements: z.array(z.string()).min(1, "Selecione pelo menos uma conquista"),
-  keyAchievementsOther: z.string().optional(),
+  keyAchievementsOther: z.array(z.string()).default([]),
 });
 
 type AchievementsData = z.infer<typeof achievementsSchema>;
@@ -121,14 +121,13 @@ export const AchievementsStep: React.FC<AchievementsStepProps> = ({ onNext, onBa
                   <FormItem>
                     <FormLabel className="text-sm">Outros (Opcional)</FormLabel>
                     <FormControl>
-                      <Input
+                      <AddableInput
                         placeholder="Adicione outras conquistas não listadas..."
-                        {...field}
+                        value={field.value || []}
+                        onChange={field.onChange}
+                        description="💡 Seja específico e mencione resultados!"
                       />
                     </FormControl>
-                    <FormDescription>
-                      💡 Seja específico e mencione resultados!
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -13,9 +13,9 @@ type AssessmentData = {
   currentCompany: string;
   yearsInRole: number;
   keyAchievements: string[];
-  keyAchievementsOther?: string;
+  keyAchievementsOther?: string[];
   careerGoals: string[];
-  careerGoalsOther?: string;
+  careerGoalsOther?: string[];
   preferredRoles: string[];
 };
 interface StepProps {

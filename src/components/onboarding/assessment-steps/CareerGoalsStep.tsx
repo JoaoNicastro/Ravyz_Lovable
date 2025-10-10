@@ -4,17 +4,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { ChevronRight, ChevronLeft, Plus, X, CheckCircle } from "lucide-react";
 import { AutocompleteInput } from "@/components/onboarding/AutocompleteInput";
 import { JOB_ROLE_SUGGESTIONS } from "@/lib/job-suggestions";
+import { AddableInput } from "@/components/onboarding/AddableInput";
 
 const goalsSchema = z.object({
   careerGoals: z.array(z.string()).min(1, "Selecione pelo menos um objetivo"),
-  careerGoalsOther: z.string().optional(),
+  careerGoalsOther: z.array(z.string()).default([]),
   preferredRoles: z.array(z.string()).min(1, "Adicione pelo menos 1 cargo de interesse"),
 });
 
@@ -145,14 +145,13 @@ export const CareerGoalsStep: React.FC<CareerGoalsStepProps> = ({ onNext, onBack
                     <FormItem>
                       <FormLabel className="text-sm">Outros (Opcional)</FormLabel>
                       <FormControl>
-                        <Input
+                        <AddableInput
                           placeholder="Adicione outros objetivos não listados..."
-                          {...field}
+                          value={field.value || []}
+                          onChange={field.onChange}
+                          description="💡 Seja ambicioso e específico!"
                         />
                       </FormControl>
-                      <FormDescription>
-                        💡 Seja ambicioso e específico!
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

@@ -4,8 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
@@ -15,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AutocompleteInput } from "@/components/onboarding/AutocompleteInput";
 import { JOB_ROLE_SUGGESTIONS, LOCATION_SUGGESTIONS, COMPANY_SIZE_SUGGESTIONS, WORK_MODEL_SUGGESTIONS } from "@/lib/job-suggestions";
+import { AddableInput } from "@/components/onboarding/AddableInput";
 
 const dreamJobSchema = z.object({
   desiredRole: z.string().min(1, "Cargo desejado é obrigatório"),
@@ -27,9 +26,9 @@ const dreamJobSchema = z.object({
   preferredLocations: z.array(z.string()).min(1, "Adicione pelo menos 1 localização"),
   industryPreferences: z.array(z.string()).min(1, "Adicione pelo menos 1 setor"),
   dealBreakers: z.array(z.string()).default([]),
-  dealBreakersOther: z.string().optional(),
+  dealBreakersOther: z.array(z.string()).default([]),
   additionalPreferences: z.array(z.string()).default([]),
-  additionalPreferencesOther: z.string().optional(),
+  additionalPreferencesOther: z.array(z.string()).default([]),
 });
 
 type DreamJobData = z.infer<typeof dreamJobSchema>;
@@ -449,9 +448,10 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
                     <FormItem>
                       <FormLabel className="text-sm">Outros (Opcional)</FormLabel>
                       <FormControl>
-                        <Input
+                        <AddableInput
                           placeholder="Adicione outros deal breakers não listados..."
-                          {...field}
+                          value={field.value || []}
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
@@ -492,9 +492,10 @@ const DreamJobStep: React.FC<StepProps> = ({ onNext, data }) => {
                     <FormItem>
                       <FormLabel className="text-sm">Outros (Opcional)</FormLabel>
                       <FormControl>
-                        <Input
+                        <AddableInput
                           placeholder="Adicione outras preferências não listadas..."
-                          {...field}
+                          value={field.value || []}
+                          onChange={field.onChange}
                         />
                       </FormControl>
                       <FormMessage />
