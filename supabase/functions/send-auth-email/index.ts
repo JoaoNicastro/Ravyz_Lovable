@@ -8,6 +8,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Supabase Auth Hook payload format
+interface SupabaseAuthHookPayload {
+  user: {
+    id: string;
+    email: string;
+  };
+  email_data: {
+    token: string;
+    token_hash: string;
+    redirect_to: string;
+    email_action_type: string;
+    site_url: string;
+  };
+}
+
+// Direct call format (for testing)
 interface AuthEmailRequest {
   email: string;
   type: "signup" | "password_reset" | "email_change";
@@ -95,9 +111,41 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, type, redirectUrl }: AuthEmailRequest = await req.json();
+    const payload = await req.json();
+    
+    let email: string;
+    let type: string;
+    let redirectUrl: string;
 
-    console.log(`Sending ${type} email to ${email}`);
+    // Check if this is a Supabase Auth Hook payload or a direct call
+    if (payload.user && payload.email_data) {
+      // Supabase Auth Hook format
+      const hookPayload = payload as SupabaseAuthHookPayload;
+      email = hookPayload.user.email;
+      redirectUrl = hookPayload.email_data.redirect_to;
+      
+      // Map email_action_type to our type format
+      const actionTypeMap: Record<string, string> = {
+        'signup': 'signup',
+        'magiclink': 'signup',
+        'recovery': 'password_reset',
+        'email_change': 'email_change',
+        'invite': 'signup'
+      };
+      
+      type = actionTypeMap[hookPayload.email_data.email_action_type] || 'signup';
+      
+      console.log(`[Auth Hook] Sending ${type} email to ${email}`);
+      console.log(`[Auth Hook] Action type: ${hookPayload.email_data.email_action_type}`);
+    } else {
+      // Direct call format (for testing)
+      const directPayload = payload as AuthEmailRequest;
+      email = directPayload.email;
+      type = directPayload.type;
+      redirectUrl = directPayload.redirectUrl;
+      
+      console.log(`[Direct Call] Sending ${type} email to ${email}`);
+    }
 
     if (!email || !type || !redirectUrl) {
       throw new Error("Missing required fields: email, type, or redirectUrl");
