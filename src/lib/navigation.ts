@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import { getActiveProfile } from './rbac';
 
 /**
  * Determines the default dashboard route for a user based on their profile
