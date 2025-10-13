@@ -489,18 +489,8 @@ const OnboardingFlow = () => {
         }
       }
 
-      // Update user completion status and set active_profile
-      const { error } = await supabase
-        .from('users')
-        .update({ 
-          profiles: ['candidate'],
-          active_profile: 'candidate'
-        })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      console.log('✅ [Onboarding] Candidate profile created, active_profile set');
+      // Role is automatically assigned via auto_grant_role_on_profile_creation trigger
+      console.log('✅ [Onboarding] Candidate profile created, role automatically granted');
       toast.success("Onboarding concluído com sucesso!");
       navigate("/onboarding/candidate/complete");
     } catch (error) {
