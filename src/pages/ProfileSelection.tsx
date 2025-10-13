@@ -74,9 +74,7 @@ const ProfileSelection = () => {
           .from('users')
           .insert({ 
             id: user.id, 
-            email: user.email!,
-            active_profile: selectedProfile,
-            profiles: [selectedProfile]
+            email: user.email!
           });
 
         if (insertError) {
@@ -86,8 +84,8 @@ const ProfileSelection = () => {
         console.log("✅ Usuário criado com sucesso");
       }
 
-      // 3. Grant the role via trigger when profile is created
-      // The role will be automatically assigned by the trigger when the profile is created
+      // 3. Role will be automatically assigned by trigger when profile is created
+      // No need to manually set active_profile - RBAC system handles this
       console.log("✅ Perfil será atribuído automaticamente ao criar o perfil de", selectedProfile);
       
       // 3. Redirecionamento confiável

@@ -13,16 +13,16 @@ export async function getDefaultDashboardRoute(
   try {
     console.log('🔍 [Navigation] Determining default route for user:', userId);
 
-    // 1. Check user_roles first using RPC
+    // 1. Check user_roles table for RBAC-based role
     const { data: primaryRole, error: roleError } = await supabase
       .rpc('get_user_primary_role', { _user_id: userId });
 
     if (roleError) {
       console.error('❌ [Navigation] Error fetching user role:', roleError);
     } else if (primaryRole) {
-      console.log('📊 [Navigation] User role:', primaryRole);
+      console.log('📊 [Navigation] User primary role:', primaryRole);
 
-      // If role is set, check if profile exists and is complete
+      // If primary role is set, check if profile exists and is complete
       if (primaryRole === 'candidate') {
         const { data: candidateProfile } = await supabase
           .from('candidate_profiles')
@@ -44,7 +44,7 @@ export async function getDefaultDashboardRoute(
           console.log('⚠️ [Navigation] Candidate profile incomplete → /onboarding/candidate');
           return '/onboarding/candidate';
         } else {
-          console.log('⚠️ [Navigation] Active profile is candidate but no candidate_profile found → /onboarding/candidate');
+          console.log('⚠️ [Navigation] Primary role is candidate but no candidate_profile found → /onboarding/candidate');
           return '/onboarding/candidate';
         }
       }
@@ -67,7 +67,7 @@ export async function getDefaultDashboardRoute(
           console.log('⚠️ [Navigation] Company profile incomplete → /onboarding/company');
           return '/onboarding/company';
         } else {
-          console.log('⚠️ [Navigation] Active profile is company but no company_profile found → /onboarding/company');
+          console.log('⚠️ [Navigation] Primary role is company but no company_profile found → /onboarding/company');
           return '/onboarding/company';
         }
       }
@@ -118,8 +118,8 @@ export async function getDefaultDashboardRoute(
 
     // 4. If only one profile exists, check if complete
     if (candidateProfile && !companyProfile) {
-      // Role is automatically assigned by trigger, no update needed
-      console.log('✅ [Navigation] Candidate profile detected');
+      // Role will be granted automatically via trigger
+      console.log('✅ [Navigation] Candidate role present');
       
       if (isCandidateProfileComplete) {
         console.log('✅ [Navigation] Candidate profile complete → /onboarding/candidate/complete');
@@ -131,8 +131,8 @@ export async function getDefaultDashboardRoute(
     }
 
     if (companyProfile && !candidateProfile) {
-      // Role is automatically assigned by trigger, no update needed
-      console.log('✅ [Navigation] Company profile detected');
+      // Role will be granted automatically via trigger
+      console.log('✅ [Navigation] Company role present');
       
       if (isCompanyProfileComplete) {
         console.log('✅ [Navigation] Company profile complete → /onboarding/company/complete');
