@@ -5,6 +5,11 @@ import { CandidateProfileForm } from "@/components/forms/CandidateProfileForm";
 
 const candidateSchema = z.object({
   // Basic info fields
+  full_name: z.string()
+    .min(3, "Nome completo deve ter pelo menos 3 caracteres")
+    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, "Nome deve conter apenas letras"),
+  email: z.string()
+    .email("Email inválido"),
   date_of_birth: z.date({
     required_error: "Data de nascimento é obrigatória",
     invalid_type_error: "Data inválida",

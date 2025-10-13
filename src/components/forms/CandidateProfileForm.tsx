@@ -22,6 +22,11 @@ import { cn } from "@/lib/utils";
 
 const candidateProfileSchema = z.object({
   // Basic info fields
+  full_name: z.string()
+    .min(3, "Nome completo deve ter pelo menos 3 caracteres")
+    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, "Nome deve conter apenas letras"),
+  email: z.string()
+    .email("Email inválido"),
   date_of_birth: z.date({
     required_error: "Data de nascimento é obrigatória",
     invalid_type_error: "Data inválida",
@@ -92,6 +97,8 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
   const form = useForm<CandidateProfileFormData>({
     resolver: zodResolver(candidateProfileSchema),
     defaultValues: {
+      full_name: initialData?.full_name || "",
+      email: initialData?.email || "",
       date_of_birth: initialData?.date_of_birth ? new Date(initialData.date_of_birth) : undefined,
       phone: initialData?.phone || "",
       cpf: initialData?.cpf || "",
@@ -126,6 +133,35 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
         {/* Basic Information Fields */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Dados Pessoais</h3>
+
+          <div className="space-y-4">
+            <ReusableFormField
+              control={form.control}
+              name="full_name"
+              label="Nome completo *"
+            >
+              {(field) => (
+                <Input
+                  {...field}
+                  placeholder="Digite seu nome completo"
+                />
+              )}
+            </ReusableFormField>
+
+            <ReusableFormField
+              control={form.control}
+              name="email"
+              label="E-mail *"
+            >
+              {(field) => (
+                <Input
+                  {...field}
+                  type="email"
+                  placeholder="seu.email@exemplo.com"
+                />
+              )}
+            </ReusableFormField>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ReusableFormField

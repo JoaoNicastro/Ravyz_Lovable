@@ -32,17 +32,16 @@ export async function getDefaultDashboardRoute(
       if (userData.active_profile === 'candidate') {
         const { data: candidateProfile } = await supabase
           .from('candidate_profiles')
-          .select('id, full_name, skills, preferred_roles, pillar_scores')
+          .select('id, date_of_birth, phone, skills, preferred_roles')
           .eq('user_id', userId)
           .maybeSingle();
         
         const isComplete = candidateProfile && 
-          candidateProfile.full_name && 
+          candidateProfile.date_of_birth && 
+          candidateProfile.phone && 
           candidateProfile.skills && 
           Array.isArray(candidateProfile.skills) && 
-          candidateProfile.skills.length > 0 &&
-          candidateProfile.pillar_scores &&
-          Object.keys(candidateProfile.pillar_scores).length > 0;
+          candidateProfile.skills.length > 0;
         
         if (candidateProfile && isComplete) {
           console.log('✅ [Navigation] Candidate profile complete → /onboarding/candidate/complete');
@@ -83,7 +82,7 @@ export async function getDefaultDashboardRoute(
     // 2. Check if candidate_profile exists and is complete
     const { data: candidateProfile, error: candidateError } = await supabase
       .from('candidate_profiles')
-      .select('id, created_at, full_name, skills, preferred_roles, pillar_scores')
+      .select('id, created_at, date_of_birth, phone, skills, preferred_roles')
       .eq('user_id', userId)
       .maybeSingle();
 
@@ -93,12 +92,11 @@ export async function getDefaultDashboardRoute(
 
     // Check if candidate profile is complete (has essential fields)
     const isCandidateProfileComplete = candidateProfile && 
-      candidateProfile.full_name && 
+      candidateProfile.date_of_birth && 
+      candidateProfile.phone && 
       candidateProfile.skills && 
       Array.isArray(candidateProfile.skills) && 
-      candidateProfile.skills.length > 0 &&
-      candidateProfile.pillar_scores &&
-      Object.keys(candidateProfile.pillar_scores).length > 0;
+      candidateProfile.skills.length > 0;
 
     // 3. Check if company_profile exists and is complete
     const { data: companyProfile, error: companyError } = await supabase
