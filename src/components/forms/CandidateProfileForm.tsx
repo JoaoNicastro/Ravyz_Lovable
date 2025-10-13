@@ -19,6 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const candidateProfileSchema = z.object({
   // Basic info fields
@@ -313,20 +314,20 @@ export function CandidateProfileForm({ onSubmit, initialData }: CandidateProfile
                     field.onChange(e);
                     const cep = e.target.value.replace(/\D/g, '');
                     if (cep.length === 8) {
-                      fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                        .then(res => res.json())
-                        .then(data => {
-                          if (!data.erro) {
-                            form.setValue('address_street', data.logradouro || '');
-                            form.setValue('address_neighborhood', data.bairro || '');
-                            form.setValue('address_city', data.localidade || '');
-                            form.setValue('address_state', data.uf || '');
-                            toast.success('Endereço encontrado!');
-                          } else {
-                            toast.error('CEP não encontrado');
-                          }
-                        })
-                        .catch(() => toast.error('Erro ao buscar CEP'));
+                      // Use Edge Function to validate CEP securely
+                      supabase.functions.invoke('lookup-cep', {
+                        body: { cep }
+                      }).then(({ data, error }) => {
+                        if (error || data?.error) {
+                          toast.error(data?.error || 'Erro ao buscar CEP');
+                        } else if (data) {
+                          form.setValue('address_street', data.street || '');
+                          form.setValue('address_neighborhood', data.neighborhood || '');
+                          form.setValue('address_city', data.city || '');
+                          form.setValue('address_state', data.state || '');
+                          toast.success('Endereço encontrado!');
+                        }
+                      }).catch(() => toast.error('Erro ao buscar CEP'));
                     }
                   }}
                 />

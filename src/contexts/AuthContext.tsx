@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { getDefaultDashboardRoute } from '@/lib/navigation';
+import { logger } from '@/lib/logger';
 
 interface AuthContextType {
   user: User | null;
@@ -38,7 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+        logger.debug('Auth state changed:', { event, email: session?.user?.email });
         
         // Clear invalid tokens on sign out
         if (event === 'SIGNED_OUT') {
@@ -56,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        console.error('Session error:', error);
+        logger.error('Session error:', error);
         localStorage.clear(); // Clear all localStorage if session is corrupted
       }
       setSession(session);
@@ -136,7 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { error: null };
     } catch (error: any) {
-      console.error('Signup error:', error);
+      logger.error('Signup error:', error);
       
       const errorMessage = error?.message?.includes('rate limit') 
         ? 'Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.'
@@ -162,7 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let errorMessage: string;
         let errorTitle = "Erro no login";
         
-        console.error('Login error:', error);
+        logger.error('Login error:', error);
         
         switch (error.message) {
           case 'Invalid login credentials':
@@ -195,7 +196,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { error };
     } catch (error: any) {
-      console.error('Unexpected login error:', error);
+      logger.error('Unexpected login error:', error);
       toast({
         title: "Erro no login",
         description: error?.message || "Erro inesperado. Tente novamente.",
@@ -270,7 +271,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return { error };
     } catch (error: any) {
-      console.error('Reset password error:', error);
+      logger.error('Reset password error:', error);
       return { error };
     }
   };
@@ -283,7 +284,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       return { error };
     } catch (error: any) {
-      console.error('Update password error:', error);
+      logger.error('Update password error:', error);
       return { error };
     }
   };

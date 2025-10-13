@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -7,6 +8,24 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Input validation schemas
+const AllowedDomains = [
+  'https://ravyz.com', 
+  'https://wmwpjbagtohitynxoqqx.supabase.co', 
+  'http://localhost'
+];
+
+const DirectEmailSchema = z.object({
+  email: z.string().email('Invalid email format').max(255),
+  type: z.enum(['signup', 'password_reset', 'email_change'], {
+    errorMap: () => ({ message: 'Invalid email type' })
+  }),
+  redirectUrl: z.string().url('Invalid redirect URL').refine(
+    (url) => AllowedDomains.some(domain => url.startsWith(domain)),
+    'Redirect URL must be from an allowed domain'
+  ),
+});
 
 // Supabase Auth Hook payload format
 interface SupabaseAuthHookPayload {
@@ -138,11 +157,24 @@ const handler = async (req: Request): Promise<Response> => {
       console.log(`[Auth Hook] Sending ${type} email to ${email}`);
       console.log(`[Auth Hook] Action type: ${hookPayload.email_data.email_action_type}`);
     } else {
-      // Direct call format (for testing)
+      // Direct call format - validate input
       const directPayload = payload as AuthEmailRequest;
-      email = directPayload.email;
-      type = directPayload.type;
-      redirectUrl = directPayload.redirectUrl;
+      
+      const validationResult = DirectEmailSchema.safeParse(directPayload);
+      if (!validationResult.success) {
+        console.error('Input validation failed:', validationResult.error);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Invalid request parameters',
+            success: false
+          }),
+          { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+        );
+      }
+      
+      email = validationResult.data.email;
+      type = validationResult.data.type;
+      redirectUrl = validationResult.data.redirectUrl;
       
       console.log(`[Direct Call] Sending ${type} email to ${email}`);
     }
@@ -176,10 +208,10 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
   } catch (error: any) {
-    console.error("Error in send-auth-email function:", error);
+    console.error("Error in send-auth-email function (detailed):", error);
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: 'Failed to send email. Please try again.',
         success: false 
       }),
       {

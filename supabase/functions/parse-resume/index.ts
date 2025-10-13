@@ -1,10 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const ParseResumeSchema = z.object({
+  resumeUrl: z.string().url('Invalid resume URL format'),
+  resumeAnalysisId: z.string().uuid('Invalid resume analysis ID format'),
+  candidateId: z.string().uuid('Invalid candidate ID format'),
+});
 
 console.log('🚀 Edge Function parse-resume initializing...');
 
@@ -44,9 +52,25 @@ serve(async (req) => {
     // Handle POST request (resume processing)
     if (req.method === 'POST') {
       const body = await req.json();
-      const { resumeUrl, resumeAnalysisId, candidateId } = body;
+      
+      // Validate input
+      const validationResult = ParseResumeSchema.safeParse(body);
+      if (!validationResult.success) {
+        console.error('Input validation failed:', validationResult.error);
+        return new Response(
+          JSON.stringify({ 
+            success: false,
+            message: 'Dados de entrada inválidos',
+            errors: validationResult.error.errors
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      const { resumeUrl, resumeAnalysisId, candidateId } = validationResult.data;
+      
       console.log('📄 Processing resume:', { 
-        resumeUrl: resumeUrl?.substring(0, 50) + '...', 
+        resumeUrl: resumeUrl.substring(0, 50) + '...', 
         resumeAnalysisId, 
         candidateId,
         hasResumeUrl: !!resumeUrl,
@@ -148,7 +172,7 @@ serve(async (req) => {
         } catch (e) {
           errorText = 'No error message available';
         }
-        console.error('❌ Affinda API error:', affindaResponse.status, errorText.substring(0, 500));
+        console.error('❌ Affinda API error (detailed):', affindaResponse.status, errorText.substring(0, 500));
         
         await supabase
           .from('resume_analyses')
@@ -160,9 +184,7 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ 
             success: false,
-            message: 'Falha ao processar currículo com a API externa',
-            status: affindaResponse.status,
-            details: errorText.substring(0, 300)
+            message: 'Falha ao processar currículo. Por favor, tente novamente.'
           }),
           { 
             status: 502,
@@ -306,7 +328,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('❌ parse-resume fatal error:', {
+    console.error('❌ parse-resume fatal error (detailed):', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
       error: error
@@ -315,10 +337,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false,
-        message: 'Erro ao processar currículo. Verifique o formato do arquivo.',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        timestamp: new Date().toISOString()
+        message: 'Erro ao processar currículo. Por favor, tente novamente.'
       }),
       { 
         status: 500,
