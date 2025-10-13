@@ -30,16 +30,25 @@ export function UserDropdown() {
     if (!user) return;
 
     try {
+      // Use RPC to get the user's primary role from user_roles table
       const { data, error } = await supabase
-        .from('users')
-        .select('active_profile')
-        .eq('id', user.id)
-        .single();
+        .rpc('get_user_primary_role', { _user_id: user.id });
 
       if (error) throw error;
-      setActiveProfile(data?.active_profile);
+      setActiveProfile(data as 'candidate' | 'company' | null);
     } catch (error) {
       console.error('Error fetching active profile:', error);
+      // Fallback: check users table for backwards compatibility
+      try {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('active_profile')
+          .eq('id', user.id)
+          .single();
+        setActiveProfile(userData?.active_profile);
+      } catch (fallbackError) {
+        console.error('Fallback error:', fallbackError);
+      }
     }
   };
 

@@ -697,6 +697,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           active_profile: Database["public"]["Enums"]["profile_type"] | null
@@ -858,9 +882,20 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_user_primary_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       get_user_profiles: {
         Args: { user_uuid: string }
         Returns: Database["public"]["Enums"]["profile_type"][]
+      }
+      grant_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
       }
       halfvec_avg: {
         Args: { "": number[] }
@@ -880,6 +915,13 @@ export type Database = {
       }
       has_contact_consent: {
         Args: { _candidate_id: string; _company_id: string }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
         Returns: boolean
       }
       hnsw_bit_support: {
@@ -934,6 +976,13 @@ export type Database = {
         Args: { phone: string }
         Returns: string
       }
+      revoke_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
       sparsevec_out: {
         Args: { "": unknown }
         Returns: unknown
@@ -984,6 +1033,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "candidate" | "company" | "admin"
       application_status:
         | "applied"
         | "viewed"
@@ -1126,6 +1176,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["candidate", "company", "admin"],
       application_status: [
         "applied",
         "viewed",

@@ -13,23 +13,17 @@ export async function getDefaultDashboardRoute(
   try {
     console.log('🔍 [Navigation] Determining default route for user:', userId);
 
-    // 1. Check users.active_profile first
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('active_profile, profiles')
-      .eq('id', userId)
-      .single();
+    // 1. Check user_roles first using RPC
+    const { data: primaryRole, error: roleError } = await supabase
+      .rpc('get_user_primary_role', { _user_id: userId });
 
-    if (userError) {
-      console.error('❌ [Navigation] Error fetching user data:', userError);
-    } else if (userData) {
-      console.log('📊 [Navigation] User data:', {
-        active_profile: userData.active_profile,
-        profiles: userData.profiles,
-      });
+    if (roleError) {
+      console.error('❌ [Navigation] Error fetching user role:', roleError);
+    } else if (primaryRole) {
+      console.log('📊 [Navigation] User role:', primaryRole);
 
-      // If active_profile is set, check if profile exists and is complete
-      if (userData.active_profile === 'candidate') {
+      // If role is set, check if profile exists and is complete
+      if (primaryRole === 'candidate') {
         const { data: candidateProfile } = await supabase
           .from('candidate_profiles')
           .select('id, date_of_birth, phone, skills, preferred_roles')
@@ -54,7 +48,7 @@ export async function getDefaultDashboardRoute(
           return '/onboarding/candidate';
         }
       }
-      if (userData.active_profile === 'company') {
+      if (primaryRole === 'company') {
         const { data: companyProfile } = await supabase
           .from('company_profiles')
           .select('id, company_name, description, industry')
@@ -124,12 +118,8 @@ export async function getDefaultDashboardRoute(
 
     // 4. If only one profile exists, check if complete
     if (candidateProfile && !companyProfile) {
-      // Update active_profile in background
-      supabase
-        .from('users')
-        .update({ active_profile: 'candidate' })
-        .eq('id', userId)
-        .then(() => console.log('✅ [Navigation] Updated active_profile to candidate'));
+      // Role is automatically assigned by trigger, no update needed
+      console.log('✅ [Navigation] Candidate profile detected');
       
       if (isCandidateProfileComplete) {
         console.log('✅ [Navigation] Candidate profile complete → /onboarding/candidate/complete');
@@ -141,12 +131,8 @@ export async function getDefaultDashboardRoute(
     }
 
     if (companyProfile && !candidateProfile) {
-      // Update active_profile in background
-      supabase
-        .from('users')
-        .update({ active_profile: 'company' })
-        .eq('id', userId)
-        .then(() => console.log('✅ [Navigation] Updated active_profile to company'));
+      // Role is automatically assigned by trigger, no update needed
+      console.log('✅ [Navigation] Company profile detected');
       
       if (isCompanyProfileComplete) {
         console.log('✅ [Navigation] Company profile complete → /onboarding/company/complete');
@@ -166,13 +152,6 @@ export async function getDefaultDashboardRoute(
       const mostRecent = candidateDate > companyDate ? 'candidate' : 'company';
       const isComplete = mostRecent === 'candidate' ? isCandidateProfileComplete : isCompanyProfileComplete;
       console.log(`✅ [Navigation] Most recent: ${mostRecent}, complete: ${isComplete}`);
-      
-      // Update active_profile
-      supabase
-        .from('users')
-        .update({ active_profile: mostRecent })
-        .eq('id', userId)
-        .then(() => console.log(`✅ [Navigation] Updated active_profile to ${mostRecent}`));
 
       if (isComplete) {
         return mostRecent === 'candidate' ? '/onboarding/candidate/complete' : '/onboarding/company/complete';

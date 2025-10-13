@@ -84,24 +84,11 @@ const ProfileSelection = () => {
           throw insertError;
         }
         console.log("✅ Usuário criado com sucesso");
-      } else {
-        // Usuário já existe, apenas atualizar
-        console.log("💾 Atualizando active_profile no banco...");
-        const { error } = await supabase
-          .from('users')
-          .update({ 
-            active_profile: selectedProfile,
-            profiles: [selectedProfile]
-          })
-          .eq('id', user.id);
-
-        if (error) {
-          console.error("❌ Erro na query Supabase:", error);
-          throw error;
-        }
       }
 
-      console.log("✅ Active profile salvo:", selectedProfile);
+      // 3. Grant the role via trigger when profile is created
+      // The role will be automatically assigned by the trigger when the profile is created
+      console.log("✅ Perfil será atribuído automaticamente ao criar o perfil de", selectedProfile);
       
       // 3. Redirecionamento confiável
       const targetRoute = selectedProfile === 'candidate' 
