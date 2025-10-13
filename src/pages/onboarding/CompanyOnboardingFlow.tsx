@@ -267,7 +267,6 @@ const CompanyOnboardingFlow: React.FC = () => {
       if (jobError) throw jobError;
 
       // Role is automatically assigned via auto_grant_role_on_profile_creation trigger
-      console.log('✅ [Onboarding] Company profile created, role automatically granted');
       toast.success("Onboarding concluído com sucesso!");
       navigate("/onboarding/company/complete");
       
