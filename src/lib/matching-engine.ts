@@ -11,14 +11,18 @@ export interface CandidateRavyzData {
     Crescimento?: number;
   };
   archetype: string;
-  // Legacy fields for backward compatibility
+  // Professional data for hybrid matching
   yearsExperience?: number;
   skills?: string[];
-  location?: string[];
+  location?: string;
   workModel?: string[];
   expectedSalaryMin?: number;
   expectedSalaryMax?: number;
   resumeScore?: number;
+  currentPosition?: string;
+  education?: any[];
+  languages?: string[];
+  // Legacy fields for backward compatibility
   culturalResponses?: Record<string, any>;
   professionalResponses?: Record<string, any>;
   dreamJob?: Record<string, any>;
@@ -34,16 +38,22 @@ export interface JobRavyzData {
     Ambição?: number;
   };
   archetype: string;
-  // Legacy fields for backward compatibility
+  // Job requirements for hybrid matching
   title?: string;
   department?: string;
   experienceLevel?: string;
+  minExperience?: number;
+  requiredSkills?: string[];
+  technicalSkills?: string[];
   hardSkills?: string[];
   softSkillsIntensity?: Record<string, number>;
   salaryMin?: number;
   salaryMax?: number;
   workModel?: string;
   location?: string;
+  languagesRequired?: string[];
+  educationRequired?: string[];
+  roleType?: string;
   requirements?: Record<string, any>;
 }
 
@@ -830,11 +840,473 @@ export class MatchingEngine {
     const explanation = this.generateExplanation(factorsAnalyzed, totalScore);
 
     return {
-      matchPercentage: Math.round(totalScore),
+      matchPercentage: totalScore,
       scoreBreakdown,
       factorsAnalyzed,
       explanation,
     };
+  }
+
+  // === HYBRID MATCH MODEL V2 - Technical + Behavioral ===
+
+  /**
+   * Calculate Experience & Education Score (35%)
+   * Evaluates years of experience, current position, and education
+   */
+  private calculateHybridExperienceScore(
+    candidate: CandidateRavyzData,
+    job: JobRavyzData
+  ): {
+    score: number;
+    yearsScore: number;
+    positionScore: number;
+    educationScore: number;
+  } {
+    let yearsScore = 0;
+    let positionScore = 0;
+    let educationScore = 0;
+
+    // 1. Years of Experience (50% of experience score)
+    const candidateYears = candidate.yearsExperience || 0;
+    const jobMinYears = job.minExperience || 0;
+
+    if (candidateYears >= jobMinYears) {
+      // Meets or exceeds requirement
+      const excess = candidateYears - jobMinYears;
+      if (excess <= 3) {
+        yearsScore = 100; // Perfect match
+      } else if (excess <= 5) {
+        yearsScore = 90; // Slightly overqualified
+      } else {
+        yearsScore = 80; // Overqualified
+      }
+    } else {
+      // Below requirement
+      const gap = jobMinYears - candidateYears;
+      yearsScore = Math.max(0, 100 - (gap * 20)); // -20% per year gap
+    }
+
+    // 2. Position Match (30% of experience score)
+    const currentPosition = (candidate.currentPosition || '').toLowerCase();
+    const roleType = (job.roleType || job.title || '').toLowerCase();
+    
+    if (currentPosition && roleType) {
+      // Check for keyword overlap
+      const positionWords = currentPosition.split(/\s+/);
+      const roleWords = roleType.split(/\s+/);
+      const commonWords = positionWords.filter(word => 
+        roleWords.some(roleWord => roleWord.includes(word) || word.includes(roleWord))
+      );
+      
+      if (commonWords.length > 0) {
+        positionScore = Math.min(100, 60 + (commonWords.length * 20));
+      } else {
+        positionScore = 40; // No direct match
+      }
+    } else {
+      positionScore = 50; // Neutral if missing data
+    }
+
+    // 3. Education Match (20% of experience score)
+    const candidateEducation = candidate.education || [];
+    const jobEducationRequired = job.educationRequired || [];
+
+    if (jobEducationRequired.length === 0) {
+      educationScore = 100; // No specific requirement
+    } else {
+      // Check if candidate meets any required education level
+      const educationLevels: Record<string, number> = {
+        'Ensino Fundamental': 1,
+        'Ensino Médio': 2,
+        'Técnico': 3,
+        'Superior': 4,
+        'Pós-Graduação': 5,
+        'Mestrado': 6,
+        'Doutorado': 7
+      };
+
+      const candidateMaxLevel = Math.max(
+        0,
+        ...candidateEducation.map((edu: any) => {
+          const level = edu.level || edu.degree || '';
+          return educationLevels[level] || 0;
+        })
+      );
+
+      const requiredMaxLevel = Math.max(
+        0,
+        ...jobEducationRequired.map(level => educationLevels[level] || 0)
+      );
+
+      if (candidateMaxLevel >= requiredMaxLevel) {
+        educationScore = 100;
+      } else if (candidateMaxLevel >= requiredMaxLevel - 1) {
+        educationScore = 75; // One level below
+      } else {
+        educationScore = 50; // Significantly below
+      }
+    }
+
+    // Weighted average
+    const score = (yearsScore * 0.5) + (positionScore * 0.3) + (educationScore * 0.2);
+
+    return {
+      score: Math.round(score),
+      yearsScore: Math.round(yearsScore),
+      positionScore: Math.round(positionScore),
+      educationScore: Math.round(educationScore)
+    };
+  }
+
+  /**
+   * Calculate Technical Skills Score (25%)
+   * Compares candidate skills with job requirements
+   */
+  private calculateHybridSkillsScore(
+    candidate: CandidateRavyzData,
+    job: JobRavyzData
+  ): {
+    score: number;
+    matchedSkills: string[];
+    missingSkills: string[];
+    matchRate: number;
+  } {
+    const candidateSkills = (candidate.skills || []).map(s => s.toLowerCase().trim());
+    const jobSkills = [
+      ...(job.requiredSkills || []),
+      ...(job.technicalSkills || []),
+      ...(job.hardSkills || [])
+    ].map(s => s.toLowerCase().trim());
+
+    if (jobSkills.length === 0) {
+      return {
+        score: 100,
+        matchedSkills: [],
+        missingSkills: [],
+        matchRate: 100
+      };
+    }
+
+    const matchedSkills: string[] = [];
+    const missingSkills: string[] = [];
+
+    for (const jobSkill of jobSkills) {
+      const match = candidateSkills.find(candSkill => 
+        candSkill === jobSkill ||
+        candSkill.includes(jobSkill) ||
+        jobSkill.includes(candSkill) ||
+        this.calculateSkillSimilarity(candSkill, jobSkill) > 0.7
+      );
+
+      if (match) {
+        matchedSkills.push(jobSkill);
+      } else {
+        missingSkills.push(jobSkill);
+      }
+    }
+
+    // Calculate match rate using Jaccard similarity: |A∩B| / |B|
+    const matchRate = (matchedSkills.length / jobSkills.length) * 100;
+    
+    // Score with slight boost for exceeding requirements
+    let score = matchRate;
+    if (matchRate === 100) {
+      score = 100;
+    } else if (matchRate >= 80) {
+      score = matchRate + 5; // Small boost
+    }
+
+    return {
+      score: Math.min(100, Math.round(score)),
+      matchedSkills,
+      missingSkills,
+      matchRate: Math.round(matchRate)
+    };
+  }
+
+  /**
+   * Calculate adjustment factors
+   */
+  private calculateHybridAdjustments(
+    candidate: CandidateRavyzData,
+    job: JobRavyzData,
+    archetypeBoost: number
+  ): {
+    total: number;
+    archetype: number;
+    location: number;
+    language: number;
+  } {
+    let adjustments = {
+      archetype: 0,
+      location: 0,
+      language: 0,
+      total: 0
+    };
+
+    // 1. Archetype compatible: +5%
+    if (archetypeBoost > 0) {
+      adjustments.archetype = 5;
+    }
+
+    // 2. Location compatible: +3%
+    const candidateLocation = (candidate.location || '').toLowerCase();
+    const jobLocation = (job.location || '').toLowerCase();
+    
+    if (candidateLocation && jobLocation) {
+      if (candidateLocation.includes(jobLocation) || jobLocation.includes(candidateLocation)) {
+        adjustments.location = 3;
+      }
+    }
+    
+    // Remote work = automatic location match
+    if (job.workModel?.toLowerCase() === 'remoto' || job.workModel?.toLowerCase() === 'remote') {
+      adjustments.location = 3;
+    }
+
+    // 3. Language match: +2%
+    const candidateLanguages = (candidate.languages || []).map(l => l.toLowerCase());
+    const jobLanguages = (job.languagesRequired || []).map(l => l.toLowerCase());
+    
+    if (jobLanguages.length > 0 && candidateLanguages.length > 0) {
+      const hasAllLanguages = jobLanguages.every(jl => 
+        candidateLanguages.some(cl => cl.includes(jl) || jl.includes(cl))
+      );
+      
+      if (hasAllLanguages) {
+        adjustments.language = 2;
+      }
+    } else if (jobLanguages.length === 0) {
+      // No language requirement = automatic pass
+      adjustments.language = 2;
+    }
+
+    adjustments.total = adjustments.archetype + adjustments.location + adjustments.language;
+
+    return adjustments;
+  }
+
+  /**
+   * HYBRID MATCH MODEL V2
+   * Combines Behavioral (40%), Experience (35%), and Technical Skills (25%)
+   * Plus adjustments for archetype, location, and language
+   */
+  public async calculateHybridMatch(
+    candidate: CandidateRavyzData,
+    job: JobRavyzData
+  ): Promise<{
+    final_score: number;
+    behavioral_score: number;
+    experience_score: number;
+    skills_score: number;
+    adjustments: number;
+    breakdown: {
+      behavioral: {
+        score: number;
+        weight: number;
+        pillar_breakdown: PillarBreakdown;
+        archetype_boost: number;
+        candidate_archetype: string;
+        job_archetype: string;
+      };
+      experience: {
+        score: number;
+        weight: number;
+        years_score: number;
+        position_score: number;
+        education_score: number;
+      };
+      skills: {
+        score: number;
+        weight: number;
+        matched_skills: string[];
+        missing_skills: string[];
+        match_rate: number;
+      };
+      adjustments: {
+        total: number;
+        archetype: number;
+        location: number;
+        language: number;
+      };
+    };
+    explanation: string;
+  }> {
+    // 1. BEHAVIORAL SCORE (40%) - Uses existing MATCH RAVYZ
+    const behavioralResult = await this.calculateRavyzMatchSingle(candidate, job);
+    const behavioralScore = behavioralResult.compatibility_score;
+    const archetypeBoost = behavioralResult.archetype_boost;
+    const pillarBreakdown = behavioralResult.pillar_breakdown;
+
+    // 2. EXPERIENCE SCORE (35%)
+    const experienceResult = this.calculateHybridExperienceScore(candidate, job);
+    const experienceScore = experienceResult.score;
+
+    // 3. SKILLS SCORE (25%)
+    const skillsResult = this.calculateHybridSkillsScore(candidate, job);
+    const skillsScore = skillsResult.score;
+
+    // 4. CALCULATE BASE FINAL SCORE
+    let finalScore = 
+      (behavioralScore * 0.4) +
+      (experienceScore * 0.35) +
+      (skillsScore * 0.25);
+
+    // 5. APPLY ADJUSTMENTS
+    const adjustments = this.calculateHybridAdjustments(candidate, job, archetypeBoost);
+    finalScore = Math.min(100, finalScore + adjustments.total);
+
+    // 6. GENERATE EXPLANATION
+    const explanation = this.generateHybridExplanation(
+      behavioralScore,
+      experienceScore,
+      skillsScore,
+      adjustments,
+      finalScore,
+      candidate.archetype,
+      job.archetype
+    );
+
+    return {
+      final_score: Math.round(finalScore),
+      behavioral_score: Math.round(behavioralScore),
+      experience_score: Math.round(experienceScore),
+      skills_score: Math.round(skillsScore),
+      adjustments: adjustments.total,
+      breakdown: {
+        behavioral: {
+          score: Math.round(behavioralScore),
+          weight: 0.4,
+          pillar_breakdown: pillarBreakdown,
+          archetype_boost: archetypeBoost,
+          candidate_archetype: candidate.archetype,
+          job_archetype: job.archetype
+        },
+        experience: {
+          score: Math.round(experienceScore),
+          weight: 0.35,
+          years_score: experienceResult.yearsScore,
+          position_score: experienceResult.positionScore,
+          education_score: experienceResult.educationScore
+        },
+        skills: {
+          score: Math.round(skillsScore),
+          weight: 0.25,
+          matched_skills: skillsResult.matchedSkills,
+          missing_skills: skillsResult.missingSkills,
+          match_rate: skillsResult.matchRate
+        },
+        adjustments: adjustments
+      },
+      explanation
+    };
+  }
+
+  /**
+   * Generate explanation for hybrid match
+   */
+  private generateHybridExplanation(
+    behavioralScore: number,
+    experienceScore: number,
+    skillsScore: number,
+    adjustments: { archetype: number; location: number; language: number },
+    finalScore: number,
+    candidateArchetype: string,
+    jobArchetype: string
+  ): string {
+    const parts: string[] = [];
+
+    // Overall assessment
+    if (finalScore >= 85) {
+      parts.push('Candidato altamente compatível!');
+    } else if (finalScore >= 75) {
+      parts.push('Boa compatibilidade geral.');
+    } else if (finalScore >= 60) {
+      parts.push('Compatibilidade moderada.');
+    } else {
+      parts.push('Compatibilidade limitada.');
+    }
+
+    // Behavioral analysis
+    if (behavioralScore >= 80) {
+      parts.push('Perfil comportamental excelente.');
+    } else if (behavioralScore >= 70) {
+      parts.push('Bom fit cultural.');
+    } else {
+      parts.push('Diferenças comportamentais significativas.');
+    }
+
+    // Experience analysis
+    if (experienceScore >= 85) {
+      parts.push('Experiência sólida e relevante.');
+    } else if (experienceScore >= 70) {
+      parts.push('Experiência adequada com pequenos gaps.');
+    } else {
+      parts.push('Experiência abaixo do esperado.');
+    }
+
+    // Skills analysis
+    if (skillsScore >= 90) {
+      parts.push('Skills técnicas 95%+ compatíveis.');
+    } else if (skillsScore >= 75) {
+      parts.push('Skills técnicas altamente compatíveis.');
+    } else if (skillsScore >= 60) {
+      parts.push('Skills técnicas compatíveis com treinamento.');
+    } else {
+      parts.push('Skills técnicas requerem desenvolvimento.');
+    }
+
+    // Adjustments
+    if (adjustments.archetype > 0) {
+      parts.push(`Arquétipos compatíveis (${candidateArchetype} ↔ ${jobArchetype}).`);
+    }
+
+    return parts.join(' ');
+  }
+
+  /**
+   * Save hybrid match result to database
+   */
+  public async saveHybridMatchResult(
+    candidateId: string,
+    jobId: string,
+    hybridResult: any,
+    isDemoMatch: boolean = false
+  ): Promise<void> {
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    const { error } = await supabase
+      .from('matching_results')
+      .upsert({
+        candidate_id: candidateId,
+        job_id: jobId,
+        match_percentage: hybridResult.final_score,
+        score_breakdown: {
+          behavioral_score: hybridResult.behavioral_score,
+          experience_score: hybridResult.experience_score,
+          skills_score: hybridResult.skills_score,
+          adjustments: hybridResult.adjustments,
+          ...hybridResult.breakdown
+        },
+        factors_analyzed: {
+          model: 'hybrid_v2',
+          weights: {
+            behavioral: 0.4,
+            experience: 0.35,
+            skills: 0.25
+          },
+          ...hybridResult.breakdown
+        },
+        explanation: hybridResult.explanation,
+        is_demo_match: isDemoMatch,
+        calculated_at: now.toISOString(),
+        expires_at: expiresAt.toISOString()
+      });
+
+    if (error) {
+      throw new Error(`Failed to save hybrid match result: ${error.message}`);
+    }
   }
 }
 
