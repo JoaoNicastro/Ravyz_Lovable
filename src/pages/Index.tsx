@@ -145,9 +145,10 @@ const Index = () => {
           </Link>
           
           <Link to="/auth?tab=register">
-            <Button size="lg" variant="outline" className="border-primary/20 hover:bg-primary-light">
+            <Button size="lg" className="bg-gradient-primary hover:shadow-glow transition-all duration-300">
               <Briefcase className="mr-2 h-5 w-5" />
               Sou Empresa
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
         </div>
