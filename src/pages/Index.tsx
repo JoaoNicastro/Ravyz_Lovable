@@ -9,6 +9,7 @@ import { getDefaultDashboardRoute } from "@/lib/navigation";
 import { useState } from "react";
 import heroImage from "@/assets/hero-recruitment.jpg";
 import ravyzLogo from "@/assets/ravyz-logo.png";
+import Header from "@/components/ui/header.tsx";
 
 const Index = () => {
   const { user, signOut, loading } = useAuth();
@@ -178,33 +179,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-background/95 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <img 
-              src={ravyzLogo} 
-              alt="RAVYZ Logo" 
-              className="w-8 h-8 object-contain"
-            />
-            <span className="text-xl font-bold text-foreground">RAVYZ</span>
-          </div>
-          
-          <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
-              Recursos
-            </a>
-            <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
-              Como Funciona
-            </a>
-            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
-              Preços
-            </a>
-          </nav>
-
-          {renderAuthButtons()}
-        </div>
-      </header>
+      <Header /> 
 
       {/* Hero Section */}
       <section className="py-20 px-4 relative overflow-hidden">
@@ -393,7 +368,7 @@ const Index = () => {
               <h4 className="font-semibold text-foreground mb-4">Suporte</h4>
               <ul className="space-y-2">
                 <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Central de Ajuda</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Contato</a></li>
+                <li><a href="/contato" className="text-muted-foreground hover:text-foreground transition-colors">Contato</a></li>
                 <li><a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Privacidade</a></li>
               </ul>
             </div>

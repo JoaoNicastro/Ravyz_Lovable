@@ -20,6 +20,7 @@ import CompanyDashboard from "./pages/dashboard/CompanyDashboard";
 import ResumeAnalyze from "./pages/ResumeAnalyze";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Contato from "./pages/Contato";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/dashboard/candidate" element={<ProtectedRoute><CandidateDashboard /></ProtectedRoute>} />
             <Route path="/dashboard/company" element={<ProtectedRoute><CompanyDashboard /></ProtectedRoute>} />
             <Route path="/resume/analyze" element={<ResumeAnalyze />} />
+            <Route path="/contato" element={<Contato/>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
