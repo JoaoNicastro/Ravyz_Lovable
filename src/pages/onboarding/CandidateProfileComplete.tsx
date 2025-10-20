@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MatchRadarChart } from '@/components/MatchRadarChart';
+import { ComingSoonModal } from '@/components/ComingSoonModal';
 import { 
   Sparkles, 
   MapPin, 
@@ -27,6 +28,7 @@ export default function CandidateProfileComplete() {
   const { user, signOut } = useAuth();
   const [profile, setProfile] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
+  const [showComingSoonModal, setShowComingSoonModal] = React.useState(false);
 
   const handleLogout = async () => {
     await signOut();
@@ -36,6 +38,16 @@ export default function CandidateProfileComplete() {
   React.useEffect(() => {
     loadProfile();
   }, [user]);
+
+  React.useEffect(() => {
+    // Mostrar modal após carregamento completo
+    if (!loading && profile) {
+      const timer = setTimeout(() => {
+        setShowComingSoonModal(true);
+      }, 800); // Pequeno delay para melhor UX
+      return () => clearTimeout(timer);
+    }
+  }, [loading, profile]);
 
   const loadProfile = async () => {
     if (!user) return;
@@ -99,8 +111,14 @@ export default function CandidateProfileComplete() {
   const age = profile.date_of_birth ? getAge(profile.date_of_birth) : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
+    <>
+      <ComingSoonModal 
+        open={showComingSoonModal} 
+        onClose={() => setShowComingSoonModal(false)} 
+      />
+      
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+        <div className="container mx-auto px-4 py-12 space-y-8 max-w-7xl">
         {/* Logout Button */}
         <div className="flex justify-end">
           <Button
@@ -431,7 +449,8 @@ export default function CandidateProfileComplete() {
           )}
         </div>
 
+        </div>
       </div>
-    </div>
+    </>
   );
 }
